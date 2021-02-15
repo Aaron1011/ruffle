@@ -1055,10 +1055,11 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
 name = "embed-resource"
-version = "1.4.1"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3b2f39c0462f098c1ca4abc408f7482949bbe2ab19bca5a4419f91f69e5bccc"
+checksum = "5ca1abfe6ac97a17000147da0ea77742e5f1dbed4860dafbdb785a3c55f4fb4d"
 dependencies = [
+ "cc",
  "vswhom",
  "winreg",
 ]
