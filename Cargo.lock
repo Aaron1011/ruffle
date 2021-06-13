@@ -1055,10 +1055,11 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
 name = "embed-resource"
-version = "1.4.1"
+version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3b2f39c0462f098c1ca4abc408f7482949bbe2ab19bca5a4419f91f69e5bccc"
+checksum = "45de30eb317b4cd3882ee16623cb3004e5fb99a8f4cd40097cadf61efbc54adc"
 dependencies = [
+ "cc",
  "vswhom",
  "winreg",
 ]
@@ -4272,9 +4273,9 @@ dependencies = [
 
 [[package]]
 name = "winreg"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d107f8c6e916235c4c01cabb3e8acf7bea8ef6a63ca2e7fa0527c049badfc48c"
+checksum = "16cdb3898397cf7f624c294948669beafaeebc5577d5ec53d0afb76633593597"
 dependencies = [
  "winapi 0.3.9",
 ]
