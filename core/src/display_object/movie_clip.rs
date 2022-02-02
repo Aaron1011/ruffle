@@ -1395,8 +1395,6 @@ impl<'gc> MovieClip<'gc> {
             self.assert_expected_tag_start();
         }
 
-        let from_frame = self.current_frame();
-
         // Flash gotos are tricky:
         // 1) Conceptually, a goto should act like the playhead is advancing forward or
         //    backward to a frame.
@@ -1427,6 +1425,8 @@ impl<'gc> MovieClip<'gc> {
         } else {
             false
         };
+
+        let from_frame = self.current_frame();
 
         // Step through the intermediate frames, and aggregate the deltas of each frame.
         let mc = self.0.read();
@@ -1613,7 +1613,10 @@ impl<'gc> MovieClip<'gc> {
         if context.is_action_script_3() {
             let mut write = self.0.write(context.gc_context);
             write.queued_script_frame = Some(clamped_frame);
-            write.last_queued_script_frame = None;
+
+            if write.current_frame != from_frame {
+                write.last_queued_script_frame = None;
+            }
         }
 
         // Next, run the final frame for the parent clip.
