@@ -1440,6 +1440,8 @@ impl<'gc> MovieClip<'gc> {
         let clamped_frame = frame.min(mc.total_frames());
         drop(mc);
 
+        let mut removed_frame_scripts: Vec<DisplayObject<'gc>> = vec![];
+
         let mut reader = data.read_from(frame_pos);
         while self.current_frame() < clamped_frame && !reader.get_ref().is_empty() {
             self.0.write(context.gc_context).current_frame += 1;
@@ -1478,6 +1480,7 @@ impl<'gc> MovieClip<'gc> {
                     &mut goto_commands,
                     is_rewind,
                     from_frame,
+                    &mut removed_frame_scripts,
                 ),
                 TagCode::RemoveObject2 => self.goto_remove_object(
                     reader,
@@ -1486,6 +1489,7 @@ impl<'gc> MovieClip<'gc> {
                     &mut goto_commands,
                     is_rewind,
                     from_frame,
+                    &mut removed_frame_scripts,
                 ),
                 _ => Ok(()),
             };
@@ -1645,6 +1649,11 @@ impl<'gc> MovieClip<'gc> {
             self.avm2_root(context)
                 .unwrap_or_else(|| self.into())
                 .run_frame_scripts(context);
+
+            for child in removed_frame_scripts {
+                child.run_frame_scripts(context);
+            }
+
             self.exit_frame(context);
         }
 
@@ -1850,6 +1859,7 @@ impl<'gc> MovieClip<'gc> {
 
     /// Handle a RemoveObject tag when running a goto action.
     #[inline]
+    #[allow(clippy::too_many_arguments)]
     fn goto_remove_object<'a>(
         mut self,
         reader: &mut SwfStream<'a>,
@@ -1858,6 +1868,7 @@ impl<'gc> MovieClip<'gc> {
         goto_commands: &mut Vec<GotoPlaceObject<'a>>,
         is_rewind: bool,
         from_frame: FrameNumber,
+        removed_frame_scripts: &mut Vec<DisplayObject<'gc>>,
     ) -> DecodeResult {
         let remove_object = if version == 1 {
             reader.read_remove_object_1()
@@ -1884,6 +1895,8 @@ impl<'gc> MovieClip<'gc> {
                 } else {
                     self.remove_child(context, child, Lists::DEPTH);
                 }
+
+                removed_frame_scripts.push(child);
             }
 
             self.0.write(context.gc_context).current_frame = to_frame;
