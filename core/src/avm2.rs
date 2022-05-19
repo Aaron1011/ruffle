@@ -270,7 +270,7 @@ impl<'gc> Avm2<'gc> {
         lazy_init: bool,
         context: &mut UpdateContext<'_, 'gc, '_>,
         domain: Domain<'gc>,
-    ) -> Result<(), Error> {
+    ) -> Result<TranslationUnit<'gc>, Error> {
         let mut read = Reader::new(abc.as_ref());
 
         let abc_file = Rc::new(read.read()?);
@@ -284,7 +284,7 @@ impl<'gc> Avm2<'gc> {
             }
         }
 
-        Ok(())
+        Ok(tunit)
     }
 
     pub fn global_domain(&self) -> Domain<'gc> {

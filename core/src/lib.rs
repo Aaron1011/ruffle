@@ -51,3 +51,7 @@ pub use indexmap;
 pub use player::{Player, PlayerBuilder};
 pub use swf;
 pub use swf::Color;
+
+/// This file is built by 'compile_swc.sh' in the root of the repository.
+/// See that script, and 'playerglobal/README.md', for more details
+pub const RUFFLE_PLAYERGLOBAL_AVM2: &[u8] = include_bytes!("playerglobal/avm2/library.swf");

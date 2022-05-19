@@ -108,6 +108,10 @@ impl<'gc> TranslationUnit<'gc> {
         Ok(method)
     }
 
+    pub fn num_classes(self) -> usize {
+        self.0.read().classes.len()
+    }
+
     /// Load a class from the ABC file and return its class definition.
     pub fn load_class(
         self,
