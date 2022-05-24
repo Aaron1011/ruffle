@@ -484,6 +484,26 @@ pub fn set_frame_rate<'gc>(
     Ok(Value::Undefined)
 }
 
+/// Implement `stageFocusRect`'s getter
+pub fn stage_focus_rect<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    log::warn!("Stage.stageFocusRect getter - not yet implemented");
+    Ok(true.into())
+}
+
+/// Implement `stageFocusRect`'s setter
+pub fn set_stage_focus_rect<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    log::warn!("Stage.stageFocusRect setter - not yet implemented");
+    Ok(Value::Undefined)
+}
+
 pub fn show_default_context_menu<'gc>(
     activation: &mut Activation<'_, 'gc, '_>,
     _this: Option<Object<'gc>>,
@@ -739,6 +759,7 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
         ("displayState", Some(display_state), Some(set_display_state)),
         ("focus", Some(focus), Some(set_focus)),
         ("frameRate", Some(frame_rate), Some(set_frame_rate)),
+        ("stageFocusRect", Some(stage_focus_rect), Some(set_stage_focus_rect)),
         ("scaleMode", Some(scale_mode), Some(set_scale_mode)),
         (
             "showDefaultContextMenu",

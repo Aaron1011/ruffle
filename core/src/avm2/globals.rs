@@ -982,6 +982,11 @@ pub fn load_player_globals<'gc>(
     )?;
 
     // package `flash.text`
+    class(
+        activation,
+        flash::text::antialiastype::create_class(mc),
+        script,
+    )?;
     avm2_system_class!(
         textfield,
         activation,

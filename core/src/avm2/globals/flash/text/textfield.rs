@@ -50,6 +50,23 @@ pub fn class_init<'gc>(
     Ok(Value::Undefined)
 }
 
+pub fn anti_alias_type<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    Ok(Value::Undefined)
+}
+
+pub fn set_anti_alias_type<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    Ok(Value::Undefined)
+}
+
+
 pub fn autosize<'gc>(
     _activation: &mut Activation<'_, 'gc, '_>,
     this: Option<Object<'gc>>,
@@ -899,6 +916,7 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
         Option<NativeMethodImpl>,
         Option<NativeMethodImpl>,
     )] = &[
+        ("antiAliasType", Some(anti_alias_type), Some(set_anti_alias_type)),
         ("autoSize", Some(autosize), Some(set_autosize)),
         ("background", Some(background), Some(set_background)),
         (
