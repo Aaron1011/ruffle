@@ -597,6 +597,26 @@ pub fn loader_info<'gc>(
     Ok(Value::Undefined)
 }
 
+/// Implements `Bitmap.blendMode`'s getter.
+pub fn blend_mode<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    Ok(Value::Undefined)
+}
+
+/// Implements `Bitmap.bitmapData`'s setter.
+pub fn set_blend_mode<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    Ok(Value::Undefined)
+}
+
+
+
 /// Construct `DisplayObject`'s class.
 pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>> {
     let class = Class::new(
@@ -624,6 +644,7 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
         Option<NativeMethodImpl>,
     )] = &[
         ("alpha", Some(alpha), Some(set_alpha)),
+        ("blendMode", Some(blend_mode), Some(set_blend_mode)),
         ("height", Some(height), Some(set_height)),
         ("scaleY", Some(scale_y), Some(set_scale_y)),
         ("width", Some(width), Some(set_width)),
