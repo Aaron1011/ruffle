@@ -104,7 +104,7 @@ impl<'gc> Avm2<'gc> {
             broadcast_list: Default::default(),
 
             #[cfg(feature = "avm_debug")]
-            debug_output: false,
+            debug_output: true,
         }
     }
 

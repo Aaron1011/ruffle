@@ -38,5 +38,17 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
     let mut write = class.write(mc);
     write.set_attributes(ClassAttributes::FINAL | ClassAttributes::SEALED);
 
+    const PUBLIC_INSTANCE_SLOTS: &[(&str, &str, &str)] = &[
+        ("alpha", "", "Number"),
+        ("blurX", "", "Number"),
+        ("blurY", "", "Number"),
+        ("color", "", "uint"),
+        ("inner", "", "Boolean"),
+        ("knockout", "", "Boolean"),
+        ("quality", "", "int"),
+        ("strength", "", "Number"),
+    ];
+    write.define_public_slot_instance_traits(PUBLIC_INSTANCE_SLOTS);
+
     class
 }

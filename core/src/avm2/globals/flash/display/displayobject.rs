@@ -4,7 +4,8 @@ use crate::avm2::activation::Activation;
 use crate::avm2::class::Class;
 use crate::avm2::method::{Method, NativeMethodImpl};
 use crate::avm2::names::{Namespace, QName};
-use crate::avm2::object::{stage_allocator, LoaderInfoObject, Object, TObject};
+use crate::avm2::array::ArrayStorage;
+use crate::avm2::object::{stage_allocator, LoaderInfoObject, Object, TObject, ArrayObject};
 use crate::avm2::value::Value;
 use crate::avm2::Error;
 use crate::display_object::{DisplayObject, HitTestOptions, TDisplayObject};
@@ -238,12 +239,12 @@ pub fn set_scale_x<'gc>(
 
 /// Implements `filters`'s getter.
 pub fn filters<'gc>(
-    _activation: &mut Activation<'_, 'gc, '_>,
+    activation: &mut Activation<'_, 'gc, '_>,
     _this: Option<Object<'gc>>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error> {
     log::warn!("DisplayObject.filters getter - not yet implemented");
-    Ok(Value::Undefined)
+    Ok(ArrayObject::from_storage(activation, ArrayStorage::new(0))?.into())
 }
 
 /// Implements `filters`'s setter.
