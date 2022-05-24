@@ -180,6 +180,17 @@ pub fn get_pixel<'gc>(
     Ok(Value::Undefined)
 }
 
+/// Implements `BitmapData.draw`
+pub fn draw<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    log::warn!("BitmapData.draw - not yet implemented");
+
+    Ok(Value::Undefined)
+}
+
 /// Construct `BitmapData`'s class.
 pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>> {
     let class = Class::new(
@@ -208,7 +219,11 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
     ];
     write.define_public_builtin_instance_properties(mc, PUBLIC_INSTANCE_PROPERTIES);
 
-    const PUBLIC_INSTANCE_METHODS: &[(&str, NativeMethodImpl)] = &[("getPixel", get_pixel)];
+    const PUBLIC_INSTANCE_METHODS: &[(&str, NativeMethodImpl)] = &[
+        ("getPixel", get_pixel),
+        ("draw", draw),
+
+    ];
     write.define_public_builtin_instance_methods(mc, PUBLIC_INSTANCE_METHODS);
 
     class
