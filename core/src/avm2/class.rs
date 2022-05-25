@@ -591,7 +591,7 @@ impl<'gc> Class<'gc> {
         for &(name, value) in items {
             self.define_class_trait(Trait::from_const(
                 QName::new(Namespace::public(), name),
-                QName::new(Namespace::public(), "Number").into(),
+                QName::new(Namespace::public(), "Object").into(),
                 Some(value.into()),
             ));
         }
@@ -601,7 +601,7 @@ impl<'gc> Class<'gc> {
         for &(name, value) in items {
             self.define_class_trait(Trait::from_const(
                 QName::new(Namespace::public(), name),
-                QName::new(Namespace::public(), "uint").into(),
+                QName::new(Namespace::public(), "Object").into(),
                 Some(value.into()),
             ));
         }
@@ -611,7 +611,7 @@ impl<'gc> Class<'gc> {
         for &(name, value) in items {
             self.define_class_trait(Trait::from_const(
                 QName::new(Namespace::public(), name),
-                QName::new(Namespace::public(), "int").into(),
+                QName::new(Namespace::public(), "Object").into(),
                 Some(value.into()),
             ));
         }

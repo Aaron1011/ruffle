@@ -280,11 +280,11 @@ pub fn create_class<'gc>(gc_context: MutationContext<'gc, '_>) -> GcCell<'gc, Cl
         gc_context,
     ));
 
-    write.define_class_trait(Trait::from_const(
+    /*write.define_class_trait(Trait::from_const(
         QName::new(Namespace::public(), "length"),
         QName::new(Namespace::public(), "int").into(),
         None,
-    ));
+    ));*/
 
     // Fixed traits (in AS3 namespace)
     const PUBLIC_INSTANCE_METHODS: &[(&str, NativeMethodImpl)] = &[

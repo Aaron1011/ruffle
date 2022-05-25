@@ -536,8 +536,6 @@ pub fn load_player_globals<'gc>(
     // After this point, it is safe to initialize any other classes.
     // Make sure to initialize superclasses *before* their subclasses!
 
-    load_ruffle_playerglobal(activation, domain)?;
-
     avm2_system_class!(string, activation, string::create_class(mc), script);
     avm2_system_class!(boolean, activation, boolean::create_class(mc), script);
     avm2_system_class!(number, activation, number::create_class(mc), script);
@@ -546,6 +544,8 @@ pub fn load_player_globals<'gc>(
     avm2_system_class!(namespace, activation, namespace::create_class(mc), script);
     avm2_system_class!(qname, activation, qname::create_class(mc), script);
     avm2_system_class!(array, activation, array::create_class(mc), script);
+
+    load_ruffle_playerglobal(activation, domain)?;
 
     function(activation, "", "trace", toplevel::trace, script)?;
     function(activation, "", "isFinite", toplevel::is_finite, script)?;
