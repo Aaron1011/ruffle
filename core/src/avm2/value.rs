@@ -587,7 +587,7 @@ impl<'gc> Value<'gc> {
                 )
                 .into()
             } else {
-                "Cannot access properties of null or undefined".into()
+                panic!("Cannot access properties of null or undefined")
             }
         })
     }

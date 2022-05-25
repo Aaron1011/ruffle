@@ -97,6 +97,7 @@ pub struct SystemPrototypes<'gc> {
     pub errorevent: Object<'gc>,
     pub ioerrorevent: Object<'gc>,
     pub securityerrorevent: Object<'gc>,
+    pub transform: Object<'gc>,
 }
 
 impl<'gc> SystemPrototypes<'gc> {
@@ -163,6 +164,7 @@ impl<'gc> SystemPrototypes<'gc> {
             errorevent: empty,
             ioerrorevent: empty,
             securityerrorevent: empty,
+            transform: empty,
         }
     }
 }
@@ -219,6 +221,7 @@ pub struct SystemClasses<'gc> {
     pub errorevent: ClassObject<'gc>,
     pub ioerrorevent: ClassObject<'gc>,
     pub securityerrorevent: ClassObject<'gc>,
+    pub transform: ClassObject<'gc>,
 }
 
 impl<'gc> SystemClasses<'gc> {
@@ -285,6 +288,7 @@ impl<'gc> SystemClasses<'gc> {
             errorevent: object,
             ioerrorevent: object,
             securityerrorevent: object,
+            transform: object,
         }
     }
 }
@@ -1118,7 +1122,10 @@ fn load_ruffle_playerglobal<'gc>(
         classes,
         activation,
         script,
-        [("flash.geom", "Point", point),]
+        [
+            ("flash.geom", "Point", point),
+            ("flash.geom", "Transform", transform),
+        ]
     );
 
     Ok(())

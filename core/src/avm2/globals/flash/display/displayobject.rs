@@ -257,6 +257,27 @@ pub fn set_filters<'gc>(
     Ok(Value::Undefined)
 }
 
+/// Implements `transform`'s getter.
+pub fn transform<'gc>(
+    activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    log::warn!("DisplayObject.transform getter - not yet implemented");
+    Ok(activation.context.avm2.classes().transform.construct(activation, &[])?.into())
+}
+
+/// Implements `transform`'s setter.
+pub fn set_transform<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    log::warn!("DisplayObject.transform setter - not yet implemented");
+    Ok(Value::Undefined)
+}
+
+
 /// Implements `x`'s getter.
 pub fn x<'gc>(
     _activation: &mut Activation<'_, 'gc, '_>,
@@ -661,6 +682,7 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
         ("mouseY", Some(mouse_y), None),
         ("loaderInfo", Some(loader_info), None),
         ("filters", Some(filters), Some(set_filters)),
+        ("transform", Some(transform), Some(set_transform)),
     ];
     write.define_public_builtin_instance_properties(mc, PUBLIC_INSTANCE_PROPERTIES);
 
