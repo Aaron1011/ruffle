@@ -277,6 +277,22 @@ pub fn num_children<'gc>(
     Ok(Value::Undefined)
 }
 
+pub fn mouse_children<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    Ok(true.into())
+}
+
+pub fn set_mouse_children<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    Ok(Value::Undefined)
+}
+
 /// Implements `DisplayObjectContainer.contains`
 pub fn contains<'gc>(
     _activation: &mut Activation<'_, 'gc, '_>,
@@ -608,7 +624,10 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
         &str,
         Option<NativeMethodImpl>,
         Option<NativeMethodImpl>,
-    )] = &[("numChildren", Some(num_children), None)];
+    )] = &[
+        ("numChildren", Some(num_children), None),
+        ("mouseChildren", Some(mouse_children), Some(set_mouse_children)),
+    ];
     write.define_public_builtin_instance_properties(mc, PUBLIC_INSTANCE_PROPERTIES);
 
     const PUBLIC_INSTANCE_METHODS: &[(&str, NativeMethodImpl)] = &[
