@@ -228,14 +228,26 @@ pub fn fill_rect<'gc>(
         if let Some(color_val) = args.get(1) {
             let color = color_val.coerce_to_i32(activation)?;
 
-            let x = rectangle.get_property(&QName::dynamic_name("x").into(), activation)?.coerce_to_u32(activation)?;
-            let y = rectangle.get_property(&QName::dynamic_name("y").into(), activation)?.coerce_to_u32(activation)?;
-            let width = rectangle.get_property(&QName::dynamic_name("width").into(), activation)?.coerce_to_u32(activation)?;
-            let height = rectangle.get_property(&QName::dynamic_name("height").into(), activation)?.coerce_to_u32(activation)?;
+            let x = rectangle
+                .get_property(&QName::dynamic_name("x").into(), activation)?
+                .coerce_to_u32(activation)?;
+            let y = rectangle
+                .get_property(&QName::dynamic_name("y").into(), activation)?
+                .coerce_to_u32(activation)?;
+            let width = rectangle
+                .get_property(&QName::dynamic_name("width").into(), activation)?
+                .coerce_to_u32(activation)?;
+            let height = rectangle
+                .get_property(&QName::dynamic_name("height").into(), activation)?
+                .coerce_to_u32(activation)?;
 
-            bitmap_data
-                .write(activation.context.gc_context)
-                .fill_rect(x, y, width, height, color.into());
+            bitmap_data.write(activation.context.gc_context).fill_rect(
+                x,
+                y,
+                width,
+                height,
+                color.into(),
+            );
         }
         return Ok(Value::Undefined);
     }
@@ -243,7 +255,120 @@ pub fn fill_rect<'gc>(
     Ok(Value::Undefined)
 }
 
+pub fn copy_pixels<'gc>(
+    activation: &mut Activation<'_, 'gc, '_>,
+    this: Option<Object<'gc>>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    if let Some(bitmap_data) = this.and_then(|t| t.as_bitmap_data()) {
+        let source_bitmap = args
+            .get(0)
+            .unwrap_or(&Value::Undefined)
+            .coerce_to_object(activation)?;
 
+        let source_rect = args
+            .get(1)
+            .unwrap_or(&Value::Undefined)
+            .coerce_to_object(activation)?;
+
+        let src_min_x = source_rect
+            .get_property(&QName::dynamic_name("x").into(), activation)?
+            .coerce_to_number(activation)? as i32;
+        let src_min_y = source_rect
+            .get_property(&QName::dynamic_name("y").into(), activation)?
+            .coerce_to_number(activation)? as i32;
+        let src_width = source_rect
+            .get_property(&QName::dynamic_name("width").into(), activation)?
+            .coerce_to_number(activation)? as i32;
+        let src_height = source_rect
+            .get_property(&QName::dynamic_name("height").into(), activation)?
+            .coerce_to_number(activation)? as i32;
+
+        let dest_point = args
+            .get(2)
+            .unwrap_or(&Value::Undefined)
+            .coerce_to_object(activation)?;
+
+        let dest_x = dest_point
+            .get_property(&QName::dynamic_name("x").into(), activation)?
+            .coerce_to_number(activation)? as i32;
+        let dest_y = dest_point
+            .get_property(&QName::dynamic_name("y").into(), activation)?
+            .coerce_to_number(activation)? as i32;
+
+        if let Some(src_bitmap) = source_bitmap.as_bitmap_data() {
+            // dealing with object aliasing...
+            let src_bitmap_clone: BitmapData; // only initialized if source is the same object as self
+            let src_bitmap_gc_ref; // only initialized if source is a different object than self
+            let source_bitmap_ref = // holds the reference to either of the ones above
+                if GcCell::ptr_eq(src_bitmap, bitmap_data) {
+                    src_bitmap_clone = src_bitmap.read().clone();
+                    &src_bitmap_clone
+                } else {
+                    src_bitmap_gc_ref = src_bitmap.read();
+                    &src_bitmap_gc_ref
+                };
+
+            if args.len() >= 5 {
+                let alpha_point = args
+                    .get(4)
+                    .unwrap_or(&Value::Undefined)
+                    .coerce_to_object(activation)?;
+
+                let alpha_x = alpha_point
+                    .get_property(&QName::dynamic_name("x").into(), activation)?
+                    .coerce_to_number(activation)? as i32;
+
+                let alpha_y = alpha_point
+                    .get_property(&QName::dynamic_name("y").into(), activation)?
+                    .coerce_to_number(activation)? as i32;
+
+                let alpha_bitmap = args
+                    .get(3)
+                    .unwrap_or(&Value::Undefined)
+                    .coerce_to_object(activation)?;
+
+                if let Some(alpha_bitmap) = alpha_bitmap.as_bitmap_data() {
+                    // dealing with aliasing the same way as for the source
+                    let alpha_bitmap_clone: BitmapData;
+                    let alpha_bitmap_gc_ref;
+                    let alpha_bitmap_ref = if GcCell::ptr_eq(alpha_bitmap, bitmap_data) {
+                        alpha_bitmap_clone = alpha_bitmap.read().clone();
+                        &alpha_bitmap_clone
+                    } else {
+                        alpha_bitmap_gc_ref = alpha_bitmap.read();
+                        &alpha_bitmap_gc_ref
+                    };
+
+                    let merge_alpha = if args.len() >= 6 {
+                        args.get(5).unwrap_or(&Value::Undefined).coerce_to_boolean()
+                    } else {
+                        false
+                    };
+
+                    bitmap_data
+                        .write(activation.context.gc_context)
+                        .copy_pixels(
+                            source_bitmap_ref,
+                            (src_min_x, src_min_y, src_width, src_height),
+                            (dest_x, dest_y),
+                            Some((alpha_bitmap_ref, (alpha_x, alpha_y), merge_alpha)),
+                        );
+                }
+            } else {
+                bitmap_data
+                    .write(activation.context.gc_context)
+                    .copy_pixels(
+                        source_bitmap_ref,
+                        (src_min_x, src_min_y, src_width, src_height),
+                        (dest_x, dest_y),
+                        None,
+                    );
+            }
+        }
+    }
+    return Ok(Value::Undefined);
+}
 
 /// Construct `BitmapData`'s class.
 pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>> {
@@ -279,7 +404,7 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
         ("lock", lock),
         ("unlock", unlock),
         ("fillRect", fill_rect),
-
+        ("copyPixels", copy_pixels),
     ];
     write.define_public_builtin_instance_methods(mc, PUBLIC_INSTANCE_METHODS);
 

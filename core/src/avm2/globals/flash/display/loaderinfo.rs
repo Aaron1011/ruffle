@@ -341,9 +341,7 @@ pub fn loader_url<'gc>(
             };
 
             let loader_url = root.loader_url().or_else(|| root.url()).unwrap_or("");
-            return Ok(
-                AvmString::new_utf8(activation.context.gc_context, loader_url).into(),
-            );
+            return Ok(AvmString::new_utf8(activation.context.gc_context, loader_url).into());
         }
     }
 

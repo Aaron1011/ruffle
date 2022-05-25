@@ -743,7 +743,6 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
             depth_or_array_layers: 1,
         };
 
-
         let texture_label = create_debug_label!("{} Texture", debug_str);
         let texture = self
             .descriptors
@@ -779,7 +778,10 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
         let height = bitmap.height();
 
         if width == 500 {
-            eprintln!("Created handle {:?} width={:?} height={:?}", handle, width, height);
+            eprintln!(
+                "Created handle {:?} width={:?} height={:?}",
+                handle, width, height
+            );
             eprintln!("{}", std::backtrace::Backtrace::capture());
         }
 

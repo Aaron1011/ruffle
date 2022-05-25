@@ -1,11 +1,11 @@
 //! `flash.display.DisplayObject` builtin/prototype
 
 use crate::avm2::activation::Activation;
+use crate::avm2::array::ArrayStorage;
 use crate::avm2::class::Class;
 use crate::avm2::method::{Method, NativeMethodImpl};
 use crate::avm2::names::{Namespace, QName};
-use crate::avm2::array::ArrayStorage;
-use crate::avm2::object::{stage_allocator, LoaderInfoObject, Object, TObject, ArrayObject};
+use crate::avm2::object::{stage_allocator, ArrayObject, LoaderInfoObject, Object, TObject};
 use crate::avm2::value::Value;
 use crate::avm2::Error;
 use crate::display_object::{DisplayObject, HitTestOptions, TDisplayObject};
@@ -264,7 +264,13 @@ pub fn transform<'gc>(
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error> {
     log::warn!("DisplayObject.transform getter - not yet implemented");
-    Ok(activation.context.avm2.classes().transform.construct(activation, &[])?.into())
+    Ok(activation
+        .context
+        .avm2
+        .classes()
+        .transform
+        .construct(activation, &[])?
+        .into())
 }
 
 /// Implements `transform`'s setter.
@@ -276,7 +282,6 @@ pub fn set_transform<'gc>(
     log::warn!("DisplayObject.transform setter - not yet implemented");
     Ok(Value::Undefined)
 }
-
 
 /// Implements `x`'s getter.
 pub fn x<'gc>(
@@ -635,8 +640,6 @@ pub fn set_blend_mode<'gc>(
 ) -> Result<Value<'gc>, Error> {
     Ok(Value::Undefined)
 }
-
-
 
 /// Construct `DisplayObject`'s class.
 pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>> {

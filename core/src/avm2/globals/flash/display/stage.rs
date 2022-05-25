@@ -759,7 +759,11 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
         ("displayState", Some(display_state), Some(set_display_state)),
         ("focus", Some(focus), Some(set_focus)),
         ("frameRate", Some(frame_rate), Some(set_frame_rate)),
-        ("stageFocusRect", Some(stage_focus_rect), Some(set_stage_focus_rect)),
+        (
+            "stageFocusRect",
+            Some(stage_focus_rect),
+            Some(set_stage_focus_rect),
+        ),
         ("scaleMode", Some(scale_mode), Some(set_scale_mode)),
         (
             "showDefaultContextMenu",

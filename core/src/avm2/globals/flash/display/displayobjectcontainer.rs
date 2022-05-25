@@ -626,7 +626,11 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
         Option<NativeMethodImpl>,
     )] = &[
         ("numChildren", Some(num_children), None),
-        ("mouseChildren", Some(mouse_children), Some(set_mouse_children)),
+        (
+            "mouseChildren",
+            Some(mouse_children),
+            Some(set_mouse_children),
+        ),
     ];
     write.define_public_builtin_instance_properties(mc, PUBLIC_INSTANCE_PROPERTIES);
 
