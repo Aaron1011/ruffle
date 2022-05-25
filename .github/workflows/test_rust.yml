@@ -58,11 +58,6 @@ jobs:
           sudo apt-get dist-upgrade
           sudo apt install -y libasound2-dev libxcb-shape0-dev libxcb-xfixes0-dev libgtk-3-dev mesa-vulkan-drivers
 
-      - name: Rebuild playerglobal
-        run: |
-          bash ./compile_swc.sh
-          git diff --exit-code core/src/playerglobal/avm2/library.swf
-
       - name: Check formatting
         uses: actions-rs/cargo@v1
         with:
@@ -90,6 +85,10 @@ jobs:
         with:
           command: test
           args: --locked
+
+      - name: Check playerglobal for changes
+        run: |
+          git diff --exit-code core/src/playerglobal/avm2/library.swf
 
       - name: Upload images
         if: failure()
