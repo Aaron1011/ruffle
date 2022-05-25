@@ -191,6 +191,60 @@ pub fn draw<'gc>(
     Ok(Value::Undefined)
 }
 
+/// Implements `BitmapData.lock`
+pub fn lock<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    log::warn!("BitmapData.lock - not yet implemented");
+
+    Ok(Value::Undefined)
+}
+
+/// Implements `BitmapData.unlock`
+pub fn unlock<'gc>(
+    _activation: &mut Activation<'_, 'gc, '_>,
+    _this: Option<Object<'gc>>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    log::warn!("BitmapData.unlock - not yet implemented");
+
+    Ok(Value::Undefined)
+}
+
+/// Implements `BitmapData.fillRect`
+pub fn fill_rect<'gc>(
+    activation: &mut Activation<'_, 'gc, '_>,
+    this: Option<Object<'gc>>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error> {
+    let rectangle = args
+        .get(0)
+        .unwrap_or(&Value::Undefined)
+        .coerce_to_object(activation)?;
+
+    if let Some(bitmap_data) = this.and_then(|t| t.as_bitmap_data()) {
+        if let Some(color_val) = args.get(1) {
+            let color = color_val.coerce_to_i32(activation)?;
+
+            let x = rectangle.get_property(&QName::dynamic_name("x").into(), activation)?.coerce_to_u32(activation)?;
+            let y = rectangle.get_property(&QName::dynamic_name("y").into(), activation)?.coerce_to_u32(activation)?;
+            let width = rectangle.get_property(&QName::dynamic_name("width").into(), activation)?.coerce_to_u32(activation)?;
+            let height = rectangle.get_property(&QName::dynamic_name("height").into(), activation)?.coerce_to_u32(activation)?;
+
+            bitmap_data
+                .write(activation.context.gc_context)
+                .fill_rect(x, y, width, height, color.into());
+        }
+        return Ok(Value::Undefined);
+    }
+
+    Ok(Value::Undefined)
+}
+
+
+
 /// Construct `BitmapData`'s class.
 pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>> {
     let class = Class::new(
@@ -222,6 +276,9 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
     const PUBLIC_INSTANCE_METHODS: &[(&str, NativeMethodImpl)] = &[
         ("getPixel", get_pixel),
         ("draw", draw),
+        ("lock", lock),
+        ("unlock", unlock),
+        ("fillRect", fill_rect),
 
     ];
     write.define_public_builtin_instance_methods(mc, PUBLIC_INSTANCE_METHODS);
