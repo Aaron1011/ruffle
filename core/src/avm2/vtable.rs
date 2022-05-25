@@ -26,7 +26,7 @@ pub struct VTableData<'gc> {
 
     protected_namespace: Option<Namespace<'gc>>,
 
-    resolved_traits: PropertyMap<'gc, Property>,
+    resolved_traits: PropertyMap<'gc, Property<'gc>>,
 
     method_table: Vec<(Option<ClassObject<'gc>>, Method<'gc>)>,
 
@@ -51,7 +51,7 @@ impl<'gc> VTable<'gc> {
         VTable(GcCell::allocate(mc, self.0.read().clone()))
     }
 
-    pub fn get_trait(self, name: &Multiname<'gc>) -> Option<Property> {
+    pub fn get_trait(self, name: &Multiname<'gc>) -> Option<Property<'gc>> {
         self.0
             .read()
             .resolved_traits
@@ -277,11 +277,19 @@ impl<'gc> VTable<'gc> {
                     };
 
                     let new_prop = match trait_data.kind() {
-                        TraitKind::Slot { .. } | TraitKind::Function { .. } => {
-                            Property::new_slot(new_slot_id)
+                        TraitKind::Slot { type_name, .. } => {
+                            eprintln!("Resolving other slot: {:?}", type_name);
+                            Property::new_slot(new_slot_id, activation.resolve_class(type_name)?)
                         }
-                        TraitKind::Const { .. } | TraitKind::Class { .. } => {
-                            Property::new_const_slot(new_slot_id)
+                        TraitKind::Function { .. } => {
+                            Property::new_slot(new_slot_id, activation.avm2().classes().function)
+                        }
+                        TraitKind::Const { type_name, .. } => {
+                            eprintln!("Resolving const slot: {:?}", type_name);
+                            Property::new_const_slot(new_slot_id, activation.resolve_class(type_name)?)
+                        }
+                        TraitKind::Class { .. } => {
+                            Property::new_const_slot(new_slot_id, activation.avm2().classes().class)
                         }
                         _ => unreachable!(),
                     };
@@ -332,6 +340,7 @@ impl<'gc> VTable<'gc> {
         mc: MutationContext<'gc, '_>,
         name: QName<'gc>,
         value: Value<'gc>,
+        class: ClassObject<'gc>,
     ) -> u32 {
         let mut write = self.0.write(mc);
 
@@ -339,7 +348,7 @@ impl<'gc> VTable<'gc> {
         let new_slot_id = write.default_slots.len() as u32 - 1;
         write
             .resolved_traits
-            .insert(name, Property::new_slot(new_slot_id));
+            .insert(name, Property::new_slot(new_slot_id, class));
 
         new_slot_id
     }

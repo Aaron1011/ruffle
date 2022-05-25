@@ -244,7 +244,7 @@ impl<'a, 'gc, 'gc_context> Activation<'a, 'gc, 'gc_context> {
         self.resolve_definition(name)?
             .and_then(|maybe| maybe.as_object())
             .and_then(|o| o.as_class_object())
-            .ok_or_else(|| format!("Attempted to resolve nonexistent type {:?}", name).into())
+            .ok_or_else(|| panic!("Attempted to resolve nonexistent type {:?}", name).into())
     }
 
     /// Resolve a type name to a class.
@@ -998,6 +998,7 @@ impl<'a, 'gc, 'gc_context> Activation<'a, 'gc, 'gc_context> {
 
             if let Err(e) = result {
                 log::error!("AVM2 error: {}", e);
+                panic!("{}", e);
                 return Err(e);
             }
             result
@@ -1229,6 +1230,7 @@ impl<'a, 'gc, 'gc_context> Activation<'a, 'gc, 'gc_context> {
     ) -> Result<FrameControl<'gc>, Error> {
         let args = self.context.avm2.pop_args(arg_count);
         let multiname = self.pool_multiname(method, index)?;
+        eprintln!("Calling: {:?}", multiname);
         let receiver = self
             .context
             .avm2
@@ -1355,6 +1357,8 @@ impl<'a, 'gc, 'gc_context> Activation<'a, 'gc, 'gc_context> {
             (multiname, object)
         };
 
+        avm_debug!(self.context.avm2, "Resolving {:?}", multiname);
+
         let value = object.get_property(&multiname, self)?;
         self.context.avm2.push(value);
 
@@ -1406,6 +1410,8 @@ impl<'a, 'gc, 'gc_context> Activation<'a, 'gc, 'gc_context> {
 
             (multiname, object)
         };
+
+        avm_debug!(self.context.avm2, "Resolving {:?}", multiname);
 
         object.set_property(&multiname, value, self)?;
 

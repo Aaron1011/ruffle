@@ -141,7 +141,7 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
         activation: &mut Activation<'_, 'gc, '_>,
     ) -> Result<Value<'gc>, Error> {
         match self.vtable().and_then(|vtable| vtable.get_trait(multiname)) {
-            Some(Property::Slot { slot_id }) | Some(Property::ConstSlot { slot_id }) => {
+            Some(Property::Slot { slot_id, class: _ }) | Some(Property::ConstSlot { slot_id, class: _ }) => {
                 self.base().get_slot(slot_id)
             }
             Some(Property::Method { disp_id }) => {
@@ -197,9 +197,12 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
         activation: &mut Activation<'_, 'gc, '_>,
     ) -> Result<(), Error> {
         match self.vtable().and_then(|vtable| vtable.get_trait(multiname)) {
-            Some(Property::Slot { slot_id }) => self
+            Some(Property::Slot { slot_id, class }) => {
+                let value = value.coerce_to_type(activation, class)?;
+                self
                 .base_mut(activation.context.gc_context)
-                .set_slot(slot_id, value, activation.context.gc_context),
+                .set_slot(slot_id, value, activation.context.gc_context)
+            },
             Some(Property::ConstSlot { .. }) => Err("Illegal write to read-only property".into()),
             Some(Property::Method { .. }) => Err("Cannot assign to a method".into()),
             Some(Property::Virtual { set: Some(set), .. }) => {
@@ -242,9 +245,12 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
         activation: &mut Activation<'_, 'gc, '_>,
     ) -> Result<(), Error> {
         match self.vtable().and_then(|vtable| vtable.get_trait(multiname)) {
-            Some(Property::Slot { slot_id }) | Some(Property::ConstSlot { slot_id }) => self
+            Some(Property::Slot { slot_id, class }) | Some(Property::ConstSlot { slot_id, class }) => {
+                let value = value.coerce_to_type(activation, class)?;
+                self
                 .base_mut(activation.context.gc_context)
-                .set_slot(slot_id, value, activation.context.gc_context),
+                .set_slot(slot_id, value, activation.context.gc_context)
+            }
             Some(Property::Method { .. }) => Err("Cannot assign to a method".into()),
             Some(Property::Virtual { set: Some(set), .. }) => {
                 self.call_method(set, &[value], activation).map(|_| ())
@@ -292,7 +298,7 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
         activation: &mut Activation<'_, 'gc, '_>,
     ) -> Result<Value<'gc>, Error> {
         match self.vtable().and_then(|vtable| vtable.get_trait(multiname)) {
-            Some(Property::Slot { slot_id }) | Some(Property::ConstSlot { slot_id }) => {
+            Some(Property::Slot { slot_id, class: _ }) | Some(Property::ConstSlot { slot_id, class: _ }) => {
                 let obj = self.base().get_slot(slot_id)?.as_callable(
                     activation,
                     Some(multiname),
@@ -591,11 +597,12 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
         mc: MutationContext<'gc, '_>,
         name: QName<'gc>,
         value: Value<'gc>,
+        class: ClassObject<'gc>,
     ) {
         let new_slot_id = self
             .vtable()
             .unwrap()
-            .install_const_trait_late(mc, name, value);
+            .install_const_trait_late(mc, name, value, class);
         self.base_mut(mc)
             .install_const_slot_late(new_slot_id, value);
     }
