@@ -253,6 +253,7 @@ impl<'gc> TDisplayObject<'gc> for Bitmap<'gc> {
         {
             let bd = bitmap_data.read();
             if bd.dirty() {
+                eprintln!("Updating handle {:?} with expected width {:?} height {:?}", bitmap_handle, bd.width(), bd.height());
                 let _ = context.renderer.update_texture(
                     bitmap_handle,
                     bd.width(),

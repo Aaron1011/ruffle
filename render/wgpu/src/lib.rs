@@ -1,3 +1,5 @@
+#![feature(backtrace)]
+
 use ruffle_core::backend::render::{
     Bitmap, BitmapFormat, BitmapHandle, BitmapInfo, BitmapSource, Color, RenderBackend,
     ShapeHandle, Transform,
@@ -741,6 +743,7 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
             depth_or_array_layers: 1,
         };
 
+
         let texture_label = create_debug_label!("{} Texture", debug_str);
         let texture = self
             .descriptors
@@ -774,6 +777,11 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
         let handle = BitmapHandle(self.textures.len());
         let width = bitmap.width();
         let height = bitmap.height();
+
+        if width == 500 {
+            eprintln!("Created handle {:?} width={:?} height={:?}", handle, width, height);
+            eprintln!("{}", std::backtrace::Backtrace::capture());
+        }
 
         // Make bind group for bitmap quad.
         let texture_view = texture.create_view(&Default::default());

@@ -25,10 +25,10 @@ resolver = "2"
 opt-level = 0
 
 [profile.dev]
-panic = "abort"
+panic = "unwind"
 
 [profile.release]
-panic = "abort"
+panic = "unwind"
 
 [profile.dev.package.h263-rs]
 opt-level = 3
