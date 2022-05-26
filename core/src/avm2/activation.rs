@@ -998,7 +998,6 @@ impl<'a, 'gc, 'gc_context> Activation<'a, 'gc, 'gc_context> {
 
             if let Err(e) = result {
                 log::error!("AVM2 error: {}", e);
-                panic!("{}", e);
                 return Err(e);
             }
             result

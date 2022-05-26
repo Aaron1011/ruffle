@@ -622,7 +622,7 @@ impl<'gc> Value<'gc> {
             .ok_or_else(|| {
                 if let Some(receiver) = receiver {
                     if let Some(name) = name {
-                        panic!(
+                        format!(
                             "Cannot call null or undefined method {} of class {} on {:?}",
                             name.to_qualified_name(activation.context.gc_context),
                             receiver.instance_of_class_name(activation.context.gc_context),
