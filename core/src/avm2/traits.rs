@@ -194,7 +194,7 @@ impl<'gc> Trait<'gc> {
                 value,
             } => {
                 let type_name = if type_name.0 == 0 {
-                    Multiname::any()
+                    QName::dynamic_name("Object").into()
                 } else {
                     Multiname::from_abc_multiname_static(unit, *type_name, mc)?
                 };
@@ -255,7 +255,7 @@ impl<'gc> Trait<'gc> {
                 value,
             } => {
                 let type_name = if type_name.0 == 0 {
-                    Multiname::any()
+                    QName::dynamic_name("Object").into()
                 } else {
                     Multiname::from_abc_multiname_static(unit, *type_name, mc)?
                 };
