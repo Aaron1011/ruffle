@@ -665,7 +665,7 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
             Some(self.into()),
         )?;
 
-        eprintln!("Got ctor: {:?}", ctor.as_class_object().unwrap().inner_class_definition().read().name());
+        //eprintln!("Got ctor: {:?}", ctor.as_class_object().unwrap().inner_class_definition().read().name());
 
         ctor.construct(activation, args)
     }
