@@ -7,6 +7,7 @@ use crate::avm2::script::TranslationUnit;
 use crate::avm2::Error;
 use crate::ecma_conversions::{f64_to_wrapping_i32, f64_to_wrapping_u32};
 use crate::string::{AvmString, WStr};
+use crate::avm2::globals::NS_VECTOR;
 use gc_arena::{Collect, MutationContext};
 use std::cell::Ref;
 use swf::avm2::types::{DefaultValue as AbcDefaultValue, Index};
@@ -687,13 +688,31 @@ impl<'gc> Value<'gc> {
             if object.is_of_type(class, activation)? {
                 return Ok(object.into());
             }
+
+            if let Some(vector) = object.as_vector_storage() {
+                let name = class.inner_class_definition().read().name();
+                eprintln!("The name: {:?}", name);
+                if  name == QName::new(Namespace::package(NS_VECTOR), "Vector") ||
+                    (name == QName::new(Namespace::internal(NS_VECTOR), "Vector$int")
+                    && vector.value_type() == activation.avm2().classes().int) ||
+                    (name == QName::new(Namespace::internal(NS_VECTOR), "Vector$uint")
+                    && vector.value_type() == activation.avm2().classes().uint) ||
+                    (name== QName::new(Namespace::internal(NS_VECTOR), "Vector$number")
+                    && vector.value_type() == activation.avm2().classes().number) ||
+                    (name == QName::new(Namespace::internal(NS_VECTOR), "Vector$object")
+                    && vector.value_type() == activation.avm2().classes().object) {
+                        return Ok(*self)
+                }
+            }
         }
 
-        let static_class = class.inner_class_definition();
+        let name = class.inner_class_definition().read().name();
+
+
         Err(format!(
             "Cannot coerce {:?} to an {:?}",
             self,
-            static_class.read().name()
+            name
         )
         .into())
     }
