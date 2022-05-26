@@ -310,25 +310,26 @@ pub fn copy_pixels<'gc>(
                 };
 
             if args.len() >= 5 {
-                let alpha_point = args
-                    .get(4)
-                    .unwrap_or(&Value::Undefined)
-                    .coerce_to_object(activation)?;
-
-                let alpha_x = alpha_point
-                    .get_property(&QName::dynamic_name("x").into(), activation)?
-                    .coerce_to_number(activation)? as i32;
-
-                let alpha_y = alpha_point
-                    .get_property(&QName::dynamic_name("y").into(), activation)?
-                    .coerce_to_number(activation)? as i32;
-
                 let alpha_bitmap = args
                     .get(3)
-                    .unwrap_or(&Value::Undefined)
-                    .coerce_to_object(activation)?;
+                    .unwrap_or(&Value::Null);
 
-                if let Some(alpha_bitmap) = alpha_bitmap.as_bitmap_data() {
+                if let Some(alpha_bitmap) = alpha_bitmap.coerce_to_object(activation).ok().and_then(|b| b.as_bitmap_data()) {
+                    let alpha_point = args
+                        .get(4)
+                        .unwrap_or(&Value::Null)
+                        .coerce_to_object(activation)?;
+
+                    let alpha_x = alpha_point
+                        .get_property(&QName::dynamic_name("x").into(), activation)?
+                        .coerce_to_number(activation)? as i32;
+
+                    let alpha_y = alpha_point
+                        .get_property(&QName::dynamic_name("y").into(), activation)?
+                        .coerce_to_number(activation)? as i32;
+
+
+
                     // dealing with aliasing the same way as for the source
                     let alpha_bitmap_clone: BitmapData;
                     let alpha_bitmap_gc_ref;
@@ -340,11 +341,7 @@ pub fn copy_pixels<'gc>(
                         &alpha_bitmap_gc_ref
                     };
 
-                    let merge_alpha = if args.len() >= 6 {
-                        args.get(5).unwrap_or(&Value::Undefined).coerce_to_boolean()
-                    } else {
-                        false
-                    };
+                    let merge_alpha = args.get(5).unwrap_or(&false.into()).coerce_to_boolean();
 
                     bitmap_data
                         .write(activation.context.gc_context)

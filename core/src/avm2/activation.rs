@@ -1235,6 +1235,8 @@ impl<'a, 'gc, 'gc_context> Activation<'a, 'gc, 'gc_context> {
             .pop()
             .coerce_to_receiver(self, Some(&multiname))?;
 
+        avm_debug!(self.avm2(), "Calling prop: {:?}", multiname);
+
         receiver.call_property(&multiname, &args, self)?;
 
         Ok(FrameControl::Continue)
