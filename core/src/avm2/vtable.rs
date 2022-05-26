@@ -297,7 +297,7 @@ impl<'gc> VTable<'gc> {
             }
         }
 
-        eprintln!("Resolved traits: {:?}", resolved_traits);
+        //eprintln!("Resolved traits: {:?}", resolved_traits);
 
         Ok(())
     }

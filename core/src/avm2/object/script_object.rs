@@ -189,11 +189,12 @@ impl<'gc> ScriptObjectData<'gc> {
             .map(|cls| cls.inner_class_definition().read().is_sealed())
             .unwrap_or(false)
         {
-            return Err(format!(
-                "Cannot set undefined property {} on {:?}",
+            return Err(panic!(
+                "Cannot set undefined property {} on {:?} with {:?}",
                 multiname.to_qualified_name(activation.context.gc_context),
                 self.instance_of()
-                    .map(|cls| cls.inner_class_definition().read().name())
+                    .map(|cls| cls.inner_class_definition().read().name()),
+                    value
             )
             .into());
         }
