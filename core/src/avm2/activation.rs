@@ -244,7 +244,7 @@ impl<'a, 'gc, 'gc_context> Activation<'a, 'gc, 'gc_context> {
         self.resolve_definition(name)?
             .and_then(|maybe| maybe.as_object())
             .and_then(|o| o.as_class_object())
-            .ok_or_else(|| panic!("Attempted to resolve nonexistent type {:?}", name).into())
+            .ok_or_else(|| format!("Attempted to resolve nonexistent type {:?}", name).into())
     }
 
     /// Resolve a type name to a class.
