@@ -199,8 +199,8 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
         match self.vtable().and_then(|vtable| vtable.get_trait(multiname)) {
             Some(Property::Slot { slot_id, mut class }) => {
                 //eprintln!("Resolving for: {:?} {:?}", self.to_string(activation.context.gc_context), class);
-               // let class = class.get(activation)?;
-                //let value = value.coerce_to_type(activation, class)?;
+                let class = class.get(activation)?;
+                let value = value.coerce_to_type(activation, class)?;
                 self
                 .base_mut(activation.context.gc_context)
                 .set_slot(slot_id, value, activation.context.gc_context)
@@ -248,8 +248,8 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
     ) -> Result<(), Error> {
         match self.vtable().and_then(|vtable| vtable.get_trait(multiname)) {
             Some(Property::Slot { slot_id, mut class }) | Some(Property::ConstSlot { slot_id, mut class }) => {
-                //let class = class.get(activation)?;
-                //let value = value.coerce_to_type(activation, class)?;
+                let class = class.get(activation)?;
+                let value = value.coerce_to_type(activation, class)?;
                 self
                 .base_mut(activation.context.gc_context)
                 .set_slot(slot_id, value, activation.context.gc_context)
