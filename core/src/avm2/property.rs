@@ -30,7 +30,15 @@ impl<'gc> LazyClass<'gc> {
         match self {
             LazyClass::Class(class) => Ok(*class),
             LazyClass::Name(name) => {
-                let class = activation.resolve_class(name)?;
+                // A Property may have a type of '*' (which corresponds to 'Multiname::any()')
+                // In certain cases, we need to be able to distinguish between this
+                // and a type of 'Object' (e.g. when determining the default value).
+                // Here, it makes no difference.
+                let class = if name.is_any() {
+                    activation.avm2().classes().object
+                } else {
+                    activation.resolve_class(name)?
+                };
                 *self = LazyClass::Class(class);
                 Ok(class)
             }
