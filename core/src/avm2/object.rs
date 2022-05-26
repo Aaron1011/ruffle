@@ -300,6 +300,7 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
         arguments: &[Value<'gc>],
         activation: &mut Activation<'_, 'gc, '_>,
     ) -> Result<Value<'gc>, Error> {
+        eprintln!("Trying to call: {:?} on: {:?}", multiname, self.instance_of_class_name(activation.context.gc_context));
         match self.vtable().and_then(|vtable| vtable.get_trait(multiname)) {
             Some(Property::Slot { slot_id, class: _ }) | Some(Property::ConstSlot { slot_id, class: _ }) => {
                 let obj = self.base().get_slot(slot_id)?.as_callable(
@@ -663,6 +664,8 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
             Some(multiname),
             Some(self.into()),
         )?;
+
+        eprintln!("Got ctor: {:?}", ctor);
 
         ctor.construct(activation, args)
     }

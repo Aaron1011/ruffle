@@ -1230,7 +1230,6 @@ impl<'a, 'gc, 'gc_context> Activation<'a, 'gc, 'gc_context> {
     ) -> Result<FrameControl<'gc>, Error> {
         let args = self.context.avm2.pop_args(arg_count);
         let multiname = self.pool_multiname(method, index)?;
-        eprintln!("Calling: {:?}", multiname);
         let receiver = self
             .context
             .avm2

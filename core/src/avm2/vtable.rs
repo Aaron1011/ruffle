@@ -14,7 +14,7 @@ use std::ops::DerefMut;
 
 #[derive(Collect, Debug, Clone, Copy)]
 #[collect(no_drop)]
-pub struct VTable<'gc>(GcCell<'gc, VTableData<'gc>>);
+pub struct VTable<'gc>(pub GcCell<'gc, VTableData<'gc>>);
 
 #[derive(Collect, Debug, Clone)]
 #[collect(no_drop)]
@@ -278,7 +278,6 @@ impl<'gc> VTable<'gc> {
 
                     let new_prop = match trait_data.kind() {
                         TraitKind::Slot { type_name, .. } => {
-                            eprintln!("Resolving other slot: {:?}", type_name);
                             Property::new_slot(new_slot_id, LazyClass::lazy(activation, type_name.clone()))
                         }
                         TraitKind::Function { .. } => {
@@ -297,6 +296,8 @@ impl<'gc> VTable<'gc> {
                 }
             }
         }
+
+        eprintln!("Resolved traits: {:?}", resolved_traits);
 
         Ok(())
     }
