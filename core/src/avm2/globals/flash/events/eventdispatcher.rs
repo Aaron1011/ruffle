@@ -271,12 +271,12 @@ pub fn create_class<'gc>(mc: MutationContext<'gc, '_>) -> GcCell<'gc, Class<'gc>
 
     write.define_instance_trait(Trait::from_slot(
         QName::new(Namespace::private(NS_EVENT_DISPATCHER), "target"),
-        QName::new(Namespace::private(NS_RUFFLE_INTERNAL), "BareObject").into(),
+        QName::new(Namespace::public(), "Object").into(),
         None,
     ));
     write.define_instance_trait(Trait::from_slot(
         QName::new(Namespace::private(NS_EVENT_DISPATCHER), "dispatch_list"),
-        QName::new(Namespace::private(NS_RUFFLE_INTERNAL), "BareObject").into(),
+        QName::new(Namespace::public(), "Object").into(),
         None,
     ));
 

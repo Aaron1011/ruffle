@@ -2,7 +2,7 @@ use crate::avm2::activation::Activation;
 use crate::avm2::method::Method;
 use crate::avm2::names::{Multiname, Namespace, QName};
 use crate::avm2::object::{ClassObject, FunctionObject, Object};
-use crate::avm2::property::Property;
+use crate::avm2::property::{LazyClass, Property};
 use crate::avm2::property_map::PropertyMap;
 use crate::avm2::scope::ScopeChain;
 use crate::avm2::traits::{Trait, TraitKind};
@@ -279,17 +279,16 @@ impl<'gc> VTable<'gc> {
                     let new_prop = match trait_data.kind() {
                         TraitKind::Slot { type_name, .. } => {
                             eprintln!("Resolving other slot: {:?}", type_name);
-                            Property::new_slot(new_slot_id, activation.resolve_class(type_name)?)
+                            Property::new_slot(new_slot_id, LazyClass::lazy(activation, type_name.clone()))
                         }
                         TraitKind::Function { .. } => {
-                            Property::new_slot(new_slot_id, activation.avm2().classes().function)
+                            Property::new_slot(new_slot_id, LazyClass::Class(activation.avm2().classes().function))
                         }
                         TraitKind::Const { type_name, .. } => {
-                            eprintln!("Resolving const slot: {:?}", type_name);
-                            Property::new_const_slot(new_slot_id, activation.resolve_class(type_name)?)
+                            Property::new_const_slot(new_slot_id, LazyClass::lazy(activation, type_name.clone()))
                         }
                         TraitKind::Class { .. } => {
-                            Property::new_const_slot(new_slot_id, activation.avm2().classes().class)
+                            Property::new_const_slot(new_slot_id, LazyClass::Class(activation.avm2().classes().class))
                         }
                         _ => unreachable!(),
                     };
@@ -348,7 +347,7 @@ impl<'gc> VTable<'gc> {
         let new_slot_id = write.default_slots.len() as u32 - 1;
         write
             .resolved_traits
-            .insert(name, Property::new_slot(new_slot_id, class));
+            .insert(name, Property::new_slot(new_slot_id, LazyClass::Class(class)));
 
         new_slot_id
     }
