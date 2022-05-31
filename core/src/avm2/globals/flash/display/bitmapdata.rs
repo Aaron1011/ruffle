@@ -214,9 +214,17 @@ pub fn draw<'gc>(
         };
 
 
-        let source = args[1].as_object().unwrap().as_display_object().expect("Not a DisplayObject!");
         render_context.renderer.begin_frame(swf::Color::WHITE);
-        source.render(&mut render_context);
+
+        let object = args[0].as_object().unwrap();
+        if let Some(source) = object.as_display_object() {
+            source.render(&mut render_context);
+        } else if let Some(source) = object.as_bitmap_data() {
+            panic!("Tried to render another BitmapData: {:?}", source);
+        } else {
+            panic!("Not a DisplayObject: {:?}", object);
+        }
+
         render_context.renderer.end_frame();
 
         let orig = backend.reconstruct(context)?;
