@@ -146,8 +146,7 @@ impl Descriptors {
 
 pub struct WgpuRenderBackend<T: RenderTarget> {
     descriptors: Descriptors,
-    target: Box<dyn RenderTarget<Frame = T::Frame>>,
-    old_target: Option<Box<dyn RenderTarget<Frame = T::Frame>>>,
+    target: T,
     frame_buffer_view: Option<wgpu::TextureView>,
     depth_texture_view: wgpu::TextureView,
     copy_srgb_view: Option<wgpu::TextureView>,
@@ -480,8 +479,7 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
 
         Ok(Self {
             descriptors,
-            target: Box::new(target),
-            old_target: None,
+            target,
             frame_buffer_view,
             depth_texture_view,
             copy_srgb_view,
@@ -499,6 +497,30 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
             quad_tex_transforms,
             bitmap_registry: HashMap::new(),
         })
+    }
+
+    pub fn with_target<R: RenderTarget>(self, target: R) -> WgpuRenderBackend<R> {
+        if self.current_frame.is_some() {
+            panic!("Cannot change target in the middle of a frame!");
+        }
+        WgpuRenderBackend {
+            target,
+            descriptors: self.descriptors,
+            frame_buffer_view: self.frame_buffer_view,
+            depth_texture_view: self.depth_texture_view,
+            copy_srgb_view: self.copy_srgb_view,
+            copy_srgb_bind_group: self.copy_srgb_bind_group,
+            current_frame: None,
+            meshes: self.meshes,
+            mask_state: self.mask_state,
+            shape_tessellator: self.shape_tessellator,
+            textures: self.textures,
+            num_masks: self.num_masks,
+            quad_vbo: self.quad_vbo,
+            quad_ibo: self.quad_ibo,
+            quad_tex_transforms: self.quad_tex_transforms,
+            bitmap_registry: self.bitmap_registry, 
+        }
     }
 
     pub async fn build_descriptors(
@@ -996,7 +1018,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
         Ok(self.register_bitmap(bitmap, "PNG"))
     }
 
-    fn begin_frame_target_bitmap(&mut self, clear: Color, handle: BitmapHandle) {
+    /*fn begin_frame_target_bitmap(&mut self, clear: Color, handle: BitmapHandle) {
         let texture = self.textures.get(handle.0).expect("begin_target_bitmap: Bitmap not registered");
         let new_target = TextureTarget::new_from_texture(&self.descriptors.device, (texture.width, texture.height), texture.texture);
         let old_target = std::mem::replace(&mut self.target, Box::new(new_target));
@@ -1015,7 +1037,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
         let old_target = self.old_target.take().expect("`end_frame_target_bitmap` missing old_target");
         self.target = old_target;
         image
-    }
+    }*/
 
     fn begin_frame(&mut self, clear: Color) {
         self.mask_state = MaskState::NoMask;
