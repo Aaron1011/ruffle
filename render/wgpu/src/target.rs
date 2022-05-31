@@ -1,4 +1,3 @@
-#[cfg(not(target_family = "wasm"))]
 use crate::utils::BufferDimensions;
 use std::fmt::Debug;
 
@@ -107,7 +106,6 @@ impl RenderTarget for SwapChainTarget {
     }
 }
 
-#[cfg(not(target_family = "wasm"))]
 #[derive(Debug)]
 pub struct TextureTarget {
     size: wgpu::Extent3d,
@@ -117,37 +115,25 @@ pub struct TextureTarget {
     buffer_dimensions: BufferDimensions,
 }
 
-#[cfg(not(target_family = "wasm"))]
 #[derive(Debug)]
 pub struct TextureTargetFrame(wgpu::TextureView);
 
-#[cfg(not(target_family = "wasm"))]
 impl RenderTargetFrame for TextureTargetFrame {
     fn view(&self) -> &wgpu::TextureView {
         &self.0
     }
 }
 
-#[cfg(not(target_family = "wasm"))]
 impl TextureTarget {
-    pub fn new(device: &wgpu::Device, size: (u32, u32)) -> Self {
-        let buffer_dimensions = BufferDimensions::new(size.0 as usize, size.1 as usize);
+
+    pub fn new_with_texture(device: &wgpu::Device, texture: Texture) -> Self {
+        let format = wgpu::TextureFormat::Rgba8Unorm;
         let size = wgpu::Extent3d {
-            width: size.0,
-            height: size.1,
+            width: texture.width,
+            height: texture.height,
             depth_or_array_layers: 1,
         };
-        let texture_label = create_debug_label!("Render target texture");
-        let format = wgpu::TextureFormat::Rgba8Unorm;
-        let texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: texture_label.as_deref(),
-            size,
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
-        });
+        let buffer_dimensions = BufferDimensions::new(teture.width, texture.height);
         let buffer_label = create_debug_label!("Render target buffer");
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: buffer_label.as_deref(),
@@ -157,12 +143,37 @@ impl TextureTarget {
             mapped_at_creation: false,
         });
         Self {
-            size,
+            size: (texture.width, texture.height),
             texture,
             format,
             buffer,
             buffer_dimensions,
         }
+    }
+
+    pub fn new(device: &wgpu::Device, size: (u32, u32)) -> Self {
+        let texture_label = create_debug_label!("Render target texture");
+        let format = wgpu::TextureFormat::Rgba8Unorm;
+        let size = wgpu::Extent3d {
+            width: texture.width,
+            height: texture.height,
+            depth_or_array_layers: 1,
+        };
+        let texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: texture_label.as_deref(),
+            size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+        });
+        Self::new_with_texture(device, Texture {
+            width: size.0,
+            height: size.1,
+            texture,
+            bind_group
+        })
     }
 
     pub fn capture(&self, device: &wgpu::Device) -> Option<image::RgbaImage> {
@@ -194,7 +205,6 @@ impl TextureTarget {
     }
 }
 
-#[cfg(not(target_family = "wasm"))]
 impl RenderTarget for TextureTarget {
     type Frame = TextureTargetFrame;
 
