@@ -3006,6 +3006,7 @@ dependencies = [
  "gif",
  "h263-rs",
  "h263-rs-yuv",
+ "image",
  "indexmap",
  "instant",
  "jpeg-decoder 0.2.6",

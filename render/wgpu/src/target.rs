@@ -18,11 +18,11 @@ pub trait RenderTarget: Debug + 'static {
 
     fn get_next_texture(&mut self) -> Result<Self::Frame, wgpu::SurfaceError>;
 
-    fn submit<I: IntoIterator<Item = wgpu::CommandBuffer>>(
+    fn submit(
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        command_buffers: I,
+        command_buffers: &mut dyn Iterator<Item = wgpu::CommandBuffer>,
         frame: Self::Frame,
     );
 }
@@ -94,11 +94,11 @@ impl RenderTarget for SwapChainTarget {
         Ok(SwapChainTargetFrame { texture, view })
     }
 
-    fn submit<I: IntoIterator<Item = wgpu::CommandBuffer>>(
+    fn submit(
         &self,
         _device: &wgpu::Device,
         queue: &wgpu::Queue,
-        command_buffers: I,
+        command_buffers: &mut dyn Iterator<Item = wgpu::CommandBuffer>,
         frame: Self::Frame,
     ) {
         queue.submit(command_buffers);
@@ -126,14 +126,14 @@ impl RenderTargetFrame for TextureTargetFrame {
 
 impl TextureTarget {
 
-    pub fn new_with_texture(device: &wgpu::Device, texture: Texture) -> Self {
+    pub fn new_from_texture(device: &wgpu::Device, size: (u32, u32), texture: wgpu::Texture) -> Self {
         let format = wgpu::TextureFormat::Rgba8Unorm;
         let size = wgpu::Extent3d {
-            width: texture.width,
-            height: texture.height,
+            width: size.0,
+            height: size.1,
             depth_or_array_layers: 1,
         };
-        let buffer_dimensions = BufferDimensions::new(teture.width, texture.height);
+        let buffer_dimensions = BufferDimensions::new(size.width as usize, size.height as usize);
         let buffer_label = create_debug_label!("Render target buffer");
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: buffer_label.as_deref(),
@@ -143,7 +143,7 @@ impl TextureTarget {
             mapped_at_creation: false,
         });
         Self {
-            size: (texture.width, texture.height),
+            size,
             texture,
             format,
             buffer,
@@ -155,8 +155,8 @@ impl TextureTarget {
         let texture_label = create_debug_label!("Render target texture");
         let format = wgpu::TextureFormat::Rgba8Unorm;
         let size = wgpu::Extent3d {
-            width: texture.width,
-            height: texture.height,
+            width: size.0,
+            height: size.1,
             depth_or_array_layers: 1,
         };
         let texture = device.create_texture(&wgpu::TextureDescriptor {
@@ -168,12 +168,7 @@ impl TextureTarget {
             format,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
         });
-        Self::new_with_texture(device, Texture {
-            width: size.0,
-            height: size.1,
-            texture,
-            bind_group
-        })
+        Self::new_from_texture(device, (size.width, size.height), texture)
     }
 
     pub fn capture(&self, device: &wgpu::Device) -> Option<image::RgbaImage> {
@@ -250,11 +245,11 @@ impl RenderTarget for TextureTarget {
         ))
     }
 
-    fn submit<I: IntoIterator<Item = wgpu::CommandBuffer>>(
+    fn submit(
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        command_buffers: I,
+        command_buffers: &mut dyn Iterator<Item = wgpu::CommandBuffer>,
         _frame: Self::Frame,
     ) {
         let label = create_debug_label!("Render target transfer encoder");
@@ -278,6 +273,6 @@ impl RenderTarget for TextureTarget {
             },
             self.size,
         );
-        queue.submit(command_buffers.into_iter().chain(Some(encoder.finish())));
+        queue.submit(command_buffers.chain(Some(encoder.finish())));
     }
 }

@@ -11,7 +11,7 @@ use std::num::NonZeroU32;
 use bytemuck::{Pod, Zeroable};
 
 use crate::pipelines::Pipelines;
-use crate::target::{RenderTarget, RenderTargetFrame, SwapChainTarget};
+use crate::target::{RenderTarget, RenderTargetFrame, SwapChainTarget, TextureTarget};
 use crate::utils::{create_buffer_with_data, format_list, get_backend_names};
 use enum_map::Enum;
 use ruffle_core::color_transform::ColorTransform;
@@ -19,6 +19,7 @@ use ruffle_render_common_tess::{
     DrawType as TessDrawType, Gradient as TessGradient, GradientType, ShapeTessellator,
     Vertex as TessVertex,
 };
+use std::any::Any;
 
 type Error = Box<dyn std::error::Error>;
 
@@ -145,7 +146,8 @@ impl Descriptors {
 
 pub struct WgpuRenderBackend<T: RenderTarget> {
     descriptors: Descriptors,
-    target: T,
+    target: Box<dyn RenderTarget<Frame = T::Frame>>,
+    old_target: Option<Box<dyn RenderTarget<Frame = T::Frame>>>,
     frame_buffer_view: Option<wgpu::TextureView>,
     depth_texture_view: wgpu::TextureView,
     copy_srgb_view: Option<wgpu::TextureView>,
@@ -478,7 +480,8 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
 
         Ok(Self {
             descriptors,
-            target,
+            target: Box::new(target),
+            old_target: None,
             frame_buffer_view,
             depth_texture_view,
             copy_srgb_view,
@@ -827,7 +830,7 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
     }
 
     pub fn target(&self) -> &T {
-        &self.target
+        unimplemented!()
     }
 
     pub fn device(&self) -> &wgpu::Device {
@@ -991,6 +994,27 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
     ) -> Result<BitmapInfo, Error> {
         let bitmap = ruffle_core::backend::render::decode_define_bits_lossless(swf_tag)?;
         Ok(self.register_bitmap(bitmap, "PNG"))
+    }
+
+    fn begin_frame_target_bitmap(&mut self, clear: Color, handle: BitmapHandle) {
+        let texture = self.textures.get(handle.0).expect("begin_target_bitmap: Bitmap not registered");
+        let new_target = TextureTarget::new_from_texture(&self.descriptors.device, (texture.width, texture.height), texture.texture);
+        let old_target = std::mem::replace(&mut self.target, Box::new(new_target));
+        if let Some(prev) = self.old_target.replace(old_target) {
+            panic!("Nested 'begin_frame_texture_draw' is not supported!");
+        }
+        self.begin_frame(clear);
+    }
+
+    fn end_frame_target_bitmap(&mut self) -> Option<image::RgbaImage> {
+        self.end_frame();
+        let texture_target = <dyn Any>::downcast_ref::<TextureTarget>(&self.target)
+            .expect("`end_frame_target_bitmap` must be called after `begin_frame_target_bitmap`!");
+
+        let image = texture_target.capture(&self.descriptors.device);
+        let old_target = self.old_target.take().expect("`end_frame_target_bitmap` missing old_target");
+        self.target = old_target;
+        image
     }
 
     fn begin_frame(&mut self, clear: Color) {
@@ -1413,7 +1437,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
             self.target.submit(
                 &self.descriptors.device,
                 &self.descriptors.queue,
-                command_buffers,
+                &mut command_buffers.into_iter(),
                 frame.frame_data.1,
             );
         }

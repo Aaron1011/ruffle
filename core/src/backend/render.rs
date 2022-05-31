@@ -37,6 +37,12 @@ pub trait RenderBackend: Downcast {
         swf_tag: &swf::DefineBitsLossless,
     ) -> Result<BitmapInfo, Error>;
 
+    fn begin_frame_target_bitmap(&mut self, clear: Color, handle: BitmapHandle) {
+        unimplemented!()
+    }
+    fn end_frame_target_bitmap(&mut self) -> Option<image::RgbaImage> {
+        unimplemented!()
+    }
     fn begin_frame(&mut self, clear: Color);
     fn render_bitmap(&mut self, bitmap: BitmapHandle, transform: &Transform, smoothing: bool);
     fn render_shape(&mut self, shape: ShapeHandle, transform: &Transform);
