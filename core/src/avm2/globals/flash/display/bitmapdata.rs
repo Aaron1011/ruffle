@@ -7,10 +7,14 @@ use crate::avm2::names::{Namespace, QName};
 use crate::avm2::object::{bitmapdata_allocator, Object, TObject};
 use crate::avm2::value::Value;
 use crate::avm2::Error;
+use crate::backend::render::NullRenderer;
+use crate::backend::render::{BitmapHandle, RenderBackend};
 use crate::bitmap::bitmap_data::BitmapData;
 use crate::bitmap::is_size_valid;
+use crate::context::RenderContext;
 use crate::character::Character;
 use gc_arena::{GcCell, MutationContext};
+use crate::display_object::TDisplayObject;
 
 /// Implements `flash.display.BitmapData`'s instance constructor.
 pub fn instance_init<'gc>(
@@ -182,11 +186,50 @@ pub fn get_pixel<'gc>(
 
 /// Implements `BitmapData.draw`
 pub fn draw<'gc>(
-    _activation: &mut Activation<'_, 'gc, '_>,
-    _this: Option<Object<'gc>>,
-    _args: &[Value<'gc>],
+    activation: &mut Activation<'_, 'gc, '_>,
+    this: Option<Object<'gc>>,
+    args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error> {
-    log::warn!("BitmapData.draw - not yet implemented");
+    if let Some(this) = this {
+        //let mut player = activation.context.player.upgrade().unwrap();
+        //let mut player = player.lock().unwrap();
+
+        let handle: BitmapHandle = this.as_bitmap_data().unwrap().write(activation.context.gc_context).bitmap_handle(activation.context.renderer).unwrap();
+
+        let renderer = std::mem::replace(activation.context.renderer, Box::new(NullRenderer));
+        let (mut backend, context) = renderer.render_to_bitmap(
+            handle,
+            123,
+            456)?;
+
+        let mut render_context = RenderContext {
+            renderer: &mut backend,
+            ui: activation.context.ui,
+            library: &activation.context.library,
+            // FIXME - do we actually want any transforms here?
+            transform_stack: activation.context.transform_stack,
+            stage: activation.context.stage,
+            clip_depth_stack: vec![],
+            allow_mask: true,
+        };
+
+
+        let source = args[1].as_object().unwrap().as_display_object().expect("Not a DisplayObject!");
+        render_context.renderer.begin_frame(swf::Color::WHITE);
+        source.render(&mut render_context);
+        render_context.renderer.end_frame();
+
+        let orig = backend.reconstruct(context)?;
+        *activation.context.renderer = orig;
+    }
+
+
+    //player.gc_arena.mutate(|_gc_context, gc_root| {
+        //let root_data = gc_root.0.read();
+
+        //root_data.stage.render(&mut render_context);
+    //});
+
 
     Ok(Value::Undefined)
 }

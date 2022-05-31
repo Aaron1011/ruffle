@@ -3,6 +3,7 @@
 use ruffle_core::backend::render::{
     Bitmap, BitmapFormat, BitmapHandle, BitmapInfo, BitmapSource, Color, RenderBackend,
     ShapeHandle, Transform,
+    NullRenderer,
 };
 use ruffle_core::shape_utils::DistilledShape;
 use ruffle_core::swf;
@@ -499,29 +500,6 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
         })
     }
 
-    pub fn with_target<R: RenderTarget>(self, target: R) -> WgpuRenderBackend<R> {
-        if self.current_frame.is_some() {
-            panic!("Cannot change target in the middle of a frame!");
-        }
-        WgpuRenderBackend {
-            target,
-            descriptors: self.descriptors,
-            frame_buffer_view: self.frame_buffer_view,
-            depth_texture_view: self.depth_texture_view,
-            copy_srgb_view: self.copy_srgb_view,
-            copy_srgb_bind_group: self.copy_srgb_bind_group,
-            current_frame: None,
-            meshes: self.meshes,
-            mask_state: self.mask_state,
-            shape_tessellator: self.shape_tessellator,
-            textures: self.textures,
-            num_masks: self.num_masks,
-            quad_vbo: self.quad_vbo,
-            quad_ibo: self.quad_ibo,
-            quad_tex_transforms: self.quad_tex_transforms,
-            bitmap_registry: self.bitmap_registry, 
-        }
-    }
 
     pub async fn build_descriptors(
         backend: wgpu::Backends,
@@ -1544,6 +1522,70 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
         );
 
         Ok(handle)
+    }
+
+    fn render_to_bitmap(
+        mut self: Box<Self>,
+        handle: BitmapHandle,
+        width: u32,
+        height: u32,
+    ) -> Result<(Box<dyn RenderBackend>, Box<dyn Any>), Error> {
+        if self.current_frame.is_some() {
+            panic!("Cannot change target in the middle of a frame!");
+        }
+
+        // FIXME - can the rendering process use our target - I assume not,
+        // as there's no real way to handle that kind of recursion
+        let full_texture = self.textures.remove(handle.0);
+        let texture = full_texture.texture;
+
+        let this = self;
+        let orig_target = this.target;
+        let target = TextureTarget::new_from_texture(&this.descriptors.device, (width, height), texture);
+
+        Ok((Box::new(WgpuRenderBackend {
+            target,
+            descriptors: this.descriptors,
+            frame_buffer_view: this.frame_buffer_view,
+            depth_texture_view: this.depth_texture_view,
+            copy_srgb_view: this.copy_srgb_view,
+            copy_srgb_bind_group: this.copy_srgb_bind_group,
+            current_frame: None,
+            meshes: this.meshes,
+            mask_state: this.mask_state,
+            shape_tessellator: this.shape_tessellator,
+            textures: this.textures,
+            num_masks: this.num_masks,
+            quad_vbo: this.quad_vbo,
+            quad_ibo: this.quad_ibo,
+            quad_tex_transforms: this.quad_tex_transforms,
+            bitmap_registry: this.bitmap_registry, 
+        }), Box::new(orig_target)))
+    }
+
+    fn reconstruct(self: Box<Self>, context: Box<dyn Any>) -> Result<Box<dyn RenderBackend>, Error> {
+       let this = self;
+
+       let target = *context.downcast::<T>().unwrap();
+
+       Ok(Box::new(WgpuRenderBackend {
+            target,
+            descriptors: this.descriptors,
+            frame_buffer_view: this.frame_buffer_view,
+            depth_texture_view: this.depth_texture_view,
+            copy_srgb_view: this.copy_srgb_view,
+            copy_srgb_bind_group: this.copy_srgb_bind_group,
+            current_frame: None,
+            meshes: this.meshes,
+            mask_state: this.mask_state,
+            shape_tessellator: this.shape_tessellator,
+            textures: this.textures,
+            num_masks: this.num_masks,
+            quad_vbo: this.quad_vbo,
+            quad_ibo: this.quad_ibo,
+            quad_tex_transforms: this.quad_tex_transforms,
+            bitmap_registry: this.bitmap_registry, 
+        }))
     }
 }
 

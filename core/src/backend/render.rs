@@ -5,6 +5,7 @@ use downcast_rs::Downcast;
 use gc_arena::Collect;
 use std::borrow::Cow;
 use std::io::Read;
+use std::any::Any;
 pub use swf;
 
 pub trait RenderBackend: Downcast {
@@ -67,8 +68,116 @@ pub trait RenderBackend: Downcast {
         height: u32,
         rgba: Vec<u8>,
     ) -> Result<BitmapHandle, Error>;
+    fn render_to_bitmap(self: Box<Self>, bitmap: BitmapHandle, width: u32, height: u32) -> Result<(Box<dyn RenderBackend>, Box<dyn Any>), Error> {
+        unimplemented!()
+    }
+    fn reconstruct(self: Box<Self>, context: Box<dyn Any>) -> Result<Box<dyn RenderBackend>, Error> {
+        unimplemented!()
+    }
 }
 impl_downcast!(RenderBackend);
+
+impl RenderBackend for Box<dyn RenderBackend> {
+    fn set_viewport_dimensions(&mut self, width: u32, height: u32) {
+        (**self).set_viewport_dimensions(width, height);
+    }
+    fn register_shape(
+        &mut self,
+        shape: DistilledShape,
+        bitmap_source: &dyn BitmapSource,
+    ) -> ShapeHandle {
+        (**self).register_shape(shape, bitmap_source)
+    }
+    fn replace_shape(
+        &mut self,
+        shape: DistilledShape,
+        bitmap_source: &dyn BitmapSource,
+        handle: ShapeHandle,
+    ) {
+        (**self).replace_shape(shape, bitmap_source, handle);
+    }
+    fn register_glyph_shape(&mut self, shape: &swf::Glyph) -> ShapeHandle {
+        (**self).register_glyph_shape(shape)
+    }
+    fn register_bitmap_jpeg(
+        &mut self,
+        data: &[u8],
+        jpeg_tables: Option<&[u8]>,
+    ) -> Result<BitmapInfo, Error> {
+        (**self).register_bitmap_jpeg(data, jpeg_tables)
+    }
+    fn register_bitmap_jpeg_2(&mut self, data: &[u8]) -> Result<BitmapInfo, Error> {
+        (**self).register_bitmap_jpeg_2(data)
+    }
+    fn register_bitmap_jpeg_3_or_4(
+        &mut self,
+        jpeg_data: &[u8],
+        alpha_data: &[u8],
+    ) -> Result<BitmapInfo, Error> {
+        (**self).register_bitmap_jpeg_3_or_4(jpeg_data, alpha_data)
+    }
+    fn register_bitmap_png(
+        &mut self,
+        swf_tag: &swf::DefineBitsLossless,
+    ) -> Result<BitmapInfo, Error> {
+        (**self).register_bitmap_png(swf_tag)
+    }
+
+    fn begin_frame_target_bitmap(&mut self, clear: Color, handle: BitmapHandle) {
+        unimplemented!()
+    }
+    fn end_frame_target_bitmap(&mut self) -> Option<image::RgbaImage> {
+        unimplemented!()
+    }
+    fn begin_frame(&mut self, clear: Color) {
+        (**self).begin_frame(clear)
+    }
+    fn render_bitmap(&mut self, bitmap: BitmapHandle, transform: &Transform, smoothing: bool) {
+        (**self).render_bitmap(bitmap, transform, smoothing)
+    }
+    fn render_shape(&mut self, shape: ShapeHandle, transform: &Transform) {
+        (**self).render_shape(shape, transform)
+    }
+    fn draw_rect(&mut self, color: Color, matrix: &Matrix) {
+        (**self).draw_rect(color, matrix)
+    }
+    fn end_frame(&mut self) {
+        (**self).end_frame()
+    }
+    fn push_mask(&mut self) {
+        (**self).push_mask()
+    }
+    fn activate_mask(&mut self) {
+        (**self).activate_mask()
+    }
+    fn deactivate_mask(&mut self) {
+        (**self).deactivate_mask()
+    }
+    fn pop_mask(&mut self) {
+        (**self).pop_mask()
+    }
+
+    fn get_bitmap_pixels(&mut self, bitmap: BitmapHandle) -> Option<Bitmap> {
+        (**self).get_bitmap_pixels(bitmap)
+    }
+    fn register_bitmap_raw(
+        &mut self,
+        width: u32,
+        height: u32,
+        rgba: Vec<u8>,
+    ) -> Result<BitmapHandle, Error> {
+        (**self).register_bitmap_raw(width, height, rgba)
+    }
+    fn update_texture(
+        &mut self,
+        bitmap: BitmapHandle,
+        width: u32,
+        height: u32,
+        rgba: Vec<u8>,
+    ) -> Result<BitmapHandle, Error> {
+        (**self).update_texture(bitmap, width, height, rgba)
+    }
+}
 
 type Error = Box<dyn std::error::Error>;
 

@@ -71,7 +71,7 @@ pub struct UpdateContext<'a, 'gc, 'gc_context> {
     pub navigator: &'a mut (dyn NavigatorBackend + 'a),
 
     /// The renderer, used by the display objects to draw themselves.
-    pub renderer: &'a mut dyn RenderBackend,
+    pub renderer: &'a mut Box<dyn RenderBackend>,
 
     /// The UI backend, used to detect user interactions.
     pub ui: &'a mut dyn UiBackend,
@@ -167,6 +167,8 @@ pub struct UpdateContext<'a, 'gc, 'gc_context> {
 
     /// The current stage frame rate.
     pub frame_rate: &'a mut f64,
+
+    pub transform_stack: &'a mut TransformStack,
 }
 
 /// Convenience methods for controlling audio.
@@ -325,6 +327,7 @@ impl<'a, 'gc, 'gc_context> UpdateContext<'a, 'gc, 'gc_context> {
             times_get_time_called: self.times_get_time_called,
             time_offset: self.time_offset,
             frame_rate: self.frame_rate,
+            transform_stack: self.transform_stack,
         }
     }
 

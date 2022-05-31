@@ -50,7 +50,7 @@ pub const NEWEST_PLAYER_VERSION: u8 = 32;
 
 #[derive(Collect)]
 #[collect(no_drop)]
-struct GcRoot<'gc>(GcCell<'gc, GcRootData<'gc>>);
+pub struct GcRoot<'gc>(GcCell<'gc, GcRootData<'gc>>);
 
 #[derive(Collect)]
 #[collect(no_drop)]
@@ -1485,7 +1485,7 @@ impl Player {
                 swf: &self.swf,
                 library,
                 rng: &mut self.rng,
-                renderer: self.renderer.deref_mut(),
+                renderer: &mut self.renderer,
                 audio: self.audio.deref_mut(),
                 navigator: self.navigator.deref_mut(),
                 ui: self.ui.deref_mut(),
@@ -1520,6 +1520,7 @@ impl Player {
                 time_offset: &mut self.time_offset,
                 audio_manager,
                 frame_rate: &mut self.frame_rate,
+                transform_stack: &mut self.transform_stack
             };
 
             let old_frame_rate = *update_context.frame_rate;
