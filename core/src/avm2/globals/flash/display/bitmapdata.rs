@@ -194,13 +194,15 @@ pub fn draw<'gc>(
         //let mut player = activation.context.player.upgrade().unwrap();
         //let mut player = player.lock().unwrap();
 
-        let handle: BitmapHandle = this.as_bitmap_data().unwrap().write(activation.context.gc_context).bitmap_handle(activation.context.renderer).unwrap();
+        let mut bitmap_data = this.as_bitmap_data().unwrap();
+        let mut bitmap_data = bitmap_data.write(activation.context.gc_context);
+        let handle: BitmapHandle = bitmap_data.bitmap_handle(activation.context.renderer).unwrap();
 
         let renderer = std::mem::replace(activation.context.renderer, Box::new(NullRenderer));
         let (mut backend, context) = renderer.render_to_bitmap(
             handle,
-            123,
-            456)?;
+            bitmap_data.width(),
+            bitmap_data.height())?;
 
         let mut render_context = RenderContext {
             renderer: &mut backend,

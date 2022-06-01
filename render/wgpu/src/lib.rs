@@ -41,15 +41,16 @@ use crate::globals::Globals;
 use crate::uniform_buffer::UniformBuffer;
 use std::collections::HashMap;
 use std::path::Path;
+use std::rc::Rc;
 pub use wgpu;
 
 pub struct Descriptors {
-    pub device: wgpu::Device,
+    pub device: Rc<wgpu::Device>,
     pub info: wgpu::AdapterInfo,
     pub limits: wgpu::Limits,
     pub surface_format: wgpu::TextureFormat,
     frame_buffer_format: wgpu::TextureFormat,
-    queue: wgpu::Queue,
+    queue: Rc<wgpu::Queue>,
     globals: Globals,
     uniform_buffers: UniformBuffer<Transforms>,
     pipelines: Pipelines,
@@ -59,8 +60,8 @@ pub struct Descriptors {
 
 impl Descriptors {
     pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
+        device: Rc<wgpu::Device>,
+        queue: Rc<wgpu::Queue>,
         info: wgpu::AdapterInfo,
         surface_format: wgpu::TextureFormat,
     ) -> Result<Self, Error> {
@@ -162,6 +163,19 @@ pub struct WgpuRenderBackend<T: RenderTarget> {
     quad_ibo: wgpu::Buffer,
     quad_tex_transforms: wgpu::Buffer,
     bitmap_registry: HashMap<BitmapHandle, Bitmap>,
+}
+
+pub struct TargetData<T: RenderTarget> {
+    descriptors: Descriptors,
+    target: T,
+    frame_buffer_view: Option<wgpu::TextureView>,
+    depth_texture_view: wgpu::TextureView,
+    copy_srgb_view: Option<wgpu::TextureView>,
+    copy_srgb_bind_group: Option<wgpu::BindGroup>,
+    current_frame: Option<Frame<'static, T>>,
+    quad_vbo: wgpu::Buffer,
+    quad_ibo: wgpu::Buffer,
+    quad_tex_transforms: wgpu::Buffer,
 }
 
 #[allow(dead_code)]
@@ -540,8 +554,7 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
         let surface_format = surface
             .and_then(|surface| surface.get_preferred_format(&adapter))
             .unwrap_or(wgpu::TextureFormat::Rgba8Unorm);
-        let surface_format = wgpu::TextureFormat::Bgra8Unorm;
-        Descriptors::new(device, queue, info, surface_format)
+        Descriptors::new(Rc::new(device), Rc::new(queue), info, surface_format)
     }
 
     pub fn descriptors(self) -> Descriptors {
@@ -1542,15 +1555,57 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
         let full_texture = self.textures.remove(handle.0);
         let texture = full_texture.texture;
 
+        let extent = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        };
+
         let this = self;
         let orig_target = this.target;
-        let target = TextureTarget::new_from_texture(&this.descriptors.device, (width, height), texture, this.descriptors.surface_format);
 
-        Ok((Box::new(WgpuRenderBackend {
+
+        let target = TextureTarget::new_from_texture(&this.descriptors.device, (width, height), texture, wgpu::TextureFormat::Rgba8Unorm);
+        let new_descriptors = Descriptors::new(this.descriptors.device.clone(), this.descriptors.queue.clone(), this.descriptors.info.clone(), wgpu::TextureFormat::Rgba8Unorm)?;
+
+        let mut new_backend = WgpuRenderBackend::new(new_descriptors, target)?;
+        new_backend.meshes = this.meshes;
+        new_backend.mask_state = this.mask_state;
+        new_backend.shape_tessellator = this.shape_tessellator;
+        new_backend.textures = this.textures;
+        new_backend.num_masks = this.num_masks;
+        new_backend.bitmap_registry = this.bitmap_registry;
+
+        Ok((Box::new(new_backend), Box::new(TargetData {
+            descriptors: this.descriptors,
+            target: orig_target,
+            frame_buffer_view: this.frame_buffer_view,
+            depth_texture_view: this.depth_texture_view,
+            copy_srgb_view: this.copy_srgb_view,
+            copy_srgb_bind_group: this.copy_srgb_bind_group,
+            current_frame: this.current_frame,
+            quad_vbo: this.quad_vbo,
+            quad_ibo: this.quad_ibo,
+            quad_tex_transforms: this.quad_tex_transforms,
+        })))
+
+        /*let depth_texture = this.descriptors.device.create_texture(&wgpu::TextureDescriptor {
+            label: create_debug_label!("Depth texture").as_deref(),
+            size: extent,
+            mip_level_count: 1,
+            sample_count: this.descriptors.msaa_sample_count,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth24PlusStencil8,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        });
+        let depth_texture_view = depth_texture.create_view(&Default::default());*/
+
+
+        /*Ok((Box::new(WgpuRenderBackend {
             target,
             descriptors: this.descriptors,
             frame_buffer_view: this.frame_buffer_view,
-            depth_texture_view: this.depth_texture_view,
+            depth_texture_view: depth_texture_view,
             copy_srgb_view: this.copy_srgb_view,
             copy_srgb_bind_group: this.copy_srgb_bind_group,
             current_frame: None,
@@ -1563,30 +1618,30 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
             quad_ibo: this.quad_ibo,
             quad_tex_transforms: this.quad_tex_transforms,
             bitmap_registry: this.bitmap_registry, 
-        }), Box::new(orig_target)))
+        }), Box::new(orig_target)))*/
     }
 
     fn reconstruct(self: Box<Self>, context: Box<dyn Any>) -> Result<Box<dyn RenderBackend>, Error> {
        let this = self;
 
-       let target = *context.downcast::<T>().unwrap();
+       let target_data = *context.downcast::<TargetData<T>>().unwrap();
 
        Ok(Box::new(WgpuRenderBackend {
-            target,
-            descriptors: this.descriptors,
-            frame_buffer_view: this.frame_buffer_view,
-            depth_texture_view: this.depth_texture_view,
-            copy_srgb_view: this.copy_srgb_view,
-            copy_srgb_bind_group: this.copy_srgb_bind_group,
+            target: target_data.target,
+            descriptors: target_data.descriptors,
+            frame_buffer_view: target_data.frame_buffer_view,
+            depth_texture_view: target_data.depth_texture_view,
+            copy_srgb_view: target_data.copy_srgb_view,
+            copy_srgb_bind_group: target_data.copy_srgb_bind_group,
             current_frame: None,
             meshes: this.meshes,
             mask_state: this.mask_state,
             shape_tessellator: this.shape_tessellator,
             textures: this.textures,
             num_masks: this.num_masks,
-            quad_vbo: this.quad_vbo,
-            quad_ibo: this.quad_ibo,
-            quad_tex_transforms: this.quad_tex_transforms,
+            quad_vbo: target_data.quad_vbo,
+            quad_ibo: target_data.quad_ibo,
+            quad_tex_transforms: target_data.quad_tex_transforms,
             bitmap_registry: this.bitmap_registry, 
         }))
     }
