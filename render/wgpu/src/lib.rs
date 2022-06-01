@@ -176,6 +176,7 @@ pub struct TargetData<T: RenderTarget> {
     quad_vbo: wgpu::Buffer,
     quad_ibo: wgpu::Buffer,
     quad_tex_transforms: wgpu::Buffer,
+    //removed: (BitmapHandle, Texture),
 }
 
 #[allow(dead_code)]
@@ -834,7 +835,7 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
         self.textures.push(Texture {
             width,
             height,
-            texture,
+            texture: Rc::new(texture),
             bind_group,
         });
 
@@ -1552,8 +1553,8 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
 
         // FIXME - can the rendering process use our target - I assume not,
         // as there's no real way to handle that kind of recursion
-        let full_texture = self.textures.remove(handle.0);
-        let texture = full_texture.texture;
+        let full_texture = self.textures.get(handle.0).unwrap();
+        let texture = full_texture.texture.clone();
 
         let extent = wgpu::Extent3d {
             width,
@@ -1587,6 +1588,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
             quad_vbo: this.quad_vbo,
             quad_ibo: this.quad_ibo,
             quad_tex_transforms: this.quad_tex_transforms,
+            //removed: (handle, full_texture)
         };
 
         Ok((Box::new(new_backend), Box::new(target_data)))
@@ -1629,7 +1631,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
        // FIXME - get right type here
        let target_data = *context.downcast::<TargetData<SwapChainTarget>>().unwrap();
 
-       Ok(Box::new(WgpuRenderBackend {
+       let mut backend = WgpuRenderBackend {
             target: target_data.target,
             descriptors: target_data.descriptors,
             frame_buffer_view: target_data.frame_buffer_view,
@@ -1646,7 +1648,10 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
             quad_ibo: target_data.quad_ibo,
             quad_tex_transforms: target_data.quad_tex_transforms,
             bitmap_registry: this.bitmap_registry, 
-        }))
+        };
+       //backend.textures.insert(target_data.removed.0, target_data.removed.1);
+
+       Ok(Box::new(backend))
     }
 }
 
@@ -1706,6 +1711,6 @@ fn create_quad_buffers(device: &wgpu::Device) -> (wgpu::Buffer, wgpu::Buffer, wg
 struct Texture {
     width: u32,
     height: u32,
-    texture: wgpu::Texture,
+    texture: Rc<wgpu::Texture>,
     bind_group: wgpu::BindGroup,
 }

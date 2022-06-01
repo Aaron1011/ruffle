@@ -222,7 +222,7 @@ pub fn draw<'gc>(
         if let Some(source) = object.as_display_object() {
             source.render(&mut render_context);
         } else if let Some(source) = object.as_bitmap_data() {
-            panic!("Tried to render another BitmapData: {:?}", source);
+            //panic!("Tried to render another BitmapData: {:?}", source);
         } else {
             panic!("Not a DisplayObject: {:?}", object);
         }

@@ -1,5 +1,6 @@
 use crate::utils::BufferDimensions;
 use std::fmt::Debug;
+use std::rc::Rc;
 
 pub trait RenderTargetFrame: Debug {
     fn view(&self) -> &wgpu::TextureView;
@@ -109,7 +110,7 @@ impl RenderTarget for SwapChainTarget {
 #[derive(Debug)]
 pub struct TextureTarget {
     size: wgpu::Extent3d,
-    texture: wgpu::Texture,
+    texture: Rc<wgpu::Texture>,
     format: wgpu::TextureFormat,
     buffer: wgpu::Buffer,
     buffer_dimensions: BufferDimensions,
@@ -126,7 +127,7 @@ impl RenderTargetFrame for TextureTargetFrame {
 
 impl TextureTarget {
 
-    pub fn new_from_texture(device: &wgpu::Device, size: (u32, u32), texture: wgpu::Texture,
+    pub fn new_from_texture(device: &wgpu::Device, size: (u32, u32), texture: Rc<wgpu::Texture>,
     format: wgpu::TextureFormat) -> Self {
 
         let format = wgpu::TextureFormat::Rgba8Unorm;
@@ -171,7 +172,7 @@ impl TextureTarget {
             format,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
         });
-        Self::new_from_texture(device, (size.width, size.height), texture, format)
+        Self::new_from_texture(device, (size.width, size.height), Rc::new(texture), format)
     }
 
     pub fn capture(&self, device: &wgpu::Device) -> Option<image::RgbaImage> {
@@ -211,7 +212,7 @@ impl RenderTarget for TextureTarget {
         self.size.height = height;
 
         let label = create_debug_label!("Render target texture");
-        self.texture = device.create_texture(&wgpu::TextureDescriptor {
+        self.texture = Rc::new(device.create_texture(&wgpu::TextureDescriptor {
             label: label.as_deref(),
             size: self.size,
             mip_level_count: 1,
@@ -219,7 +220,7 @@ impl RenderTarget for TextureTarget {
             dimension: wgpu::TextureDimension::D2,
             format: self.format,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
-        });
+        }));
 
         let buffer_label = create_debug_label!("Render target buffer");
         self.buffer = device.create_buffer(&wgpu::BufferDescriptor {
