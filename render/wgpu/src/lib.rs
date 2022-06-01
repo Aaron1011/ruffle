@@ -1541,7 +1541,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
 
         let this = self;
         let orig_target = this.target;
-        let target = TextureTarget::new_from_texture(&this.descriptors.device, (width, height), texture);
+        let target = TextureTarget::new_from_texture(&this.descriptors.device, (width, height), texture, this.descriptors.surface_format);
 
         Ok((Box::new(WgpuRenderBackend {
             target,

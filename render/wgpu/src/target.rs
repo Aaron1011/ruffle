@@ -126,8 +126,11 @@ impl RenderTargetFrame for TextureTargetFrame {
 
 impl TextureTarget {
 
-    pub fn new_from_texture(device: &wgpu::Device, size: (u32, u32), texture: wgpu::Texture) -> Self {
+    pub fn new_from_texture(device: &wgpu::Device, size: (u32, u32), texture: wgpu::Texture,
+    format: wgpu::TextureFormat) -> Self {
+
         let format = wgpu::TextureFormat::Rgba8Unorm;
+
         let size = wgpu::Extent3d {
             width: size.0,
             height: size.1,
@@ -168,7 +171,7 @@ impl TextureTarget {
             format,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
         });
-        Self::new_from_texture(device, (size.width, size.height), texture)
+        Self::new_from_texture(device, (size.width, size.height), texture, format)
     }
 
     pub fn capture(&self, device: &wgpu::Device) -> Option<image::RgbaImage> {
