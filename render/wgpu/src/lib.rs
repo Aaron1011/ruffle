@@ -773,7 +773,7 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Rgba8Unorm,
-                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::RENDER_ATTACHMENT,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_SRC |  wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::RENDER_ATTACHMENT,
             });
 
         self.descriptors.queue.write_texture(
@@ -1576,7 +1576,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
         new_backend.num_masks = this.num_masks;
         new_backend.bitmap_registry = this.bitmap_registry;
 
-        Ok((Box::new(new_backend), Box::new(TargetData {
+        let target_data: TargetData<T> = TargetData {
             descriptors: this.descriptors,
             target: orig_target,
             frame_buffer_view: this.frame_buffer_view,
@@ -1587,7 +1587,9 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
             quad_vbo: this.quad_vbo,
             quad_ibo: this.quad_ibo,
             quad_tex_transforms: this.quad_tex_transforms,
-        })))
+        };
+
+        Ok((Box::new(new_backend), Box::new(target_data)))
 
         /*let depth_texture = this.descriptors.device.create_texture(&wgpu::TextureDescriptor {
             label: create_debug_label!("Depth texture").as_deref(),
@@ -1624,7 +1626,8 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
     fn reconstruct(self: Box<Self>, context: Box<dyn Any>) -> Result<Box<dyn RenderBackend>, Error> {
        let this = self;
 
-       let target_data = *context.downcast::<TargetData<T>>().unwrap();
+       // FIXME - get right type here
+       let target_data = *context.downcast::<TargetData<SwapChainTarget>>().unwrap();
 
        Ok(Box::new(WgpuRenderBackend {
             target: target_data.target,
