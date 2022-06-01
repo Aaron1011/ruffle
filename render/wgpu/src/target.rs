@@ -255,6 +255,8 @@ impl RenderTarget for TextureTarget {
         command_buffers: &mut dyn Iterator<Item = wgpu::CommandBuffer>,
         _frame: Self::Frame,
     ) {
+        return queue.submit(command_buffers);
+
         let label = create_debug_label!("Render target transfer encoder");
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: label.as_deref(),

@@ -66,7 +66,7 @@ impl Descriptors {
     ) -> Result<Self, Error> {
         let limits = device.limits();
         // TODO: Allow this to be set from command line/settings file.
-        let msaa_sample_count = 4;
+        let msaa_sample_count = 1;
         let bitmap_samplers = BitmapSamplers::new(&device);
         let globals = Globals::new(&device);
         let uniform_buffer_layout_label = create_debug_label!("Uniform buffer bind group layout");
@@ -435,6 +435,8 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
         let (copy_srgb_view, copy_srgb_bind_group) = if descriptors.frame_buffer_format
             != descriptors.surface_format
         {
+            eprintln!("SRGB copy: framebuffer={:?} surface={:?}", descriptors.frame_buffer_format,
+                      descriptors.surface_format);
             let copy_srgb_buffer = descriptors.device.create_texture(&wgpu::TextureDescriptor {
                 label: create_debug_label!("Copy sRGB framebuffer texture").as_deref(),
                 size: extent,
@@ -538,6 +540,7 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
         let surface_format = surface
             .and_then(|surface| surface.get_preferred_format(&adapter))
             .unwrap_or(wgpu::TextureFormat::Rgba8Unorm);
+        let surface_format = wgpu::TextureFormat::Bgra8Unorm;
         Descriptors::new(device, queue, info, surface_format)
     }
 
@@ -830,8 +833,8 @@ impl<T: RenderTarget> WgpuRenderBackend<T> {
     }
 
     pub fn target(&self) -> &T {
-        unimplemented!()
-    }
+        &self.target
+   }
 
     pub fn device(&self) -> &wgpu::Device {
         &self.descriptors.device
