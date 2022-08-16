@@ -1073,14 +1073,14 @@ fn winding_number_line(
     // An upward segment (-y) increments the winding number (including the initial endpoint).
     // A downward segment (+y) decrements the winding number (including the final endpoint)
     // Perp-dot indicates which side of the segment the point is on.
-    if y0 <= point_y {
-        if y1 > point_y {
+    if y0 < point_y {
+        if y1 >= point_y {
             let val = (x1 - x0) * (point_y - y0) - (y1 - y0) * (point_x - x0);
             if val > 0.0 {
                 return 1;
             }
         }
-    } else if y1 <= point_y {
+    } else if y1 < point_y {
         let val = (x1 - x0) * (point_y - y0) - (y1 - y0) * (point_x - x0);
 
         if val < 0.0 {
@@ -1107,8 +1107,8 @@ fn winding_number_curve(
     // However, there are two issues:
     // 1) Solving the quadratic needs to be numerically robust, particularly near the endpoints 0.0 and 1.0, and as the curve is tangent to the ray.
     //    We use the "Citardauq" method for improved numerical stability.
-    // 2) The convention for including/excluding endpoints needs to act similarly to lines, with the initial point included if the curve is "downward",
-    //    and the final point included if the curve is pointing "upward". This is complicated by the fact that the curve could be tangent to the ray
+    // 2) The convention for including/excluding endpoints needs to act similarly to lines, with the initial point included if the curve is "upward",
+    //    and the final point included if the curve is pointing "downward". This is complicated by the fact that the curve could be tangent to the ray
     //    at the endpoint (this is still considered "upward" or "downward" depending on the slope at earlier t).
     //    We solve this by splitting the curve into y-monotonic subcurves. This is helpful because
     //    a) each subcurve will have 1 intersection with the ray
@@ -1167,18 +1167,18 @@ fn winding_number_curve(
         // Verify that this monotonic segment straddles the ray, and choose winding direction.
         // This also handles the endpoint conventions.
         let direction = if y_end > y_start {
-            // Downward edge: initial point included, increments winding.
-            if y_start > 0.0 || y_end <= 0.0 {
-                0
-            } else {
+            // Downward edge: increments winding, final point included.
+            if y_start < 0.0 && y_end >= 0.0 {
                 1
+            } else {
+                0
             }
         } else if y_start > y_end {
-            // Upward edge: final point included, increments winding.
-            if y_start <= 0.0 || y_end > 0.0 {
-                0
-            } else {
+            // Upward edge: decrements winding, initial point included.
+            if y_start >= 0.0 && y_end < 0.0 {
                 -1
+            } else {
+                0
             }
         } else {
             0
