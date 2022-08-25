@@ -130,6 +130,17 @@ fn rust_method_path(
 ) -> TokenStream {
     let mut path = "crate::avm2::globals::".to_string();
 
+    // Pushes a namespace and path separator, if the namespace is non-empty.
+    // A non-empty namespace can occur for a definition in the top-level package
+    // (i.e. 'package { ... }' in ActionScript).
+    let mut push_opt_ns = |abc, multiname| {
+        let ns = resolve_multiname_ns(abc, multiname);
+        if !ns.is_empty() {
+            path += &flash_to_rust_path(&ns);
+            path += "::";
+        }
+    };
+
     let trait_name = &abc.constant_pool.multinames[trait_.name.0 as usize - 1];
 
     if let Some(parent) = parent {
@@ -138,8 +149,7 @@ fn rust_method_path(
         // For example, a namespace of "flash.system" and a name of "Security"
         // turns into the path "flash::system::security"
         let multiname = &abc.constant_pool.multinames[parent.0 as usize - 1];
-        path += &flash_to_rust_path(resolve_multiname_ns(&abc, multiname));
-        path += "::";
+        push_opt_ns(&abc, multiname);
         path += &flash_to_rust_path(resolve_multiname_name(&abc, multiname));
         path += "::";
     } else {
@@ -147,8 +157,7 @@ fn rust_method_path(
         // For example, the freestanding function "flash.utils.getDefinitionByName"
         // has a namespace of "flash.utils", which turns into the path
         // "flash::utils"
-        path += &flash_to_rust_path(resolve_multiname_ns(&abc, trait_name));
-        path += "::";
+        push_opt_ns(&abc, trait_name);
     }
 
     // Append the trait name - this corresponds to the actual method
