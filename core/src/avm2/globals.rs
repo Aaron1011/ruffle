@@ -111,6 +111,9 @@ pub struct SystemClasses<'gc> {
     pub vertexbuffer3d: ClassObject<'gc>,
     pub program3d: ClassObject<'gc>,
     pub urlvariables: ClassObject<'gc>,
+    pub texture: ClassObject<'gc>,
+    pub cubetexture: ClassObject<'gc>,
+    pub rectangletexture: ClassObject<'gc>,
 }
 
 impl<'gc> SystemClasses<'gc> {
@@ -197,6 +200,9 @@ impl<'gc> SystemClasses<'gc> {
             vertexbuffer3d: object,
             program3d: object,
             urlvariables: object,
+            texture: object,
+            cubetexture: object,
+            rectangletexture: object,
         }
     }
 }
@@ -612,6 +618,13 @@ fn load_playerglobal<'gc>(
             ("flash.display3D", "Context3D", context3d),
             ("flash.display3D", "IndexBuffer3D", indexbuffer3d),
             ("flash.display3D", "Program3D", program3d),
+            ("flash.display3D.textures", "CubeTexture", cubetexture),
+            ("flash.display3D.textures", "Texture", texture),
+            (
+                "flash.display3D.textures",
+                "RectangleTexture",
+                rectangletexture
+            ),
             ("flash.display3D", "VertexBuffer3D", vertexbuffer3d),
             (
                 "flash.errors",

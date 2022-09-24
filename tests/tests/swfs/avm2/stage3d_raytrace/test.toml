@@ -1,0 +1,11 @@
+# Note - this test runs the 'RayTracing' example
+# from the https://github.com/saharan/OGSL repository
+# All of the necessary files were copied into this directory.
+
+num_frames = 40
+
+[image_comparison]
+tolerance = 0
+
+[player_options]
+with_renderer = { optional = false, sample_count = 1 }
