@@ -1,0 +1,17 @@
+Adding child: [object Helper]
+Child added
+Helper frame 1 action
+ENTER_FRAME 1: [Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
+FRAME_CONSTRUCTED 1: [Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+ENTER_FRAME 2: [Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
+FRAME_CONSTRUCTED 2: [Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+Helper frame 2 action
+ENTER_FRAME 3: [Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
+FRAME_CONSTRUCTED 3: [Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+Helper frame 3 action
+ENTER_FRAME 4: [Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
+FRAME_CONSTRUCTED 4: [Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+Helper frame 4 action
+ENTER_FRAME 5: [Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
+FRAME_CONSTRUCTED 5: [Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+Helper frame 5 action
