@@ -317,7 +317,7 @@ impl CurrentPipeline {
         .expect("Fragment shader failed to compile");
 
         //eprintln!("Vertex shader:\n{}", to_wgsl(&vertex_naga));
-        //eprintln!("Fragment shader:\n{}", to_wgsl(&fragment_naga));
+        eprintln!("Fragment shader:\n{}", to_wgsl(&fragment_naga));
 
         let vertex_module = descriptors
             .device
@@ -429,12 +429,13 @@ impl CurrentPipeline {
 // This is useful for debugging shader issues
 #[allow(dead_code)]
 fn to_wgsl(module: &naga::Module) -> String {
+    eprintln!("To wgsl:\n{:#?}", module);
     let mut out = String::new();
 
     let mut validator = Validator::new(ValidationFlags::all(), Capabilities::all());
     let module_info = validator
         .validate(module)
-        .unwrap_or_else(|e| panic!("Validation failed: {}", e));
+        .unwrap_or_else(|e| panic!("Validation failed: {:#?}", e));
 
     let mut writer =
         naga::back::wgsl::Writer::new(&mut out, naga::back::wgsl::WriterFlags::EXPLICIT_TYPES);

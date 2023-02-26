@@ -1208,7 +1208,12 @@ impl<'a> NagaBuilder<'a> {
                 self.emit_dest_store(dest, max)?;
             }
             Opcode::Nrm => {
-                let source = self.emit_source_field_load(source1, do_extend)?;
+                // This opcode only looks at the first three components of the source, so load it as a Vec3
+                let source = self.emit_source_field_load_with_swizzle_out(
+                    source1,
+                    do_extend,
+                    VectorSize::Tri,
+                )?;
                 let nrm = self.evaluate_expr(Expression::Math {
                     fun: MathFunction::Normalize,
                     arg: source,
@@ -1328,39 +1333,17 @@ impl<'a> NagaBuilder<'a> {
                 }
             }
             Opcode::Dp3 => {
-                let source1 = self.emit_source_field_load(source1, false)?;
-                let source2 = self.emit_source_field_load(source2.assert_source_field(), false)?;
+                let source2 = source2.assert_source_field();
 
-                // Use a swizzle to get the first three components of each operand
-
-                let source1_three = self.evaluate_expr(Expression::Swizzle {
-                    size: VectorSize::Tri,
-                    vector: source1,
-                    // This is a vec3, so the last swizzle component is ignored
-                    pattern: [
-                        SwizzleComponent::X,
-                        SwizzleComponent::Y,
-                        SwizzleComponent::Z,
-                        SwizzleComponent::W,
-                    ],
-                });
-
-                let source2_three = self.evaluate_expr(Expression::Swizzle {
-                    size: VectorSize::Tri,
-                    vector: source2,
-                    // This is a vec3, so the last swizzle component is ignored
-                    pattern: [
-                        SwizzleComponent::X,
-                        SwizzleComponent::Y,
-                        SwizzleComponent::Z,
-                        SwizzleComponent::W,
-                    ],
-                });
+                let source1 =
+                    self.emit_source_field_load_with_swizzle_out(source1, false, VectorSize::Tri)?;
+                let source2 =
+                    self.emit_source_field_load_with_swizzle_out(source2, false, VectorSize::Tri)?;
 
                 let dp3 = self.evaluate_expr(Expression::Math {
                     fun: MathFunction::Dot,
-                    arg: source1_three,
-                    arg1: Some(source2_three),
+                    arg: source1,
+                    arg1: Some(source2),
                     arg2: None,
                     arg3: None,
                 });
