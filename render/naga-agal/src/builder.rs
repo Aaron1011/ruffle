@@ -362,7 +362,7 @@ impl<'a> NagaBuilder<'a> {
         });
 
         let res = self.evaluate_expr(Expression::Binary {
-            op: BinaryOperator::Add,
+            op,
             left: left_first_component,
             right: right_first_component,
         });

@@ -210,7 +210,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary1_.y = _e378.yyyy.x;
         let _e384: vec4<f32> = constant_registers[16u];
         let _e386: vec4<f32> = temporary1_;
-        temporary1_.w = f32((_e384.xxxx.x + _e386.yyyy.x));
+        temporary1_.w = f32((_e384.xxxx.x < _e386.yyyy.x));
         let _e393: vec4<f32> = temporary1_;
         let _e397: vec4<f32> = constant_registers[16u];
         if all((_e393.wwww != _e397.xxxx)) {
@@ -221,7 +221,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary4_.y = _e405.xxxx.x;
         let _e409: vec4<f32> = temporary4_;
         let _e411: vec4<f32> = temporary4_;
-        temporary1_.x = f32((_e409.yyyy.x + _e411.zzzz.x));
+        temporary1_.x = f32((_e409.yyyy.x < _e411.zzzz.x));
         let _e418: vec4<f32> = temporary1_;
         let _e422: vec4<f32> = constant_registers[16u];
         if all((_e418.xxxx != _e422.xxxx)) {
@@ -286,7 +286,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary1_.w = _e543.xxxx.x;
         let _e549: vec4<f32> = constant_registers[16u];
         let _e551: vec4<f32> = temporary1_;
-        temporary2_.w = f32((_e549.xxxx.x + _e551.wwww.x));
+        temporary2_.w = f32((_e549.xxxx.x < _e551.wwww.x));
         let _e558: vec4<f32> = temporary2_;
         let _e562: vec4<f32> = constant_registers[16u];
         if all((_e558.wwww != _e562.xxxx)) {
@@ -299,7 +299,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary2_.w = (_e576.yyyy - _e578.wwww).x;
             let _e585: vec4<f32> = constant_registers[16u];
             let _e587: vec4<f32> = temporary2_;
-            temporary1_.y = f32((_e585.xxxx.x + _e587.wwww.x));
+            temporary1_.y = f32((_e585.xxxx.x < _e587.wwww.x));
             let _e594: vec4<f32> = temporary1_;
             let _e598: vec4<f32> = constant_registers[16u];
             if all((_e594.yyyy != _e598.xxxx)) {
@@ -349,7 +349,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary3_.z = _e670.z;
         let _e677: vec4<f32> = temporary4_;
         let _e679: vec4<f32> = temporary4_;
-        temporary1_.x = f32((_e677.yyyy.x + _e679.zzzz.x));
+        temporary1_.x = f32((_e677.yyyy.x < _e679.zzzz.x));
         let _e686: vec4<f32> = temporary1_;
         let _e690: vec4<f32> = constant_registers[16u];
         if all((_e686.xxxx != _e690.xxxx)) {
@@ -419,7 +419,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary1_.w = _e820.xxxx.x;
         let _e826: vec4<f32> = constant_registers[16u];
         let _e828: vec4<f32> = temporary1_;
-        temporary2_.w = f32((_e826.xxxx.x + _e828.wwww.x));
+        temporary2_.w = f32((_e826.xxxx.x < _e828.wwww.x));
         let _e835: vec4<f32> = temporary2_;
         let _e839: vec4<f32> = constant_registers[16u];
         if all((_e835.wwww != _e839.xxxx)) {
@@ -432,7 +432,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary2_.w = (_e853.yyyy - _e855.wwww).x;
             let _e862: vec4<f32> = constant_registers[16u];
             let _e864: vec4<f32> = temporary2_;
-            temporary1_.y = f32((_e862.xxxx.x + _e864.wwww.x));
+            temporary1_.y = f32((_e862.xxxx.x < _e864.wwww.x));
             let _e871: vec4<f32> = temporary1_;
             let _e875: vec4<f32> = constant_registers[16u];
             if all((_e871.yyyy != _e875.xxxx)) {
@@ -482,7 +482,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary3_.z = _e946.z;
         let _e953: vec4<f32> = temporary4_;
         let _e955: vec4<f32> = temporary4_;
-        temporary1_.x = f32((_e953.yyyy.x + _e955.zzzz.x));
+        temporary1_.x = f32((_e953.yyyy.x < _e955.zzzz.x));
         let _e962: vec4<f32> = temporary1_;
         let _e966: vec4<f32> = constant_registers[16u];
         if all((_e962.xxxx != _e966.xxxx)) {
@@ -552,7 +552,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary1_.x = _e1095.xxxx.x;
         let _e1101: vec4<f32> = constant_registers[16u];
         let _e1103: vec4<f32> = temporary1_;
-        temporary19_.x = f32((_e1101.xxxx.x + _e1103.xxxx.x));
+        temporary19_.x = f32((_e1101.xxxx.x < _e1103.xxxx.x));
         let _e1110: vec4<f32> = temporary19_;
         let _e1114: vec4<f32> = constant_registers[16u];
         if all((_e1110.xxxx != _e1114.xxxx)) {
@@ -567,7 +567,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary19_.x = _e1135.zzzz.x;
             let _e1141: vec4<f32> = constant_registers[16u];
             let _e1143: vec4<f32> = temporary19_;
-            temporary19_.y = f32((_e1141.xxxx.x + _e1143.xxxx.x));
+            temporary19_.y = f32((_e1141.xxxx.x < _e1143.xxxx.x));
             let _e1150: vec4<f32> = temporary19_;
             let _e1154: vec4<f32> = constant_registers[16u];
             if all((_e1150.yyyy != _e1154.xxxx)) {
@@ -617,7 +617,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary3_.z = _e1225.z;
         let _e1232: vec4<f32> = temporary4_;
         let _e1234: vec4<f32> = temporary4_;
-        temporary1_.y = f32((_e1232.yyyy.x + _e1234.zzzz.x));
+        temporary1_.y = f32((_e1232.yyyy.x < _e1234.zzzz.x));
         let _e1241: vec4<f32> = temporary1_;
         let _e1245: vec4<f32> = constant_registers[16u];
         if all((_e1241.yyyy != _e1245.xxxx)) {
@@ -641,7 +641,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary11_.y = (_e1277.yyyy + _e1281.yyyy).x;
         let _e1286: vec4<f32> = temporary1_;
         let _e1290: vec4<f32> = constant_registers[16u];
-        temporary1_.y = f32((_e1286.zzzz.x + _e1290.xxxx.x));
+        temporary1_.y = f32((_e1286.zzzz.x == _e1290.xxxx.x));
         let _e1297: vec4<f32> = temporary1_;
         let _e1301: vec4<f32> = constant_registers[16u];
         if all((_e1297.yyyy != _e1301.xxxx)) {
@@ -755,7 +755,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary13_.y = (_e1540.xxxx + _e1542.yyyy).x;
             let _e1549: vec4<f32> = constant_registers[16u];
             let _e1551: vec4<f32> = temporary13_;
-            temporary13_.z = f32((_e1549.xxxx.x + _e1551.yyyy.x));
+            temporary13_.z = f32((_e1549.xxxx.x < _e1551.yyyy.x));
             let _e1558: vec4<f32> = temporary13_;
             let _e1562: vec4<f32> = constant_registers[16u];
             if all((_e1558.zzzz != _e1562.xxxx)) {
@@ -768,7 +768,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary13_.z = (_e1576.wwww - _e1578.yyyy).x;
                 let _e1585: vec4<f32> = constant_registers[16u];
                 let _e1587: vec4<f32> = temporary13_;
-                temporary3_.w = f32((_e1585.xxxx.x + _e1587.zzzz.x));
+                temporary3_.w = f32((_e1585.xxxx.x < _e1587.zzzz.x));
                 let _e1594: vec4<f32> = temporary3_;
                 let _e1598: vec4<f32> = constant_registers[16u];
                 if all((_e1594.wwww != _e1598.xxxx)) {
@@ -778,7 +778,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e1606: vec4<f32> = temporary2_;
             let _e1608: vec4<f32> = temporary1_;
-            temporary8_.y = f32((_e1606.wwww.x + _e1608.yyyy.x));
+            temporary8_.y = f32((_e1606.wwww.x < _e1608.yyyy.x));
             let _e1615: vec4<f32> = temporary8_;
             let _e1619: vec4<f32> = constant_registers[16u];
             if all((_e1615.yyyy != _e1619.xxxx)) {
@@ -815,7 +815,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary13_.y = (_e1691.xxxx + _e1693.yyyy).x;
             let _e1700: vec4<f32> = constant_registers[16u];
             let _e1702: vec4<f32> = temporary13_;
-            temporary13_.z = f32((_e1700.xxxx.x + _e1702.yyyy.x));
+            temporary13_.z = f32((_e1700.xxxx.x < _e1702.yyyy.x));
             let _e1709: vec4<f32> = temporary13_;
             let _e1713: vec4<f32> = constant_registers[16u];
             if all((_e1709.zzzz != _e1713.xxxx)) {
@@ -828,7 +828,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary13_.z = (_e1727.wwww - _e1729.yyyy).x;
                 let _e1736: vec4<f32> = constant_registers[16u];
                 let _e1738: vec4<f32> = temporary13_;
-                temporary3_.w = f32((_e1736.xxxx.x + _e1738.zzzz.x));
+                temporary3_.w = f32((_e1736.xxxx.x < _e1738.zzzz.x));
                 let _e1745: vec4<f32> = temporary3_;
                 let _e1749: vec4<f32> = constant_registers[16u];
                 if all((_e1745.wwww != _e1749.xxxx)) {
@@ -838,7 +838,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e1757: vec4<f32> = temporary2_;
             let _e1759: vec4<f32> = temporary1_;
-            temporary8_.y = f32((_e1757.wwww.x + _e1759.yyyy.x));
+            temporary8_.y = f32((_e1757.wwww.x < _e1759.yyyy.x));
             let _e1766: vec4<f32> = temporary8_;
             let _e1770: vec4<f32> = constant_registers[16u];
             if all((_e1766.yyyy != _e1770.xxxx)) {
@@ -892,7 +892,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary13_.y = _e1873.zzzz.x;
             let _e1879: vec4<f32> = constant_registers[16u];
             let _e1881: vec4<f32> = temporary13_;
-            temporary13_.z = f32((_e1879.xxxx.x + _e1881.yyyy.x));
+            temporary13_.z = f32((_e1879.xxxx.x < _e1881.yyyy.x));
             let _e1888: vec4<f32> = temporary13_;
             let _e1892: vec4<f32> = constant_registers[16u];
             if all((_e1888.zzzz != _e1892.xxxx)) {
@@ -907,7 +907,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary13_.z = _e1913.xxxx.x;
                 let _e1919: vec4<f32> = constant_registers[16u];
                 let _e1921: vec4<f32> = temporary13_;
-                temporary3_.w = f32((_e1919.xxxx.x + _e1921.zzzz.x));
+                temporary3_.w = f32((_e1919.xxxx.x < _e1921.zzzz.x));
                 let _e1928: vec4<f32> = temporary3_;
                 let _e1932: vec4<f32> = constant_registers[16u];
                 if all((_e1928.wwww != _e1932.xxxx)) {
@@ -919,7 +919,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary4_.y = _e1940.wwww.x;
             let _e1944: vec4<f32> = temporary4_;
             let _e1946: vec4<f32> = temporary1_;
-            temporary8_.y = f32((_e1944.yyyy.x + _e1946.yyyy.x));
+            temporary8_.y = f32((_e1944.yyyy.x < _e1946.yyyy.x));
             let _e1953: vec4<f32> = temporary8_;
             let _e1957: vec4<f32> = constant_registers[16u];
             if all((_e1953.yyyy != _e1957.xxxx)) {
@@ -944,7 +944,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary8_.y = _e2006.wwww.x;
             let _e2010: vec4<f32> = temporary1_;
             let _e2014: vec4<f32> = constant_registers[16u];
-            temporary8_.z = f32((_e2010.zzzz.x + _e2014.yyyy.x));
+            temporary8_.z = f32((_e2010.zzzz.x == _e2014.yyyy.x));
             let _e2021: vec4<f32> = temporary8_;
             let _e2025: vec4<f32> = constant_registers[16u];
             if all((_e2021.zzzz != _e2025.xxxx)) {
@@ -971,7 +971,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary17_.y = (_e2074.xxxx * _e2078.xxxx).x;
                 let _e2083: vec4<f32> = temporary17_;
                 let _e2087: vec4<f32> = constant_registers[16u];
-                temporary17_.z = f32((_e2083.yyyy.x + _e2087.yyyy.x));
+                temporary17_.z = f32((_e2083.yyyy.x == _e2087.yyyy.x));
                 let _e2094: vec4<f32> = temporary17_;
                 let _e2098: vec4<f32> = constant_registers[16u];
                 if all((_e2094.zzzz != _e2098.xxxx)) {
@@ -1004,7 +1004,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e2150: vec4<f32> = temporary1_;
             let _e2154: vec4<f32> = constant_registers[18u];
-            temporary8_.z = f32((_e2150.zzzz.x + _e2154.xxxx.x));
+            temporary8_.z = f32((_e2150.zzzz.x == _e2154.xxxx.x));
             let _e2161: vec4<f32> = temporary8_;
             let _e2165: vec4<f32> = constant_registers[16u];
             if all((_e2161.zzzz != _e2165.xxxx)) {
@@ -1065,7 +1065,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary14_.x = _e2282.xxxx.x;
         let _e2288: vec4<f32> = constant_registers[16u];
         let _e2290: vec4<f32> = temporary14_;
-        temporary14_.y = f32((_e2288.xxxx.x + _e2290.xxxx.x));
+        temporary14_.y = f32((_e2288.xxxx.x < _e2290.xxxx.x));
         let _e2297: vec4<f32> = temporary14_;
         let _e2301: vec4<f32> = constant_registers[16u];
         if all((_e2297.yyyy != _e2301.xxxx)) {
@@ -1076,7 +1076,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary4_.y = _e2309.wwww.x;
         let _e2313: vec4<f32> = temporary4_;
         let _e2315: vec4<f32> = temporary4_;
-        temporary8_.z = f32((_e2313.yyyy.x + _e2315.zzzz.x));
+        temporary8_.z = f32((_e2313.yyyy.x < _e2315.zzzz.x));
         let _e2322: vec4<f32> = temporary8_;
         let _e2326: vec4<f32> = constant_registers[16u];
         if all((_e2322.zzzz != _e2326.xxxx)) {
@@ -1140,7 +1140,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary13_.z = (_e2442.yyyy + _e2444.zzzz).x;
         let _e2451: vec4<f32> = constant_registers[16u];
         let _e2453: vec4<f32> = temporary13_;
-        temporary3_.w = f32((_e2451.xxxx.x + _e2453.zzzz.x));
+        temporary3_.w = f32((_e2451.xxxx.x < _e2453.zzzz.x));
         let _e2460: vec4<f32> = temporary3_;
         let _e2464: vec4<f32> = constant_registers[16u];
         if all((_e2460.wwww != _e2464.xxxx)) {
@@ -1155,7 +1155,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary3_.w = _e2485.yyyy.x;
             let _e2491: vec4<f32> = constant_registers[16u];
             let _e2493: vec4<f32> = temporary3_;
-            temporary14_.x = f32((_e2491.xxxx.x + _e2493.wwww.x));
+            temporary14_.x = f32((_e2491.xxxx.x < _e2493.wwww.x));
             let _e2500: vec4<f32> = temporary14_;
             let _e2504: vec4<f32> = constant_registers[16u];
             if all((_e2500.xxxx != _e2504.xxxx)) {
@@ -1195,7 +1195,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary3_.z = _e2559.z;
         let _e2566: vec4<f32> = temporary4_;
         let _e2568: vec4<f32> = temporary4_;
-        temporary8_.z = f32((_e2566.yyyy.x + _e2568.zzzz.x));
+        temporary8_.z = f32((_e2566.yyyy.x < _e2568.zzzz.x));
         let _e2575: vec4<f32> = temporary8_;
         let _e2579: vec4<f32> = constant_registers[16u];
         if all((_e2575.zzzz != _e2579.xxxx)) {
@@ -1264,7 +1264,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary13_.z = (_e2705.yyyy + _e2707.zzzz).x;
         let _e2714: vec4<f32> = constant_registers[16u];
         let _e2716: vec4<f32> = temporary13_;
-        temporary3_.w = f32((_e2714.xxxx.x + _e2716.zzzz.x));
+        temporary3_.w = f32((_e2714.xxxx.x < _e2716.zzzz.x));
         let _e2723: vec4<f32> = temporary3_;
         let _e2727: vec4<f32> = constant_registers[16u];
         if all((_e2723.wwww != _e2727.xxxx)) {
@@ -1279,7 +1279,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary3_.w = _e2748.yyyy.x;
             let _e2754: vec4<f32> = constant_registers[16u];
             let _e2756: vec4<f32> = temporary3_;
-            temporary14_.x = f32((_e2754.xxxx.x + _e2756.wwww.x));
+            temporary14_.x = f32((_e2754.xxxx.x < _e2756.wwww.x));
             let _e2763: vec4<f32> = temporary14_;
             let _e2767: vec4<f32> = constant_registers[16u];
             if all((_e2763.xxxx != _e2767.xxxx)) {
@@ -1319,7 +1319,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary3_.z = _e2822.z;
         let _e2829: vec4<f32> = temporary4_;
         let _e2831: vec4<f32> = temporary4_;
-        temporary8_.z = f32((_e2829.yyyy.x + _e2831.zzzz.x));
+        temporary8_.z = f32((_e2829.yyyy.x < _e2831.zzzz.x));
         let _e2838: vec4<f32> = temporary8_;
         let _e2842: vec4<f32> = constant_registers[16u];
         if all((_e2838.zzzz != _e2842.xxxx)) {
@@ -1390,7 +1390,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary13_.z = _e2975.xxxx.x;
         let _e2981: vec4<f32> = constant_registers[16u];
         let _e2983: vec4<f32> = temporary13_;
-        temporary3_.w = f32((_e2981.xxxx.x + _e2983.zzzz.x));
+        temporary3_.w = f32((_e2981.xxxx.x < _e2983.zzzz.x));
         let _e2990: vec4<f32> = temporary3_;
         let _e2994: vec4<f32> = constant_registers[16u];
         if all((_e2990.wwww != _e2994.xxxx)) {
@@ -1405,7 +1405,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary3_.w = _e3015.yyyy.x;
             let _e3021: vec4<f32> = constant_registers[16u];
             let _e3023: vec4<f32> = temporary3_;
-            temporary14_.x = f32((_e3021.xxxx.x + _e3023.wwww.x));
+            temporary14_.x = f32((_e3021.xxxx.x < _e3023.wwww.x));
             let _e3030: vec4<f32> = temporary14_;
             let _e3034: vec4<f32> = constant_registers[16u];
             if all((_e3030.xxxx != _e3034.xxxx)) {
@@ -1445,7 +1445,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary3_.z = _e3089.z;
         let _e3096: vec4<f32> = temporary4_;
         let _e3098: vec4<f32> = temporary4_;
-        temporary8_.z = f32((_e3096.yyyy.x + _e3098.zzzz.x));
+        temporary8_.z = f32((_e3096.yyyy.x < _e3098.zzzz.x));
         let _e3105: vec4<f32> = temporary8_;
         let _e3109: vec4<f32> = constant_registers[16u];
         if all((_e3105.zzzz != _e3109.xxxx)) {
@@ -1469,7 +1469,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary11_.y = (_e3141.yyyy + _e3145.yyyy).x;
         let _e3150: vec4<f32> = temporary1_;
         let _e3154: vec4<f32> = constant_registers[16u];
-        temporary8_.z = f32((_e3150.zzzz.x + _e3154.xxxx.x));
+        temporary8_.z = f32((_e3150.zzzz.x == _e3154.xxxx.x));
         let _e3161: vec4<f32> = temporary8_;
         let _e3165: vec4<f32> = constant_registers[16u];
         if all((_e3161.zzzz != _e3165.xxxx)) {
@@ -1585,7 +1585,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary19_.z = (_e3408.yyyy + _e3410.zzzz).x;
             let _e3417: vec4<f32> = constant_registers[16u];
             let _e3419: vec4<f32> = temporary19_;
-            temporary1_.w = f32((_e3417.xxxx.x + _e3419.zzzz.x));
+            temporary1_.w = f32((_e3417.xxxx.x < _e3419.zzzz.x));
             let _e3426: vec4<f32> = temporary1_;
             let _e3430: vec4<f32> = constant_registers[16u];
             if all((_e3426.wwww != _e3430.xxxx)) {
@@ -1598,7 +1598,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary1_.w = (_e3444.xxxx - _e3446.zzzz).x;
                 let _e3453: vec4<f32> = constant_registers[16u];
                 let _e3455: vec4<f32> = temporary1_;
-                temporary12_.x = f32((_e3453.xxxx.x + _e3455.wwww.x));
+                temporary12_.x = f32((_e3453.xxxx.x < _e3455.wwww.x));
                 let _e3462: vec4<f32> = temporary12_;
                 let _e3466: vec4<f32> = constant_registers[16u];
                 if all((_e3462.xxxx != _e3466.xxxx)) {
@@ -1608,7 +1608,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e3474: vec4<f32> = temporary19_;
             let _e3476: vec4<f32> = temporary1_;
-            temporary8_.z = f32((_e3474.xxxx.x + _e3476.yyyy.x));
+            temporary8_.z = f32((_e3474.xxxx.x < _e3476.yyyy.x));
             let _e3483: vec4<f32> = temporary8_;
             let _e3487: vec4<f32> = constant_registers[16u];
             if all((_e3483.zzzz != _e3487.xxxx)) {
@@ -1645,7 +1645,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary19_.z = (_e3559.yyyy + _e3561.zzzz).x;
             let _e3568: vec4<f32> = constant_registers[16u];
             let _e3570: vec4<f32> = temporary19_;
-            temporary1_.w = f32((_e3568.xxxx.x + _e3570.zzzz.x));
+            temporary1_.w = f32((_e3568.xxxx.x < _e3570.zzzz.x));
             let _e3577: vec4<f32> = temporary1_;
             let _e3581: vec4<f32> = constant_registers[16u];
             if all((_e3577.wwww != _e3581.xxxx)) {
@@ -1658,7 +1658,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary1_.w = (_e3595.xxxx - _e3597.zzzz).x;
                 let _e3604: vec4<f32> = constant_registers[16u];
                 let _e3606: vec4<f32> = temporary1_;
-                temporary12_.x = f32((_e3604.xxxx.x + _e3606.wwww.x));
+                temporary12_.x = f32((_e3604.xxxx.x < _e3606.wwww.x));
                 let _e3613: vec4<f32> = temporary12_;
                 let _e3617: vec4<f32> = constant_registers[16u];
                 if all((_e3613.xxxx != _e3617.xxxx)) {
@@ -1668,7 +1668,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e3625: vec4<f32> = temporary19_;
             let _e3627: vec4<f32> = temporary1_;
-            temporary8_.z = f32((_e3625.xxxx.x + _e3627.yyyy.x));
+            temporary8_.z = f32((_e3625.xxxx.x < _e3627.yyyy.x));
             let _e3634: vec4<f32> = temporary8_;
             let _e3638: vec4<f32> = constant_registers[16u];
             if all((_e3634.zzzz != _e3638.xxxx)) {
@@ -1720,7 +1720,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary19_.z = (_e3734.yyyy + _e3736.zzzz).x;
             let _e3743: vec4<f32> = constant_registers[16u];
             let _e3745: vec4<f32> = temporary19_;
-            temporary1_.w = f32((_e3743.xxxx.x + _e3745.zzzz.x));
+            temporary1_.w = f32((_e3743.xxxx.x < _e3745.zzzz.x));
             let _e3752: vec4<f32> = temporary1_;
             let _e3756: vec4<f32> = constant_registers[16u];
             if all((_e3752.wwww != _e3756.xxxx)) {
@@ -1735,7 +1735,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary1_.w = _e3777.yyyy.x;
                 let _e3783: vec4<f32> = constant_registers[16u];
                 let _e3785: vec4<f32> = temporary1_;
-                temporary12_.x = f32((_e3783.xxxx.x + _e3785.wwww.x));
+                temporary12_.x = f32((_e3783.xxxx.x < _e3785.wwww.x));
                 let _e3792: vec4<f32> = temporary12_;
                 let _e3796: vec4<f32> = constant_registers[16u];
                 if all((_e3792.xxxx != _e3796.xxxx)) {
@@ -1747,7 +1747,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary4_.y = _e3804.xxxx.x;
             let _e3808: vec4<f32> = temporary4_;
             let _e3810: vec4<f32> = temporary1_;
-            temporary8_.z = f32((_e3808.yyyy.x + _e3810.yyyy.x));
+            temporary8_.z = f32((_e3808.yyyy.x < _e3810.yyyy.x));
             let _e3817: vec4<f32> = temporary8_;
             let _e3821: vec4<f32> = constant_registers[16u];
             if all((_e3817.zzzz != _e3821.xxxx)) {
@@ -1772,7 +1772,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary8_.y = _e3870.wwww.x;
             let _e3874: vec4<f32> = temporary1_;
             let _e3878: vec4<f32> = constant_registers[16u];
-            temporary8_.z = f32((_e3874.zzzz.x + _e3878.yyyy.x));
+            temporary8_.z = f32((_e3874.zzzz.x == _e3878.yyyy.x));
             let _e3885: vec4<f32> = temporary8_;
             let _e3889: vec4<f32> = constant_registers[16u];
             if all((_e3885.zzzz != _e3889.xxxx)) {
@@ -1799,7 +1799,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary17_.y = (_e3938.xxxx * _e3942.xxxx).x;
                 let _e3947: vec4<f32> = temporary17_;
                 let _e3951: vec4<f32> = constant_registers[16u];
-                temporary17_.z = f32((_e3947.yyyy.x + _e3951.yyyy.x));
+                temporary17_.z = f32((_e3947.yyyy.x == _e3951.yyyy.x));
                 let _e3958: vec4<f32> = temporary17_;
                 let _e3962: vec4<f32> = constant_registers[16u];
                 if all((_e3958.zzzz != _e3962.xxxx)) {
@@ -1832,7 +1832,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e4014: vec4<f32> = temporary1_;
             let _e4018: vec4<f32> = constant_registers[18u];
-            temporary8_.z = f32((_e4014.zzzz.x + _e4018.xxxx.x));
+            temporary8_.z = f32((_e4014.zzzz.x == _e4018.xxxx.x));
             let _e4025: vec4<f32> = temporary8_;
             let _e4029: vec4<f32> = constant_registers[16u];
             if all((_e4025.zzzz != _e4029.xxxx)) {
@@ -1893,7 +1893,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary14_.x = _e4146.xxxx.x;
         let _e4152: vec4<f32> = constant_registers[16u];
         let _e4154: vec4<f32> = temporary14_;
-        temporary14_.y = f32((_e4152.xxxx.x + _e4154.xxxx.x));
+        temporary14_.y = f32((_e4152.xxxx.x < _e4154.xxxx.x));
         let _e4161: vec4<f32> = temporary14_;
         let _e4165: vec4<f32> = constant_registers[16u];
         if all((_e4161.yyyy != _e4165.xxxx)) {
@@ -1904,7 +1904,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary4_.y = _e4173.wwww.x;
         let _e4177: vec4<f32> = temporary4_;
         let _e4179: vec4<f32> = temporary4_;
-        temporary8_.z = f32((_e4177.yyyy.x + _e4179.zzzz.x));
+        temporary8_.z = f32((_e4177.yyyy.x < _e4179.zzzz.x));
         let _e4186: vec4<f32> = temporary8_;
         let _e4190: vec4<f32> = constant_registers[16u];
         if all((_e4186.zzzz != _e4190.xxxx)) {
@@ -1968,7 +1968,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary13_.z = (_e4306.yyyy + _e4308.zzzz).x;
         let _e4315: vec4<f32> = constant_registers[16u];
         let _e4317: vec4<f32> = temporary13_;
-        temporary3_.w = f32((_e4315.xxxx.x + _e4317.zzzz.x));
+        temporary3_.w = f32((_e4315.xxxx.x < _e4317.zzzz.x));
         let _e4324: vec4<f32> = temporary3_;
         let _e4328: vec4<f32> = constant_registers[16u];
         if all((_e4324.wwww != _e4328.xxxx)) {
@@ -1983,7 +1983,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary3_.w = _e4349.yyyy.x;
             let _e4355: vec4<f32> = constant_registers[16u];
             let _e4357: vec4<f32> = temporary3_;
-            temporary14_.x = f32((_e4355.xxxx.x + _e4357.wwww.x));
+            temporary14_.x = f32((_e4355.xxxx.x < _e4357.wwww.x));
             let _e4364: vec4<f32> = temporary14_;
             let _e4368: vec4<f32> = constant_registers[16u];
             if all((_e4364.xxxx != _e4368.xxxx)) {
@@ -2023,7 +2023,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary3_.z = _e4423.z;
         let _e4430: vec4<f32> = temporary4_;
         let _e4432: vec4<f32> = temporary4_;
-        temporary8_.z = f32((_e4430.yyyy.x + _e4432.zzzz.x));
+        temporary8_.z = f32((_e4430.yyyy.x < _e4432.zzzz.x));
         let _e4439: vec4<f32> = temporary8_;
         let _e4443: vec4<f32> = constant_registers[16u];
         if all((_e4439.zzzz != _e4443.xxxx)) {
@@ -2092,7 +2092,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary13_.z = (_e4569.yyyy + _e4571.zzzz).x;
         let _e4578: vec4<f32> = constant_registers[16u];
         let _e4580: vec4<f32> = temporary13_;
-        temporary3_.w = f32((_e4578.xxxx.x + _e4580.zzzz.x));
+        temporary3_.w = f32((_e4578.xxxx.x < _e4580.zzzz.x));
         let _e4587: vec4<f32> = temporary3_;
         let _e4591: vec4<f32> = constant_registers[16u];
         if all((_e4587.wwww != _e4591.xxxx)) {
@@ -2107,7 +2107,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary3_.w = _e4612.yyyy.x;
             let _e4618: vec4<f32> = constant_registers[16u];
             let _e4620: vec4<f32> = temporary3_;
-            temporary14_.x = f32((_e4618.xxxx.x + _e4620.wwww.x));
+            temporary14_.x = f32((_e4618.xxxx.x < _e4620.wwww.x));
             let _e4627: vec4<f32> = temporary14_;
             let _e4631: vec4<f32> = constant_registers[16u];
             if all((_e4627.xxxx != _e4631.xxxx)) {
@@ -2147,7 +2147,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary3_.z = _e4686.z;
         let _e4693: vec4<f32> = temporary4_;
         let _e4695: vec4<f32> = temporary4_;
-        temporary8_.z = f32((_e4693.yyyy.x + _e4695.zzzz.x));
+        temporary8_.z = f32((_e4693.yyyy.x < _e4695.zzzz.x));
         let _e4702: vec4<f32> = temporary8_;
         let _e4706: vec4<f32> = constant_registers[16u];
         if all((_e4702.zzzz != _e4706.xxxx)) {
@@ -2216,7 +2216,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary13_.z = (_e4832.yyyy + _e4834.zzzz).x;
         let _e4841: vec4<f32> = constant_registers[16u];
         let _e4843: vec4<f32> = temporary13_;
-        temporary3_.w = f32((_e4841.xxxx.x + _e4843.zzzz.x));
+        temporary3_.w = f32((_e4841.xxxx.x < _e4843.zzzz.x));
         let _e4850: vec4<f32> = temporary3_;
         let _e4854: vec4<f32> = constant_registers[16u];
         if all((_e4850.wwww != _e4854.xxxx)) {
@@ -2231,7 +2231,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary3_.w = _e4875.yyyy.x;
             let _e4881: vec4<f32> = constant_registers[16u];
             let _e4883: vec4<f32> = temporary3_;
-            temporary14_.x = f32((_e4881.xxxx.x + _e4883.wwww.x));
+            temporary14_.x = f32((_e4881.xxxx.x < _e4883.wwww.x));
             let _e4890: vec4<f32> = temporary14_;
             let _e4894: vec4<f32> = constant_registers[16u];
             if all((_e4890.xxxx != _e4894.xxxx)) {
@@ -2271,7 +2271,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary3_.z = _e4949.z;
         let _e4956: vec4<f32> = temporary4_;
         let _e4958: vec4<f32> = temporary4_;
-        temporary8_.z = f32((_e4956.yyyy.x + _e4958.zzzz.x));
+        temporary8_.z = f32((_e4956.yyyy.x < _e4958.zzzz.x));
         let _e4965: vec4<f32> = temporary8_;
         let _e4969: vec4<f32> = constant_registers[16u];
         if all((_e4965.zzzz != _e4969.xxxx)) {
@@ -2295,7 +2295,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
         temporary11_.y = (_e5001.yyyy + _e5005.yyyy).x;
         let _e5010: vec4<f32> = temporary1_;
         let _e5014: vec4<f32> = constant_registers[16u];
-        temporary8_.z = f32((_e5010.zzzz.x + _e5014.xxxx.x));
+        temporary8_.z = f32((_e5010.zzzz.x == _e5014.xxxx.x));
         let _e5021: vec4<f32> = temporary8_;
         let _e5025: vec4<f32> = constant_registers[16u];
         if all((_e5021.zzzz != _e5025.xxxx)) {
@@ -2409,7 +2409,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary19_.z = (_e5266.yyyy + _e5268.zzzz).x;
             let _e5275: vec4<f32> = constant_registers[16u];
             let _e5277: vec4<f32> = temporary19_;
-            temporary1_.w = f32((_e5275.xxxx.x + _e5277.zzzz.x));
+            temporary1_.w = f32((_e5275.xxxx.x < _e5277.zzzz.x));
             let _e5284: vec4<f32> = temporary1_;
             let _e5288: vec4<f32> = constant_registers[16u];
             if all((_e5284.wwww != _e5288.xxxx)) {
@@ -2422,7 +2422,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary1_.w = (_e5302.xxxx - _e5304.zzzz).x;
                 let _e5311: vec4<f32> = constant_registers[16u];
                 let _e5313: vec4<f32> = temporary1_;
-                temporary12_.x = f32((_e5311.xxxx.x + _e5313.wwww.x));
+                temporary12_.x = f32((_e5311.xxxx.x < _e5313.wwww.x));
                 let _e5320: vec4<f32> = temporary12_;
                 let _e5324: vec4<f32> = constant_registers[16u];
                 if all((_e5320.xxxx != _e5324.xxxx)) {
@@ -2432,7 +2432,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e5332: vec4<f32> = temporary19_;
             let _e5334: vec4<f32> = temporary1_;
-            temporary8_.z = f32((_e5332.xxxx.x + _e5334.yyyy.x));
+            temporary8_.z = f32((_e5332.xxxx.x < _e5334.yyyy.x));
             let _e5341: vec4<f32> = temporary8_;
             let _e5345: vec4<f32> = constant_registers[16u];
             if all((_e5341.zzzz != _e5345.xxxx)) {
@@ -2469,7 +2469,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary19_.z = (_e5417.yyyy + _e5419.zzzz).x;
             let _e5426: vec4<f32> = constant_registers[16u];
             let _e5428: vec4<f32> = temporary19_;
-            temporary1_.w = f32((_e5426.xxxx.x + _e5428.zzzz.x));
+            temporary1_.w = f32((_e5426.xxxx.x < _e5428.zzzz.x));
             let _e5435: vec4<f32> = temporary1_;
             let _e5439: vec4<f32> = constant_registers[16u];
             if all((_e5435.wwww != _e5439.xxxx)) {
@@ -2482,7 +2482,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary1_.w = (_e5453.xxxx - _e5455.zzzz).x;
                 let _e5462: vec4<f32> = constant_registers[16u];
                 let _e5464: vec4<f32> = temporary1_;
-                temporary12_.x = f32((_e5462.xxxx.x + _e5464.wwww.x));
+                temporary12_.x = f32((_e5462.xxxx.x < _e5464.wwww.x));
                 let _e5471: vec4<f32> = temporary12_;
                 let _e5475: vec4<f32> = constant_registers[16u];
                 if all((_e5471.xxxx != _e5475.xxxx)) {
@@ -2492,7 +2492,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e5483: vec4<f32> = temporary19_;
             let _e5485: vec4<f32> = temporary1_;
-            temporary8_.z = f32((_e5483.xxxx.x + _e5485.yyyy.x));
+            temporary8_.z = f32((_e5483.xxxx.x < _e5485.yyyy.x));
             let _e5492: vec4<f32> = temporary8_;
             let _e5496: vec4<f32> = constant_registers[16u];
             if all((_e5492.zzzz != _e5496.xxxx)) {
@@ -2539,7 +2539,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary19_.z = (_e5584.yyyy + _e5586.zzzz).x;
             let _e5593: vec4<f32> = constant_registers[16u];
             let _e5595: vec4<f32> = temporary19_;
-            temporary1_.w = f32((_e5593.xxxx.x + _e5595.zzzz.x));
+            temporary1_.w = f32((_e5593.xxxx.x < _e5595.zzzz.x));
             let _e5602: vec4<f32> = temporary1_;
             let _e5606: vec4<f32> = constant_registers[16u];
             if all((_e5602.wwww != _e5606.xxxx)) {
@@ -2552,7 +2552,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary1_.w = (_e5620.xxxx - _e5622.zzzz).x;
                 let _e5629: vec4<f32> = constant_registers[16u];
                 let _e5631: vec4<f32> = temporary1_;
-                temporary12_.x = f32((_e5629.xxxx.x + _e5631.wwww.x));
+                temporary12_.x = f32((_e5629.xxxx.x < _e5631.wwww.x));
                 let _e5638: vec4<f32> = temporary12_;
                 let _e5642: vec4<f32> = constant_registers[16u];
                 if all((_e5638.xxxx != _e5642.xxxx)) {
@@ -2562,7 +2562,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e5650: vec4<f32> = temporary19_;
             let _e5652: vec4<f32> = temporary1_;
-            temporary8_.z = f32((_e5650.xxxx.x + _e5652.yyyy.x));
+            temporary8_.z = f32((_e5650.xxxx.x < _e5652.yyyy.x));
             let _e5659: vec4<f32> = temporary8_;
             let _e5663: vec4<f32> = constant_registers[16u];
             if all((_e5659.zzzz != _e5663.xxxx)) {
@@ -2587,7 +2587,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             temporary8_.y = _e5712.wwww.x;
             let _e5716: vec4<f32> = temporary1_;
             let _e5720: vec4<f32> = constant_registers[16u];
-            temporary8_.z = f32((_e5716.zzzz.x + _e5720.yyyy.x));
+            temporary8_.z = f32((_e5716.zzzz.x == _e5720.yyyy.x));
             let _e5727: vec4<f32> = temporary8_;
             let _e5731: vec4<f32> = constant_registers[16u];
             if all((_e5727.zzzz != _e5731.xxxx)) {
@@ -2614,7 +2614,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
                 temporary17_.y = (_e5780.xxxx * _e5784.xxxx).x;
                 let _e5789: vec4<f32> = temporary17_;
                 let _e5793: vec4<f32> = constant_registers[16u];
-                temporary17_.z = f32((_e5789.yyyy.x + _e5793.yyyy.x));
+                temporary17_.z = f32((_e5789.yyyy.x == _e5793.yyyy.x));
                 let _e5800: vec4<f32> = temporary17_;
                 let _e5804: vec4<f32> = constant_registers[16u];
                 if all((_e5800.zzzz != _e5804.xxxx)) {
@@ -2647,7 +2647,7 @@ fn main(@location(0) param: vec4<f32>) -> FragmentOutput {
             }
             let _e5856: vec4<f32> = temporary1_;
             let _e5860: vec4<f32> = constant_registers[18u];
-            temporary8_.z = f32((_e5856.zzzz.x + _e5860.xxxx.x));
+            temporary8_.z = f32((_e5856.zzzz.x == _e5860.xxxx.x));
             let _e5867: vec4<f32> = temporary8_;
             let _e5871: vec4<f32> = constant_registers[16u];
             if all((_e5867.zzzz != _e5871.xxxx)) {
