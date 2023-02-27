@@ -2,6 +2,7 @@
 
 use crate::avm2::object::TObject;
 use crate::avm2::QName;
+use crate::avm2::property::Property;
 use crate::avm2::{Activation, Error, Object, Value};
 use crate::avm2_stub_method;
 use crate::string::AvmString;
@@ -276,7 +277,87 @@ pub fn describe_type<'gc>(
     let qualified_name =
         get_qualified_class_name(activation, None, &[args[0]])?.coerce_to_string(activation)?;
 
-    xml_string += &format!("<type name=\"{qualified_name}\"></type>");
+    let value = args[0].as_object().unwrap();
+
+    let class_obj = args[0].as_object().unwrap().instance_of().unwrap();
+    let class = class_obj.inner_class_definition();
+    let class = class.read();
+
+    let superclass = class_obj.superclass_object().unwrap();
+
+    let base = superclass.inner_class_definition().read().name().to_qualified_name(activation.context.gc_context);
+    let is_dynamic = !class.is_sealed();
+    let is_final = class.is_final();
+
+    let mut super_obj = superclass;
+
+
+    let (is_static, vtable) = if let Some(as_class) = value.as_class_object() {
+        (true, as_class.vtable())
+    } else {
+        (false, class_obj.vtable())
+    };
+
+    write!(xml_string, "<type name=\"{qualified_name}\" base=\"{base}\" isDynamic=\"{is_dynamic}\" isFinal=\"{is_final}\" isStatic=\"{is_static}\">").unwrap();
+    loop {
+        let super_name = super_obj.inner_class_definition().read().name().to_qualified_name(activation.context.gc_context);
+        write!(xml_string, "<extendsClass type=\"{super_name}\"/>").unwrap();
+        if let Some(superclass) = super_obj.superclass_object() {
+            super_obj = superclass;
+        } else {
+            break;
+        }
+    }
+
+    for interface in class_obj.interfaces() {
+        let interface_name = interface.read().name().to_qualified_name(activation.context.gc_context);
+        write!(xml_string, "<implementsInterface type=\"{interface_name}\"/>").unwrap();
+    }
+
+    if let Some(vtable) = vtable {
+        // FIXME - get the correct order here
+        for (prop_name, _ns, prop) in vtable.resolved_traits().iter() {
+            match prop {
+                Property::ConstSlot { slot_id } | Property::Slot { slot_id } => {
+                    let prop_class = vtable.slot_class(*slot_id, activation)?;
+                    let prop_class_name = if let Some(prop_class) = prop_class {
+                        prop_class
+                            .inner_class_definition()
+                            .read()
+                            .name()
+                            .to_qualified_name(activation.context.gc_context)
+                    } else {
+                        AvmString::new_utf8(activation.context.gc_context, "*")
+                    };
+
+                    let elem_name = match prop {
+                        Property::ConstSlot { .. } => "constant",
+                        Property::Slot { .. } => "variable",
+                        _ => unreachable!(),
+                    };
+
+                    write!(xml_string, "<{elem_name} name=\"{prop_name}\" type=\"{prop_class_name}\"/>").unwrap();
+                }
+                Property::Method { .. } => {
+                    write!(xml_string, "<method name=\"{prop_name}\"/>").unwrap();
+                }
+                Property::Virtual { get, set } => {
+                    let access = match (get, set) {
+                        (Some(_), Some(_)) => "readwrite",
+                        (Some(_), None) => "readonly",
+                        (None, Some(_)) => "writeonly",
+                        (None, None) => unreachable!(),
+                    };
+                    write!(xml_string, "<accessor name=\"{prop_name}\" access=\"{access}\"/>").unwrap();
+                }
+            }
+        }
+    }
+
+    xml_string += "</type>";
+
+    eprintln!("Built describeXML: {}", xml_string);
+
     let xml_avm_string = AvmString::new_utf8(activation.context.gc_context, xml_string);
 
     Ok(activation

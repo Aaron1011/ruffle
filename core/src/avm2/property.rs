@@ -125,6 +125,36 @@ impl<'gc> PropertyClass<'gc> {
             Ok((value, changed))
         }
     }
+
+    pub fn resolve(
+        &mut self,
+        activation: &mut Activation<'_, 'gc>,
+    ) -> Result<(Option<ClassObject<'gc>>, bool), Error<'gc>> {
+        Ok(match self {
+            PropertyClass::Class(class) => (Some(*class), false),
+            PropertyClass::Name(gc) => {
+                let (name, unit) = &**gc;
+                let outcome = resolve_class_private(name, *unit, activation)?;
+                let class = match outcome {
+                    ResolveOutcome::Class(class) => {
+                        *self = PropertyClass::Class(class);
+                        (Some(class), true)
+                    }
+                    ResolveOutcome::Any => {
+                        *self = PropertyClass::Any;
+                        (None, true)
+                    }
+                    ResolveOutcome::NotFound => {
+                        return Err(Error::from(format!(
+                            "Attempted to perform (private) resolution of nonexistent type {name:?}",
+                        )));
+                    }
+                };
+                class
+            }
+            PropertyClass::Any => (None, false),
+        })
+    }
 }
 
 enum ResolveOutcome<'gc> {

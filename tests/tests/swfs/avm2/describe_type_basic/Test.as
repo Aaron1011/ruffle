@@ -1,4 +1,4 @@
-// compiled with mxmlc
+﻿// compiled with mxmlc
 
 package {
     import flash.display.MovieClip;
@@ -14,8 +14,19 @@ package {
 
 import flash.utils.describeType;
 import flash.utils.Dictionary;
-class C{}
+
+interface ParentInterface {}
+interface ChildInterface {}
+
+class C implements ParentInterface {
+	public var parentProp:String;
+}
 var o = {};
+
+class SubClass extends C implements ChildInterface {
+	public static var MY_CONST:String = "Hello const";
+	public var childProp:* = "Hi";
+}
 
 var name; // mxmlc disallows .@name.toString() for some reason
 
@@ -32,3 +43,5 @@ trace(describeType(1).@name);
 trace(describeType(Class).@name);
 trace(describeType(Dictionary).@name);
 trace(describeType(new Dictionary()).@name);
+
+trace(describeType(SubClass));

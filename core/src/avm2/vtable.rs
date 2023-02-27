@@ -97,6 +97,20 @@ impl<'gc> VTable<'gc> {
         VTable(GcCell::allocate(mc, self.0.read().clone()))
     }
 
+    pub fn resolved_traits(&self) -> Ref<'_, PropertyMap<'gc, Property>> {
+        Ref::map(self.0.read(), |v| &v.resolved_traits)
+    }
+
+    pub fn slot_class(&self, slot_id: u32, activation: &mut Activation<'_, 'gc>,) -> Result<Option<ClassObject<'gc>>, Error<'gc>> {
+        let mut slot_class = { self.0.read().slot_classes[slot_id as usize].clone() };
+        let (class, changed) = slot_class.resolve(activation)?;
+
+        if changed {
+            self.0.write(activation.context.gc_context).slot_classes[slot_id as usize] = slot_class;
+        }
+        Ok(class)
+    }
+
     pub fn get_trait(self, name: &Multiname<'gc>) -> Option<Property> {
         self.0
             .read()
