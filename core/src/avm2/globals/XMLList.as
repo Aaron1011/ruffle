@@ -13,5 +13,9 @@ package {
         AS3 native function children():XMLList;
 
         public native function toString():String;
+
+        public function split(separator:String):Array {
+            return ["WeirdSplitFirst", this];
+        }
     }
 }

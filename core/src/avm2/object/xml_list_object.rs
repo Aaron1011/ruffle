@@ -193,7 +193,7 @@ impl<'gc> TObject<'gc> for XmlListObject<'gc> {
         _value: Value<'gc>,
         _activation: &mut Activation<'_, 'gc>,
     ) -> Result<(), Error<'gc>> {
-        Err("Modifying an XMLList object is not yet implemented".into())
+        panic!("Modifying an XMLList object is not yet implemented")
     }
 
     fn get_next_enumerant(

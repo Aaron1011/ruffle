@@ -142,6 +142,7 @@ impl<'gc> TObject<'gc> for XmlObject<'gc> {
                 } else {
                     Vec::new()
                 };
+                eprintln!("XML prop {:?} resolved to {:?} on {:?}", name, matched_children, read.node);
                 return Ok(XmlListObject::new(activation, matched_children).into());
             }
         }

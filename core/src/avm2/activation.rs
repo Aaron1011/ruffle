@@ -1793,7 +1793,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         avm_debug!(self.context.avm2, "Resolving {:?}", *multiname);
         let found: Result<Object<'gc>, Error<'gc>> = self
             .find_definition(&multiname)?
-            .ok_or_else(|| format!("Property does not exist: {:?}", *multiname).into());
+            .ok_or_else(|| panic!("Property does not exist: {:?}", *multiname));
         let result: Value<'gc> = found?.into();
 
         self.push_stack(result);
@@ -1810,7 +1810,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         avm_debug!(self.avm2(), "Resolving {:?}", *multiname);
         let found: Result<Value<'gc>, Error<'gc>> = self
             .resolve_definition(&multiname)?
-            .ok_or_else(|| format!("Property does not exist: {:?}", *multiname).into());
+            .ok_or_else(|| panic!("Property does not exist: {:?}", *multiname));
 
         self.push_stack(found?);
 

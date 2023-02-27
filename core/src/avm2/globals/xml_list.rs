@@ -63,7 +63,9 @@ pub fn to_string<'gc>(
     let list = this.unwrap().as_xml_list_object().unwrap();
     let children = list.children();
     if has_simple_content_inner(&children) {
-        Ok(simple_content_to_string(children.iter().cloned(), activation)?.into())
+        let res = simple_content_to_string(children.iter().cloned(), activation)?.into();
+        eprintln!("XMLList.toString: {:?}", res);
+        Ok(res)
     } else {
         avm2_stub_method!(activation, "XMLList", "toString", "non-simple content");
         Err("XMLList.toString() for non-simple content: not yet implemented".into())

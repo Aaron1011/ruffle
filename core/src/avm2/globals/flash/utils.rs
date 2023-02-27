@@ -330,6 +330,8 @@ pub fn describe_type<'gc>(
                         AvmString::new_utf8(activation.context.gc_context, "*")
                     };
 
+                    eprintln!("Got prop: {:?} {:?}", prop_name, prop);
+
                     let elem_name = match prop {
                         Property::ConstSlot { .. } => "constant",
                         Property::Slot { .. } => "variable",

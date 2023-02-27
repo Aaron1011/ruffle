@@ -24,7 +24,9 @@ class C implements ParentInterface {
 var o = {};
 
 class SubClass extends C implements ChildInterface {
-	public static var MY_CONST:String = "Hello const";
+	public static var MY_STATIC:String = "Hello static";
+	public static const MY_CONST:String = "Hello const";
+	
 	public var childProp:* = "Hi";
 }
 
@@ -45,3 +47,6 @@ trace(describeType(Dictionary).@name);
 trace(describeType(new Dictionary()).@name);
 
 trace(describeType(SubClass));
+
+var elem = new XML("<foo name=\"Bar\">Content</foo>");
+trace(elem.@name.split("B"))
