@@ -87,7 +87,8 @@ pub fn children<'gc>(
     this: Option<Object<'gc>>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
-    let list = this.unwrap().as_xml_list_object().unwrap();
+    let this = this.unwrap();
+    let list = this.as_xml_list_object().unwrap();
     let children = list.children();
     let mut sub_children = Vec::new();
     for child in &*children {
@@ -95,5 +96,5 @@ pub fn children<'gc>(
             sub_children.extend(children.iter().map(|node| E4XOrXml::E4X(*node)));
         }
     }
-    Ok(XmlListObject::new(activation, sub_children).into())
+    Ok(XmlListObject::new(activation, sub_children, Some(this)).into())
 }

@@ -23,6 +23,9 @@ pub fn xml_list_allocator<'gc>(
         XmlListObjectData {
             base,
             children: Vec::new(),
+            // An XMLList created by 'new XMLList()' is not linked
+            // to any object
+            target: None,
         },
     ))
     .into())
@@ -41,11 +44,11 @@ impl<'gc> Debug for XmlListObject<'gc> {
 }
 
 impl<'gc> XmlListObject<'gc> {
-    pub fn new(activation: &mut Activation<'_, 'gc>, children: Vec<E4XOrXml<'gc>>) -> Self {
+    pub fn new(activation: &mut Activation<'_, 'gc>, children: Vec<E4XOrXml<'gc>>, target: Option<Object<'gc>>) -> Self {
         let base = ScriptObjectData::new(activation.context.avm2.classes().xml_list);
         XmlListObject(GcCell::allocate(
             activation.context.gc_context,
-            XmlListObjectData { base, children },
+            XmlListObjectData { base, children, target },
         ))
     }
 
@@ -64,7 +67,13 @@ pub struct XmlListObjectData<'gc> {
     /// Base script object
     base: ScriptObjectData<'gc>,
 
+    /// The children stored by this list.
     children: Vec<E4XOrXml<'gc>>,
+
+    /// The XML or XMLList object that this list was created from.
+    /// If `Some`, then modifications to this list are reflected
+    /// in the original object.
+    target: Option<Object<'gc>>,
 }
 
 /// Holds either an `E4XNode` or an `XmlObject`. This can be converted
@@ -180,7 +189,7 @@ impl<'gc> TObject<'gc> for XmlListObject<'gc> {
                     })
                     .collect();
 
-                return Ok(XmlListObject::new(activation, matched_children).into());
+                return Ok(XmlListObject::new(activation, matched_children, Some(self.into())).into());
             }
         }
 
@@ -189,11 +198,29 @@ impl<'gc> TObject<'gc> for XmlListObject<'gc> {
 
     fn set_property_local(
         self,
-        _name: &Multiname<'gc>,
-        _value: Value<'gc>,
-        _activation: &mut Activation<'_, 'gc>,
+        name: &Multiname<'gc>,
+        value: Value<'gc>,
+        activation: &mut Activation<'_, 'gc>,
     ) -> Result<(), Error<'gc>> {
-        panic!("Modifying an XMLList object is not yet implemented")
+        let mut write = self.0.write(activation.context.gc_context);
+        if write.target.is_some() {
+            panic!("Modifying an XMLList object is not yet implemented: target {:?}", self.0.read().target)
+        }
+
+        if !name.is_any() && !name.is_attribute() {
+            if let Some(local_name) = name.local_name() {
+                if let Ok(index) = local_name.parse::<usize>() {
+                    if index >= write.children.len() {
+                        if let Some(value_xml) = value.as_object().and_then(|obj| obj.as_xml_object()) {
+                            write.children.push(E4XOrXml::Xml(value_xml));
+                            return Ok(());
+                        }
+                    }
+                }
+            }
+        }
+
+        panic!("Modifying an XMLList object is not supported for {:?} = {:?}", name, value);
     }
 
     fn get_next_enumerant(

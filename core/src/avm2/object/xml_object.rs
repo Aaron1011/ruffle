@@ -143,7 +143,7 @@ impl<'gc> TObject<'gc> for XmlObject<'gc> {
                     Vec::new()
                 };
                 eprintln!("XML prop {:?} resolved to {:?} on {:?}", name, matched_children, read.node);
-                return Ok(XmlListObject::new(activation, matched_children).into());
+                return Ok(XmlListObject::new(activation, matched_children, Some(self.into())).into());
             }
         }
 
@@ -178,5 +178,15 @@ impl<'gc> TObject<'gc> for XmlObject<'gc> {
             }
         }
         read.base.has_own_dynamic_property(name)
+    }
+
+
+    fn set_property_local(
+        self,
+        _name: &Multiname<'gc>,
+        _value: Value<'gc>,
+        _activation: &mut Activation<'_, 'gc>,
+    ) -> Result<(), Error<'gc>> {
+        panic!("Modifying an XML object is not yet implemented")
     }
 }

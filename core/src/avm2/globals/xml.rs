@@ -87,7 +87,8 @@ pub fn children<'gc>(
     this: Option<Object<'gc>>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
-    let xml = this.unwrap().as_xml_object().unwrap();
+    let this = this.unwrap();
+    let xml = this.as_xml_object().unwrap();
     let children = if let E4XNodeKind::Element { children, .. } = &*xml.node().kind() {
         // FIXME - avoid clone
         children.clone()
@@ -98,6 +99,7 @@ pub fn children<'gc>(
     Ok(XmlListObject::new(
         activation,
         children.iter().map(|node| E4XOrXml::E4X(*node)).collect(),
+        Some(this)
     )
     .into())
 }
