@@ -46,9 +46,7 @@ package flash.display3D {
             stub_method("flash.display3D.Context3D", "setRenderToBackBuffer");
         }
 
-        public function setBlendFactors(sourceFactor:String, destinationFactor:String):void {
-            stub_method("flash.display3D.Context3D", "setBlendFactors: " + sourceFactor + ", " + destinationFactor);
-        }
+        public native function setBlendFactors(sourceFactor:String, destinationFactor:String):void;
 
         public native function setTextureAt(sampler:int, texture:TextureBase):void;
 

@@ -115,6 +115,49 @@ pub enum Context3DTextureFormat {
     RgbaHalfFloat,
 }
 
+#[derive(Collect, Debug, Copy, Clone)]
+#[collect(require_static)]
+pub enum Context3DBlendFactor {
+    DestinationAlpha,
+    DestinationColor,
+    One,
+    OneMinusDestinationAlpha,
+    OneMinusDestinationColor,
+    OneMinusSourceAlpha,
+    OneMinusSourceColor,
+    SourceAlpha,
+    SourceColor,
+    Zero,
+}
+
+impl Context3DBlendFactor {
+    pub fn from_wstr(wstr: &WStr) -> Result<Context3DBlendFactor, ()> {
+        if wstr == b"destinationAlpha" {
+            Ok(Context3DBlendFactor::DestinationAlpha)
+        } else if wstr == b"destinationColor" {
+            Ok(Context3DBlendFactor::DestinationColor)
+        } else if wstr == b"one" {
+            Ok(Context3DBlendFactor::One)
+        } else if wstr == b"oneMinusDestinationAlpha" {
+            Ok(Context3DBlendFactor::OneMinusDestinationAlpha)
+        } else if wstr == b"oneMinusDestinationColor" {
+            Ok(Context3DBlendFactor::OneMinusDestinationColor)
+        } else if wstr == b"oneMinusSourceAlpha" {
+            Ok(Context3DBlendFactor::OneMinusSourceAlpha)
+        } else if wstr == b"oneMinusSourceColor" {
+            Ok(Context3DBlendFactor::OneMinusSourceColor)
+        } else if wstr == b"sourceAlpha" {
+            Ok(Context3DBlendFactor::SourceAlpha)
+        } else if wstr == b"sourceColor" {
+            Ok(Context3DBlendFactor::SourceColor)
+        } else if wstr == b"zero" {
+            Ok(Context3DBlendFactor::Zero)
+        } else {
+            Err(())
+        }
+    }
+}
+
 #[derive(Collect)]
 #[collect(require_static)]
 pub enum BufferUsage {
@@ -306,6 +349,7 @@ pub enum Context3DCommand<'gc> {
         depth_mask: bool,
         pass_compare_mode: Context3DCompareMode,
     },
+    SetBlendFactors { source_factor: Context3DBlendFactor, destination_factor: Context3DBlendFactor },
 }
 
 #[derive(Copy, Clone, Debug)]

@@ -1,6 +1,6 @@
 use ruffle_render::backend::{
     Context3D, Context3DCommand, Context3DTextureFormat, Context3DVertexBufferFormat, IndexBuffer,
-    ProgramType, ShaderModule, VertexBuffer, Context3DCompareMode,
+    ProgramType, ShaderModule, VertexBuffer, Context3DCompareMode, Context3DBlendFactor,
 };
 use ruffle_render::bitmap::{BitmapFormat, BitmapHandle};
 use ruffle_render::error::Error;
@@ -565,6 +565,33 @@ impl WgpuContext3D {
                         Context3DCompareMode::NotEqual => wgpu::CompareFunction::NotEqual,
                     };
                     self.current_pipeline.update_depth(*depth_mask, function);
+                }
+                Context3DCommand::SetBlendFactors { source_factor, destination_factor } => {
+                    let convert_blend_factor = |factor: Context3DBlendFactor| -> wgpu::BlendFactor {
+                        match factor {
+                            Context3DBlendFactor::Zero => wgpu::BlendFactor::Zero,
+                            Context3DBlendFactor::One => wgpu::BlendFactor::One,
+                            Context3DBlendFactor::OneMinusSourceAlpha => {
+                                wgpu::BlendFactor::OneMinusSrcAlpha
+                            }
+                            Context3DBlendFactor::SourceAlpha => wgpu::BlendFactor::SrcAlpha,
+                            Context3DBlendFactor::OneMinusDestinationAlpha => {
+                                wgpu::BlendFactor::OneMinusDstAlpha
+                            }
+                            Context3DBlendFactor::DestinationAlpha => wgpu::BlendFactor::DstAlpha,
+
+                            // FIXME - these ones might not be right. Check that they ignore alpha
+                            Context3DBlendFactor::OneMinusSourceColor => {
+                                wgpu::BlendFactor::OneMinusSrc
+                            }
+                            Context3DBlendFactor::SourceColor => wgpu::BlendFactor::Src,
+                            Context3DBlendFactor::OneMinusDestinationColor => {
+                                wgpu::BlendFactor::OneMinusDst
+                            }
+                            Context3DBlendFactor::DestinationColor => wgpu::BlendFactor::Dst,
+                        }
+                    };
+                    self.current_pipeline.update_blend_factors(convert_blend_factor(*source_factor), convert_blend_factor(*destination_factor));
                 }
             }
         }

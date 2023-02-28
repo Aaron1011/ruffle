@@ -69,6 +69,9 @@ pub struct CurrentPipeline {
     depth_mask: bool,
     pass_compare_mode: wgpu::CompareFunction,
 
+    source_factor: wgpu::BlendFactor,
+    destination_factor: wgpu::BlendFactor,
+
     dirty: Cell<bool>,
 }
 
@@ -107,6 +110,8 @@ impl CurrentPipeline {
             // FIXME - what are the defaults?
             depth_mask: true,
             pass_compare_mode: wgpu::CompareFunction::Always,
+            source_factor: wgpu::BlendFactor::One,
+            destination_factor: wgpu::BlendFactor::Zero,
         }
     }
     pub fn set_vertex_shader(&mut self, shader: Rc<ShaderModuleAgal>) {
@@ -151,8 +156,8 @@ impl CurrentPipeline {
     pub fn update_has_depth_texture(&mut self, has_depth_texture: bool) {
         if self.has_depth_texture != has_depth_texture {
             self.dirty.set(true);
+            self.has_depth_texture = has_depth_texture;
         }
-        self.has_depth_texture = has_depth_texture;
     }
 
     /// If the pipeline is dirty, recompiles it and returns `Some(freshly_compiled_pipeline`)
@@ -475,7 +480,15 @@ impl CurrentPipeline {
                     entry_point: naga_agal::SHADER_ENTRY_POINT,
                     targets: &[Some(ColorTargetState {
                         format: TextureFormat::Rgba8Unorm,
-                        blend: None,
+                        blend: Some(wgpu::BlendState {
+                            color: wgpu::BlendComponent {
+                                src_factor: self.source_factor,
+                                dst_factor: self.destination_factor,
+                                operation: wgpu::BlendOperation::Add,
+                            },
+                            // FIXME - we should determine this from Stage3D
+                            alpha: wgpu::BlendComponent::OVER,
+                        }),
                         write_mask: ColorWrites::all(),
                     })],
                 }),
@@ -496,6 +509,14 @@ impl CurrentPipeline {
     pub fn set_culling(&mut self, face: Context3DTriangleFace) {
         self.culling = face;
         self.dirty.set(true);
+    }
+
+    pub fn update_blend_factors(&mut self, source_factor: wgpu::BlendFactor, destination_factor: wgpu::BlendFactor) {
+        if self.source_factor != source_factor || self.destination_factor != destination_factor {
+            self.source_factor = source_factor;
+            self.destination_factor = destination_factor;
+            self.dirty.set(true);
+        }
     }
 }
 

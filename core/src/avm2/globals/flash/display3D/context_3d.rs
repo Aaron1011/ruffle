@@ -1,4 +1,5 @@
 use ruffle_render::backend::BufferUsage;
+use ruffle_render::backend::Context3DBlendFactor;
 use ruffle_render::backend::Context3DCompareMode;
 use ruffle_render::backend::Context3DTextureFormat;
 use ruffle_render::backend::Context3DTriangleFace;
@@ -65,7 +66,6 @@ pub fn configure_back_buffer<'gc>(
             .get(1)
             .unwrap_or(&Value::Undefined)
             .coerce_to_u32(activation)?;
-        // FIXME - get other parameters
 
         let anti_alias = args.get(2).unwrap_or(&Value::Undefined).coerce_to_u32(activation)?;
         let enable_depth_and_stencil = args.get(3).unwrap_or(&Value::Undefined).coerce_to_boolean();
@@ -507,6 +507,32 @@ pub fn set_depth_test<'gc>(
             panic!("Unsupported depth test mode: {:?}", pass_compare_mode);
         };
         context.set_depth_test(activation, depth_mask, pass_compare_mode);
+    }
+    Ok(Value::Undefined)
+}
+
+pub fn set_blend_factors<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    this: Option<Object<'gc>>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    if let Some(context) = this.and_then(|this| this.as_context_3d()) {
+        // This is a native method, so all of the arguments have been checked and coerced for us
+        let source_factor = args[0].coerce_to_string(activation)?;
+        let destination_factor = args[1].coerce_to_string(activation)?;
+        let source_factor = if let Ok(factor) = Context3DBlendFactor::from_wstr(&*source_factor) {
+            factor
+        } else {
+            panic!("Unsupported blend factor: {:?}", source_factor);
+        };
+        let destination_factor = if let Ok(factor) =
+            Context3DBlendFactor::from_wstr(&*destination_factor)
+        {
+            factor
+        } else {
+            panic!("Unsupported blend factor: {:?}", destination_factor);
+        };
+        context.set_blend_factors(activation, source_factor, destination_factor);
     }
     Ok(Value::Undefined)
 }

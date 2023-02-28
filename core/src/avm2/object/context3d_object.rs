@@ -10,7 +10,7 @@ use crate::context::RenderContext;
 use gc_arena::{Collect, GcCell, MutationContext};
 use ruffle_render::backend::{
     BufferUsage, Context3D, Context3DCommand, Context3DTextureFormat, Context3DTriangleFace,
-    Context3DVertexBufferFormat, ProgramType, Texture, Context3DCompareMode,
+    Context3DVertexBufferFormat, ProgramType, Texture, Context3DCompareMode, Context3DBlendFactor,
 };
 use ruffle_render::bitmap::{Bitmap, BitmapFormat};
 use ruffle_render::commands::CommandHandler;
@@ -276,6 +276,21 @@ impl<'gc> Context3DObject<'gc> {
             .commands
             .push(Context3DCommand::SetCulling { face });
     }
+
+    pub fn set_blend_factors(
+        &self,
+        activation: &mut Activation<'_, 'gc>,
+        source_factor: Context3DBlendFactor,
+        destination_factor: Context3DBlendFactor,
+    ) {
+        self.0.write(activation.context.gc_context).commands.push(
+            Context3DCommand::SetBlendFactors {
+                source_factor,
+                destination_factor,
+            },
+        );
+    }
+
 
     pub fn present(&self, activation: &mut Activation<'_, 'gc>) -> Result<(), Error<'gc>> {
         let mut write = self.0.write(activation.context.gc_context);
