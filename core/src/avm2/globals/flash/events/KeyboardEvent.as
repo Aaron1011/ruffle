@@ -74,6 +74,10 @@ package flash.events
             this._controlKey = val;
         }
 
+        public function get keyLocation():uint {
+            return this.keyCode
+        }
+
         override public function clone() : Event
         {
             return new KeyboardEvent(this.type,this.bubbles,this.cancelable);

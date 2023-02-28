@@ -56,6 +56,7 @@ pub struct WgpuContext3D {
     buffer_staging_belt: StagingBelt,
 
     texture_view: Option<wgpu::TextureView>,
+    depth_texture_view: Option<wgpu::TextureView>,
 
     // Note - the Context3D docs state that rendering should be double-buffered.
     // However, our Context3DCommand list already acts like a second buffer -
@@ -85,6 +86,7 @@ impl WgpuContext3D {
             compiled_pipeline: None,
             bind_group: None,
             vertex_attributes: std::array::from_fn(|_| None),
+            depth_texture_view: None,
         }
     }
     // Executes all of the given `commands` in response to a `Context3D.present` call.
@@ -164,19 +166,12 @@ impl WgpuContext3D {
                     wants_best_resolution: _,
                     wants_best_resolution_on_browser_zoom: _,
                 } => {
-                    if *anti_alias != 1 {
-                        tracing::warn!(
-                            "configureBackBuffer: anti_alias={anti_alias} is not yet implemented"
-                        );
-                    }
-                    if *depth_and_stencil {
-                        tracing::warn!(
-                            "configureBackBuffer: depth_and_stencil is not yet implemented"
-                        );
-                    }
-
                     let texture_label = create_debug_label!("Render target texture");
                     let format = wgpu::TextureFormat::Rgba8Unorm;
+
+                    if *anti_alias != 1 {
+                        tracing::warn!("Context3D::present: Anti-aliasing leve {anti_alias} not implemented");
+                    }
 
                     let wgpu_texture =
                         self.descriptors
@@ -200,6 +195,25 @@ impl WgpuContext3D {
 
                     finish_render_pass!(render_pass);
                     self.texture_view = Some(wgpu_texture.create_view(&Default::default()));
+
+                    if *depth_and_stencil {
+                        let depth_texture = self.descriptors.device.create_texture(&wgpu::TextureDescriptor {
+                            label: Some("Context3D depth texture"),
+                            size: Extent3d {
+                                width: *width,
+                                height: *height,
+                                depth_or_array_layers: 1,
+                            },
+                            mip_level_count: 1,
+                            sample_count: 1,
+                            dimension: TextureDimension::D2,
+                            format: wgpu::TextureFormat::Depth24PlusStencil8,
+                            view_formats: &[wgpu::TextureFormat::Depth24PlusStencil8],
+                            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                        });
+                        self.depth_texture_view = Some(depth_texture.create_view(&Default::default()));
+                    }
+
 
                     self.raw_texture_handle = BitmapHandle(Arc::new(Texture {
                         texture: Arc::new(wgpu_texture),
@@ -321,6 +335,7 @@ impl WgpuContext3D {
                         // will use a clear color of None. This ensures that by itself,
                         // re-creating the render pass has no effect on the output
                         clear_color.take(),
+                        self.depth_texture_view.as_ref(),
                     ));
 
                     let render_pass_mut = render_pass.as_mut().unwrap();
@@ -734,10 +749,28 @@ fn make_render_pass<'a>(
     bind_group: &'a BindGroup,
     vertex_attributes: &'a [Option<VertexAttributeInfo>; MAX_VERTEX_ATTRIBUTES],
     clear_color: Option<wgpu::Color>,
+    depth_view: Option<&'a wgpu::TextureView>,
 ) -> RenderPass<'a> {
     let load = match clear_color {
         Some(_) => wgpu::LoadOp::Clear(clear_color.unwrap()),
         None => wgpu::LoadOp::Load,
+    };
+
+    let depth_stencil_attachment = if let Some(depth_view) = depth_view {
+        Some(wgpu::RenderPassDepthStencilAttachment {
+            view: depth_view,
+            depth_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: false,
+            }),
+            stencil_ops: Some(wgpu::Operations {
+                // FIXME - are these write?
+                load: wgpu::LoadOp::Clear(0),
+                store: true,
+            }),
+        })
+    } else {
+        None
     };
 
     let mut pass = command_encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -747,7 +780,7 @@ fn make_render_pass<'a>(
             resolve_target: None,
             ops: wgpu::Operations { load, store: true },
         })],
-        depth_stencil_attachment: None,
+        depth_stencil_attachment,
     });
     pass.set_bind_group(0, bind_group, &[]);
     for (i, attr) in vertex_attributes.iter().enumerate() {

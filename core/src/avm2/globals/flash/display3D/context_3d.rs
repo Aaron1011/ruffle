@@ -66,10 +66,15 @@ pub fn configure_back_buffer<'gc>(
             .coerce_to_u32(activation)?;
         // FIXME - get other parameters
 
-        //let anti_alias = args.get(2).unwrap_or(&Value::Undefined).coerce_to_u32(activation)?;
-        //let enable_depth_and_stencil = args.get(3).unwrap_or(&Value::Undefined).coerce_to_boolean();
+        let anti_alias = args.get(2).unwrap_or(&Value::Undefined).coerce_to_u32(activation)?;
+        let enable_depth_and_stencil = args.get(3).unwrap_or(&Value::Undefined).coerce_to_boolean();
+        let wants_best_resolution = args.get(4).unwrap_or(&Value::Undefined).coerce_to_boolean();
+        let wants_best_resolution_on_browser_zoom = args
+            .get(5)
+            .unwrap_or(&Value::Undefined)
+            .coerce_to_boolean();
 
-        context.configure_back_buffer(activation, width, height, 0, true, true, true);
+        context.configure_back_buffer(activation, width, height, anti_alias, enable_depth_and_stencil, wants_best_resolution, wants_best_resolution_on_browser_zoom);
     }
     Ok(Value::Undefined)
 }
