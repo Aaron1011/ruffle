@@ -185,7 +185,7 @@ package flash.geom {
 
 	public function appendScale(xScale:Number, yScale:Number, zScale:Number):void
 	{
-		this.append(new Matrix3D(new Vector.<Number>([
+		this.append(new Matrix3D(Vector.<Number>([
 			xScale, 0.0, 0.0, 0.0, 0.0, yScale, 0.0, 0.0, 0.0, 0.0, zScale, 0.0, 0.0, 0.0, 0.0, 1.0
 		])));
 	}
