@@ -408,6 +408,11 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
         arguments: &[Value<'gc>],
         activation: &mut Activation<'_, 'gc>,
     ) -> Result<Value<'gc>, Error<'gc>> {
+        if let Some(local_name) = multiname.local_name() {
+            if &*local_name == b"enqueueWithName".as_slice() {
+                eprintln!("Calling enqueueWithName: {:?} {:?}",self,  arguments);
+            }
+        }
         match self.vtable().and_then(|vtable| vtable.get_trait(multiname)) {
             Some(Property::Slot { slot_id }) | Some(Property::ConstSlot { slot_id }) => {
                 let obj = self.base().get_slot(slot_id)?.as_callable(

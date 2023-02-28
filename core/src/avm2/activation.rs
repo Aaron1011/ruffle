@@ -2725,6 +2725,9 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         while let Some(cur_object) = object {
             if let Some(index) = cur_object.get_next_enumerant(cur_index, self)? {
                 cur_index = index;
+                if cur_index == 1 {
+                    eprintln!("Got index=1 for object {:?}", cur_object);
+                }
                 break;
             } else {
                 cur_index = 0;

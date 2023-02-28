@@ -372,4 +372,8 @@ impl<'gc> VectorStorage<'gc> {
 
         Ok(self.storage.splice(range, replace_with).collect())
     }
+
+    pub fn storage(&self) -> &[Value<'gc>] {
+        &self.storage
+    }
 }

@@ -228,11 +228,35 @@ impl<'gc> TObject<'gc> for XmlListObject<'gc> {
         last_index: u32,
         _activation: &mut Activation<'_, 'gc>,
     ) -> Result<Option<u32>, Error<'gc>> {
+        if last_index == 0 {
+            eprintln!("Called xml_list.get_next_enumerant(0)");
+            eprintln!("{}", std::backtrace::Backtrace::capture());
+        }
         let read = self.0.read();
         if (last_index as usize) < read.children.len() {
             return Ok(Some(last_index + 1));
+        } else {
+            // return Ok(Some(0))
+            return Ok(None)
         }
-        Ok(None)
+        //Ok(None)
+    }
+
+    fn get_enumerant_value(
+        self,
+        index: u32,
+        activation: &mut Activation<'_, 'gc>,
+    ) -> Result<Value<'gc>, Error<'gc>> {
+        let mut write = self.0.write(activation.context.gc_context);
+        let children_len = write.children.len() as u32;
+        if children_len >= index {
+            Ok(index
+                .checked_sub(1)
+                .map(|index| write.children[index as usize].get_or_create_xml(activation).into())
+                .unwrap_or(Value::Undefined))
+        } else {
+            Ok(Value::Undefined)
+        }
     }
 
     fn get_enumerant_name(
@@ -241,16 +265,25 @@ impl<'gc> TObject<'gc> for XmlListObject<'gc> {
         _activation: &mut Activation<'_, 'gc>,
     ) -> Result<Value<'gc>, Error<'gc>> {
         let children_len = self.0.read().children.len() as u32;
-        if children_len >= index {
+        let res = if children_len >= index {
             Ok(index
                 .checked_sub(1)
                 .map(|index| index.into())
                 .unwrap_or(Value::Undefined))
         } else {
+            eprintln!("Weird path for {:?}", index);
             Ok(self
                 .base()
                 .get_enumerant_name(index - children_len)
                 .unwrap_or(Value::Undefined))
+        };
+        /*if index == 1 {
+            panic!("Called with index=1");
+        }*/
+        eprintln!("Got enumerant: index={:?} {:?}", index, res);
+        if index == 1 {
+            //panic!("Called with index=1");
         }
+        res
     }
 }

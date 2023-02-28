@@ -44,7 +44,8 @@ opt-level = 0
 panic = "unwind"
 
 [profile.release]
-panic = "abort"
+panic = "unwind"
+debug = true
 
 [profile.dev.package.h263-rs]
 opt-level = 3
