@@ -7,7 +7,16 @@
 				<child kind="A">Third Child: <p>Inner element</p></child>
 			</outer>;
 			
-			trace("Children length: " + outer.children().length());
+			var aChildren = outer.child.(@kind == "A");
+			//var bChildren = outer.child.(@kind == "B");
+			//var cChildren = outer.child.(@kind == "C");
+			
+			trace(aChildren.length());
+			/*for each (var child in aChildren) {
+				trace("Child: " + child.@kind);
+			}*/
+			
+			/*trace("Children length: " + outer.children().length());
 			
 			trace("'child' in outer: " + ('child' in outer));
 			
@@ -20,7 +29,7 @@
 			}
 		
 			var empty = <myelem/>;
-			trace("Empty children: " + empty.children().length());
+			trace("Empty children: " + empty.children().length());*/
 		}
 	}
 }

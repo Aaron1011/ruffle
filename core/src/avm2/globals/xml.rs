@@ -3,6 +3,7 @@
 use crate::avm2::e4x::{E4XNode, E4XNodeKind};
 pub use crate::avm2::object::xml_allocator;
 use crate::avm2::object::{E4XOrXml, QNameObject, TObject, XmlListObject};
+use crate::avm2::string::AvmString;
 use crate::avm2::{Activation, Error, Object, QName, Value};
 use crate::avm2_stub_method;
 
@@ -15,7 +16,11 @@ pub fn init<'gc>(
     let value = args[0];
 
     match E4XNode::parse(value, activation) {
-        Ok(nodes) => {
+        Ok(mut nodes) => {
+            if nodes.len() == 0 {
+                // Push empty text node
+                nodes.push(E4XNode::text(activation.context.gc_context, AvmString::default()));
+            }
             if nodes.len() != 1 {
                 return Err(Error::RustError(
                     format!(

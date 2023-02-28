@@ -212,7 +212,9 @@ impl<'gc> TObject<'gc> for XmlListObject<'gc> {
                 if let Ok(index) = local_name.parse::<usize>() {
                     if index >= write.children.len() {
                         if let Some(value_xml) = value.as_object().and_then(|obj| obj.as_xml_object()) {
+                            eprintln!("Appending: {:?}", value_xml);
                             write.children.push(E4XOrXml::Xml(value_xml));
+                            eprintln!("Children after append: {:?}", write.children);
                             return Ok(());
                         }
                     }
@@ -228,11 +230,8 @@ impl<'gc> TObject<'gc> for XmlListObject<'gc> {
         last_index: u32,
         _activation: &mut Activation<'_, 'gc>,
     ) -> Result<Option<u32>, Error<'gc>> {
-        if last_index == 0 {
-            eprintln!("Called xml_list.get_next_enumerant(0)");
-            eprintln!("{}", std::backtrace::Backtrace::capture());
-        }
         let read = self.0.read();
+        eprintln!("get_next_enumerant: {:?} on children: len={:?} {:?}", last_index, read.children.len(), read.children);
         if (last_index as usize) < read.children.len() {
             return Ok(Some(last_index + 1));
         } else {
@@ -249,6 +248,9 @@ impl<'gc> TObject<'gc> for XmlListObject<'gc> {
     ) -> Result<Value<'gc>, Error<'gc>> {
         let mut write = self.0.write(activation.context.gc_context);
         let children_len = write.children.len() as u32;
+
+        eprintln!("Getting enumerant value: {:?}", index);
+
         if children_len >= index {
             Ok(index
                 .checked_sub(1)
