@@ -342,12 +342,16 @@ impl CurrentPipeline {
         )
         .expect("Fragment shader failed to compile");
 
+        //eprintln!("Vertex shader: \n{:#?}", to_wgsl(&vertex_naga));
+        //eprintln!("Fragment shader: \n{:#?}", to_wgsl(&fragment_naga));
+
         let vertex_module = descriptors
             .device
             .create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Vertex shader"),
                 source: wgpu::ShaderSource::Naga(Cow::Owned(vertex_naga)),
             });
+
 
         let fragment_module =
             descriptors

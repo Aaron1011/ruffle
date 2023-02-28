@@ -39,7 +39,7 @@ package flash.display3D {
 
         public native function setDepthTest(depthMask:Boolean, passCompareMode:String):void;
         public function setScissorRectangle(rectangle:Rectangle):void {
-            stub_method("flash.display3D.Context3D", "setScissorRectangle");
+            stub_method("flash.display3D.Context3D", "setScissorRectangle: " + rectangle);
         }
 
         public function setRenderToBackBuffer():void {
@@ -47,7 +47,7 @@ package flash.display3D {
         }
 
         public function setBlendFactors(sourceFactor:String, destinationFactor:String):void {
-            stub_method("flash.display3D.Context3D", "setBlendFactors");
+            stub_method("flash.display3D.Context3D", "setBlendFactors: " + sourceFactor + ", " + destinationFactor);
         }
 
         public native function setTextureAt(sampler:int, texture:TextureBase):void;
