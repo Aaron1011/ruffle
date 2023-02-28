@@ -1,6 +1,6 @@
 use ruffle_render::backend::{
     Context3D, Context3DCommand, Context3DTextureFormat, Context3DVertexBufferFormat, IndexBuffer,
-    ProgramType, ShaderModule, VertexBuffer,
+    ProgramType, ShaderModule, VertexBuffer, Context3DCompareMode,
 };
 use ruffle_render::bitmap::{BitmapFormat, BitmapHandle};
 use ruffle_render::error::Error;
@@ -557,6 +557,19 @@ impl WgpuContext3D {
 
                     self.current_pipeline
                         .update_texture_at(*sampler as usize, bound_texture);
+                }
+                Context3DCommand::SetDepthTest { depth_mask, pass_compare_mode } => {
+                    let function = match pass_compare_mode {
+                        Context3DCompareMode::Always => wgpu::CompareFunction::Always,
+                        Context3DCompareMode::Equal => wgpu::CompareFunction::Equal,
+                        Context3DCompareMode::Greater => wgpu::CompareFunction::Greater,
+                        Context3DCompareMode::GreaterEqual => wgpu::CompareFunction::GreaterEqual,
+                        Context3DCompareMode::Less => wgpu::CompareFunction::Less,
+                        Context3DCompareMode::LessEqual => wgpu::CompareFunction::LessEqual,
+                        Context3DCompareMode::Never => wgpu::CompareFunction::Never,
+                        Context3DCompareMode::NotEqual => wgpu::CompareFunction::NotEqual,
+                    };
+                    self.current_pipeline.update_depth(*depth_mask, function);
                 }
             }
         }

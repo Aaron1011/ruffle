@@ -1,4 +1,5 @@
 use ruffle_render::backend::BufferUsage;
+use ruffle_render::backend::Context3DCompareMode;
 use ruffle_render::backend::Context3DTextureFormat;
 use ruffle_render::backend::Context3DTriangleFace;
 use ruffle_render::backend::Context3DVertexBufferFormat;
@@ -485,6 +486,26 @@ pub fn set_texture_at<'gc>(
             Some(obj.as_texture().unwrap().handle())
         };
         context.set_texture_at(activation, sampler, texture, cube);
+    }
+    Ok(Value::Undefined)
+}
+
+pub fn set_depth_test<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    this: Option<Object<'gc>>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    if let Some(context) = this.and_then(|this| this.as_context_3d()) {
+        // This is a native method, so all of the arguments have been checked and coerced for us
+        let depth_mask = args[0].coerce_to_boolean();
+        let pass_compare_mode = args[1].coerce_to_string(activation)?;
+        let pass_compare_mode = if let Ok(mode) = Context3DCompareMode::from_wstr(&*pass_compare_mode)
+        {
+            mode
+        } else {
+            panic!("Unsupported depth test mode: {:?}", pass_compare_mode);
+        };
+        context.set_depth_test(activation, depth_mask, pass_compare_mode);
     }
     Ok(Value::Undefined)
 }

@@ -8,6 +8,7 @@ use crate::quality::StageQuality;
 use crate::shape_utils::DistilledShape;
 use downcast_rs::{impl_downcast, Downcast};
 use gc_arena::{Collect, GcCell, MutationContext};
+use ruffle_wstr::WStr;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::rc::Rc;
@@ -188,6 +189,43 @@ pub enum Context3DTriangleFace {
     FrontAndBack,
 }
 
+#[derive(Collect, Copy, Clone, Debug)]
+#[collect(require_static)]
+pub enum Context3DCompareMode {
+    Never,
+    Less,
+    Equal,
+    LessEqual,
+    Greater,
+    NotEqual,
+    GreaterEqual,
+    Always,
+}
+
+impl Context3DCompareMode {
+    pub fn from_wstr(s: &WStr) -> Result<Self, ()> {
+        if s == b"never" {
+            Ok(Context3DCompareMode::Never)
+        } else if s == b"less" {
+            Ok(Context3DCompareMode::Less)
+        } else if s == b"equal" {
+            Ok(Context3DCompareMode::Equal)
+        } else if s == b"lessEqual" {
+            Ok(Context3DCompareMode::LessEqual)
+        } else if s == b"greater" {
+            Ok(Context3DCompareMode::Greater)
+        } else if s == b"notEqual" {
+            Ok(Context3DCompareMode::NotEqual)
+        } else if s == b"greaterEqual" {
+            Ok(Context3DCompareMode::GreaterEqual)
+        } else if s == b"always" {
+            Ok(Context3DCompareMode::Always)
+        } else {
+            Err(())
+        }
+    }
+}
+
 #[derive(Collect)]
 #[collect(no_drop)]
 pub enum Context3DCommand<'gc> {
@@ -263,6 +301,10 @@ pub enum Context3DCommand<'gc> {
         sampler: u32,
         texture: Option<Rc<dyn Texture>>,
         cube: bool,
+    },
+    SetDepthTest {
+        depth_mask: bool,
+        pass_compare_mode: Context3DCompareMode,
     },
 }
 

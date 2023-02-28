@@ -37,10 +37,7 @@ package flash.display3D {
         public native function setProgramConstantsFromMatrix(programType:String, firstRegister:int, matrix:Matrix3D, transposedMatrix:Boolean = false):void;
         public native function setProgramConstantsFromVector(programType:String, firstRegister:int, data:Vector.<Number>, numRegisters:int = -1):void;
 
-        public function setDepthTest(depthMask:Boolean, passCompareMode:String):void {
-            trace("setDepthTest: " + depthMask + ", " + passCompareMode);
-            stub_method("flash.display3D.Context3D", "setDepthTest");
-        }
+        public native function setDepthTest(depthMask:Boolean, passCompareMode:String):void;
         public function setScissorRectangle(rectangle:Rectangle):void {
             stub_method("flash.display3D.Context3D", "setScissorRectangle");
         }

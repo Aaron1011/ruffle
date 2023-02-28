@@ -10,7 +10,7 @@ use crate::context::RenderContext;
 use gc_arena::{Collect, GcCell, MutationContext};
 use ruffle_render::backend::{
     BufferUsage, Context3D, Context3DCommand, Context3DTextureFormat, Context3DTriangleFace,
-    Context3DVertexBufferFormat, ProgramType, Texture,
+    Context3DVertexBufferFormat, ProgramType, Texture, Context3DCompareMode,
 };
 use ruffle_render::bitmap::{Bitmap, BitmapFormat};
 use ruffle_render::commands::CommandHandler;
@@ -370,6 +370,21 @@ impl<'gc> Context3DObject<'gc> {
                 sampler,
                 texture,
                 cube,
+            })
+    }
+
+    pub(crate) fn set_depth_test(
+        &self,
+        activation: &mut Activation<'_, 'gc>,
+        depth_mask: bool,
+        pass_compare_mode: Context3DCompareMode,
+    ) {
+        self.0
+            .write(activation.context.gc_context)
+            .commands
+            .push(Context3DCommand::SetDepthTest {
+                depth_mask,
+                pass_compare_mode,
             })
     }
 
