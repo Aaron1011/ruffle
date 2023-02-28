@@ -11,6 +11,7 @@ package {
         AS3 native function hasSimpleContent():Boolean;
         AS3 native function length():int
         AS3 native function children():XMLList;
+        AS3 native function attribute(name:*):XMLList;
 
         public native function toString():String;
 
