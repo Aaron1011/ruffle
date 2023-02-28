@@ -138,21 +138,13 @@ impl WgpuContext3D {
                     stencil: _,
                     mask,
                 } => {
-                    if *mask != COLOR_MASK | DEPTH_MASK | STENCIL_MASK {
-                        tracing::warn!(
-                            "Context3D::present: Clear command with mask {:x} not implemeneted",
-                            mask
-                        );
-                    }
-
-                    clear_color = Some(wgpu::Color {
+                    clear_color = Some((wgpu::Color {
                         r: *red,
                         g: *green,
                         b: *blue,
                         a: *alpha,
-                    });
+                    }, *mask));
                     seen_clear_command = true;
-                    // FIXME - clear depth and stencil buffers once we implement them
 
                     // Finish the current render pass - our next DrawTriangles command will create
                     // a new RenderPass using our `clear_color`.
@@ -762,24 +754,34 @@ fn make_render_pass<'a>(
     command_encoder: &'a mut CommandEncoder,
     bind_group: &'a BindGroup,
     vertex_attributes: &'a [Option<VertexAttributeInfo>; MAX_VERTEX_ATTRIBUTES],
-    clear_color: Option<wgpu::Color>,
+    clear_color: Option<(wgpu::Color, u32)>,
     depth_view: Option<&'a wgpu::TextureView>,
 ) -> RenderPass<'a> {
     let load = match clear_color {
-        Some(_) => wgpu::LoadOp::Clear(clear_color.unwrap()),
-        None => wgpu::LoadOp::Load,
+        Some((color, mask)) if mask & COLOR_MASK != 0 => wgpu::LoadOp::Clear(color),
+        _ => wgpu::LoadOp::Load,
+    };
+
+    let depth_load = match clear_color {
+        Some((_, mask)) if mask & DEPTH_MASK != 0 => wgpu::LoadOp::Clear(0.0),
+        _ => wgpu::LoadOp::Load,
+    };
+
+    let stencil_load = match clear_color {
+        Some((_, mask)) if mask & STENCIL_MASK != 0 => wgpu::LoadOp::Clear(0),
+        _ => wgpu::LoadOp::Load,
     };
 
     let depth_stencil_attachment = if let Some(depth_view) = depth_view {
         Some(wgpu::RenderPassDepthStencilAttachment {
             view: depth_view,
             depth_ops: Some(wgpu::Operations {
-                load: wgpu::LoadOp::Load,
+                load: depth_load,
                 store: false,
             }),
             stencil_ops: Some(wgpu::Operations {
                 // FIXME - are these write?
-                load: wgpu::LoadOp::Clear(0),
+                load: stencil_load,
                 store: true,
             }),
         })
