@@ -699,6 +699,10 @@ impl<'a> NagaBuilder<'a> {
                     self.varying_pointers[index] = Some(expr);
                 }
                 ShaderType::Fragment => {
+                    // Note - we might end up with out-of-order function
+                    // arguments (e.g. the first argument might correspond to varying 2).
+                    // That's fine, since we only access the arguments through te 'varying_pointers'
+                    // array, which is indexed by the varying index.
                     self.func.arguments.push(FunctionArgument {
                         name: None,
                         ty: self.vec4f,
@@ -708,11 +712,12 @@ impl<'a> NagaBuilder<'a> {
                             sampling: None,
                         }),
                     });
+                    let arg_index = self.func.arguments.len() - 1;
 
                     let expr = self
                         .func
                         .expressions
-                        .append(Expression::FunctionArgument(index as u32), Span::UNDEFINED);
+                        .append(Expression::FunctionArgument(arg_index as u32), Span::UNDEFINED);
                     self.varying_pointers[index] = Some(expr);
                 }
             };
