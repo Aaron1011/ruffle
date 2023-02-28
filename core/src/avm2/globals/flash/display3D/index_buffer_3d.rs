@@ -50,8 +50,6 @@ pub fn upload_from_vector<'gc>(
 
         index_buffer.set_count(count as usize, activation.context.gc_context);
 
-        eprintln!("Texture vector upload: {:?}", vector.storage());
-
         if start_offset != 0 {
             panic!("What exactly does start_offset do?");
         }

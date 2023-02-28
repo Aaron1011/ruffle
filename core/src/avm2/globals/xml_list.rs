@@ -64,7 +64,6 @@ pub fn to_string<'gc>(
     let children = list.children();
     if has_simple_content_inner(&children) {
         let res = simple_content_to_string(children.iter().cloned(), activation)?.into();
-        eprintln!("XMLList.toString: {:?}", children);
         Ok(res)
     } else {
         avm2_stub_method!(activation, "XMLList", "toString", "non-simple content");

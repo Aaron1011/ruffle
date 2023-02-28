@@ -10,7 +10,6 @@ pub fn upload_from_bitmap_data<'gc>(
 ) -> Result<Value<'gc>, Error<'gc>> {
     if let Some(texture) = this.and_then(|this| this.as_texture()) {
         if let Some(source) = args[0].coerce_to_object(activation)?.as_bitmap_data() {
-            println!("Rectangle texture BitmapData upload: {:?}", texture);
 
             texture
                 .context3d()
