@@ -107,7 +107,6 @@ pub fn set_vertex_buffer_at<'gc>(
             .unwrap_or(&Value::Undefined)
             .coerce_to_u32(activation)?;
 
-        // FIXME - use the format
         let format = args
             .get(3)
             .unwrap_or(&Value::Undefined)

@@ -16,6 +16,7 @@ use std::cell::Cell;
 use std::num::NonZeroU64;
 use std::rc::Rc;
 
+use crate::context3d::VertexBufferWrapper;
 use crate::descriptors::Descriptors;
 
 use super::{ShaderModuleAgal, VertexAttributeInfo, MAX_VERTEX_ATTRIBUTES};
@@ -342,8 +343,8 @@ impl CurrentPipeline {
         )
         .expect("Fragment shader failed to compile");
 
-        //eprintln!("Vertex shader: \n{:#?}", to_wgsl(&vertex_naga));
-        //eprintln!("Fragment shader: \n{:#?}", to_wgsl(&fragment_naga));
+        //eprintln!("Vertex shader: \n{}", to_wgsl(&vertex_naga));
+        //eprintln!("Fragment shader: \n{}", to_wgsl(&fragment_naga));
 
         let vertex_module = descriptors
             .device
@@ -361,12 +362,15 @@ impl CurrentPipeline {
                     source: wgpu::ShaderSource::Naga(Cow::Owned(fragment_naga)),
                 });
 
-        let mut stride = 0;
+        struct BufferData {
+            buffer: Rc<VertexBufferWrapper>,
+            attrs: Vec<wgpu::VertexAttribute>,
+            stride: usize,
+        }
 
-        let wgpu_attributes = vertex_attributes
-            .iter()
-            .enumerate()
-            .flat_map(|(i, attr)| {
+        let mut index_per_buffer: Vec<BufferData> = Vec::new();
+
+        for (i, attr) in vertex_attributes.iter().enumerate() {
                 if let Some(attr) = attr {
                     let (format, entry_size_bytes) = match attr.format {
                         Context3DVertexBufferFormat::Float4 => (
@@ -386,18 +390,32 @@ impl CurrentPipeline {
                         }
                         Context3DVertexBufferFormat::Bytes4 => (wgpu::VertexFormat::Uint8x4, 4),
                     };
+
+                    let buffer_data = index_per_buffer
+                        .iter_mut()
+                        .find(|data| Rc::ptr_eq(&data.buffer, &attr.buffer));
+
+                    let buffer_data = if let Some(buffer_data) = buffer_data {
+                        buffer_data
+                    } else {
+                        index_per_buffer.push(BufferData {
+                            buffer: attr.buffer.clone(),
+                            attrs: Vec::new(),
+                            stride: 0
+                        });
+                        index_per_buffer.last_mut().unwrap()
+                    };
+
+
                     // FIXME - assert that this matches up with the AS3-supplied offset
-                    stride += entry_size_bytes;
-                    Some(wgpu::VertexAttribute {
+                    buffer_data.stride += entry_size_bytes;
+                    buffer_data.attrs.push(wgpu::VertexAttribute {
                         format,
                         offset: attr.offset_in_32bit_units * 4,
                         shader_location: i as u32,
                     })
-                } else {
-                    None
                 }
-            })
-            .collect::<Vec<_>>();
+            }
 
         let cull_mode = match self.culling {
             Context3DTriangleFace::Back => Some(wgpu::Face::Back),
@@ -427,6 +445,21 @@ impl CurrentPipeline {
             None
         };
 
+        let wgpu_vertex_buffers = index_per_buffer
+            .iter()
+            .map(|data| {
+                let stride = data.stride as u64;
+                let attrs = &data.attrs;
+                wgpu::VertexBufferLayout {
+                    array_stride: stride,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: attrs,
+                }
+            })
+            .collect::<Vec<_>>();
+
+        eprintln!("WGPU Vertex buffers: {:#?}", wgpu_vertex_buffers);
+
         let compiled = descriptors
             .device
             .create_render_pipeline(&RenderPipelineDescriptor {
@@ -435,11 +468,7 @@ impl CurrentPipeline {
                 vertex: VertexState {
                     module: &vertex_module,
                     entry_point: naga_agal::SHADER_ENTRY_POINT,
-                    buffers: &[VertexBufferLayout {
-                        array_stride: stride as u64,
-                        step_mode: wgpu::VertexStepMode::Vertex,
-                        attributes: &wgpu_attributes,
-                    }],
+                    buffers: &wgpu_vertex_buffers,
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &fragment_module,
@@ -473,7 +502,7 @@ impl CurrentPipeline {
 // This is useful for debugging shader issues
 #[allow(dead_code)]
 fn to_wgsl(module: &naga::Module) -> String {
-    eprintln!("To wgsl:\n{:#?}", module);
+    //eprintln!("To wgsl:\n{:#?}", module);
     let mut out = String::new();
 
     let mut validator = Validator::new(ValidationFlags::all(), Capabilities::all());

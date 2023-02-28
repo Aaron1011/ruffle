@@ -5,6 +5,7 @@ use ruffle_render::backend::{
 use ruffle_render::bitmap::{BitmapFormat, BitmapHandle};
 use ruffle_render::error::Error;
 use std::cell::Cell;
+use std::collections::{HashMap, HashSet};
 
 use wgpu::util::StagingBelt;
 use wgpu::{
@@ -547,6 +548,8 @@ impl WgpuContext3D {
                         None
                     };
 
+                    //eprintln!("Binding texture some={:?} sampler-{:?} cube={:?}", texture.is_some(), sampler, cube);
+
                     self.current_pipeline
                         .update_texture_at(*sampler as usize, bound_texture);
                 }
@@ -592,7 +595,7 @@ impl WgpuContext3D {
 #[collect(require_static)]
 pub struct IndexBufferWrapper(wgpu::Buffer);
 
-#[derive(Collect)]
+#[derive(Collect, Debug)]
 #[collect(require_static)]
 pub struct VertexBufferWrapper(wgpu::Buffer);
 
@@ -612,7 +615,7 @@ impl ruffle_render::backend::Texture for TextureWrapper {}
 // Context3D.setVertexBufferAt supports up to 8 vertex buffer attributes
 const MAX_VERTEX_ATTRIBUTES: usize = 8;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct VertexAttributeInfo {
     // An offset in units of buffer entires (f32 or u8)
     offset_in_32bit_units: u64,
@@ -799,9 +802,21 @@ fn make_render_pass<'a>(
         depth_stencil_attachment,
     });
     pass.set_bind_group(0, bind_group, &[]);
-    for (i, attr) in vertex_attributes.iter().enumerate() {
+
+
+    let mut seen = Vec::new();
+
+    // Create a binding for each unique buffer that we encounter.
+    // TODO - deduplicate this with the similar logic in set_pipelines
+    let mut i = 0;
+    for attr in vertex_attributes.iter() {
         if let Some(attr) = attr {
-            pass.set_vertex_buffer(i as u32, attr.buffer.0.slice(..));
+            if !seen.iter().any(|b| Rc::ptr_eq(b, &attr.buffer)) {
+                eprintln!("Set vertex buffer: i={} buffer={:?}", i, attr.buffer.0);
+                pass.set_vertex_buffer(i as u32, attr.buffer.0.slice(..));
+                seen.push(attr.buffer.clone());
+                i += 1;
+            }
         }
     }
     pass

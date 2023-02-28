@@ -46,6 +46,7 @@ panic = "unwind"
 [profile.release]
 panic = "unwind"
 debug = true
+debug-assertions = true
 
 [profile.dev.package.h263-rs]
 opt-level = 3
