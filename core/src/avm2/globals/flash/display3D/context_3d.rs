@@ -283,6 +283,8 @@ pub fn set_program_constants_from_matrix<'gc>(
             .map(|val| val.coerce_to_number(activation).map(|val| val as f32))
             .collect::<Result<Vec<f32>, Error>>()?;
 
+        //eprintln!("Setting data from matrix: {:?}", matrix_raw_data);
+
         context.set_program_constants_from_matrix(
             activation,
             is_vertex,
