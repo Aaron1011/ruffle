@@ -192,7 +192,7 @@ pub trait Context3D: Collect + Downcast {
         &mut self,
         usage: BufferUsage,
         num_vertices: u32,
-        vertex_size: u32,
+        data_32_per_vertex: u8,
     ) -> Rc<dyn VertexBuffer>;
 
     fn create_texture(

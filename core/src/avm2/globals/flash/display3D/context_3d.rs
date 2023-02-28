@@ -38,13 +38,18 @@ pub fn create_vertex_buffer<'gc>(
             .get(0)
             .unwrap_or(&Value::Undefined)
             .coerce_to_u32(activation)?;
-        let data_per_vertex = args
+        let data_32_per_vertex = args
             .get(1)
             .unwrap_or(&Value::Undefined)
             .coerce_to_u32(activation)?;
+
+        if data_32_per_vertex > 64 {
+            return Err("data_32_per_vertex is greater than 64".into());
+        }
+
         return context.create_vertex_buffer(
             num_vertices,
-            data_per_vertex,
+            data_32_per_vertex as u8,
             BufferUsage::DynamicDraw,
             activation,
         );
@@ -520,6 +525,9 @@ pub fn set_blend_factors<'gc>(
         // This is a native method, so all of the arguments have been checked and coerced for us
         let source_factor = args[0].coerce_to_string(activation)?;
         let destination_factor = args[1].coerce_to_string(activation)?;
+
+        eprintln!("Setting blend factors: source_factor={:?} dest_factor={:?}", source_factor, destination_factor);
+
         let source_factor = if let Ok(factor) = Context3DBlendFactor::from_wstr(&*source_factor) {
             factor
         } else {

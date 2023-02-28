@@ -453,17 +453,22 @@ impl CurrentPipeline {
         let wgpu_vertex_buffers = index_per_buffer
             .iter()
             .map(|data| {
-                let stride = data.stride as u64;
+                let mut data_bytes_per_vertex = (data.buffer.data_32_per_vertex * 4) as u64;
+                if data.stride > data_bytes_per_vertex as usize {
+                    panic!("Total size of bound vertex attributes {:?} exceeds data_bytes_per_vertex {:?}", data.stride,
+                    data_bytes_per_vertex);
+                }
+
                 let attrs = &data.attrs;
                 wgpu::VertexBufferLayout {
-                    array_stride: stride,
+                    array_stride: data_bytes_per_vertex,
                     step_mode: wgpu::VertexStepMode::Vertex,
                     attributes: attrs,
                 }
             })
             .collect::<Vec<_>>();
 
-        //eprintln!("WGPU Vertex buffers: {:#?}", wgpu_vertex_buffers);
+        eprintln!("WGPU Vertex buffers: {:#?}", wgpu_vertex_buffers);
 
         let compiled = descriptors
             .device

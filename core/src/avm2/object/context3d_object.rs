@@ -126,7 +126,7 @@ impl<'gc> Context3DObject<'gc> {
     pub fn create_vertex_buffer(
         &self,
         num_vertices: u32,
-        data_per_vertex: u32,
+        data_32_per_vertex: u8,
         usage: BufferUsage,
         activation: &mut Activation<'_, 'gc>,
     ) -> Result<Value<'gc>, Error<'gc>> {
@@ -136,12 +136,12 @@ impl<'gc> Context3DObject<'gc> {
             .render_context
             .as_mut()
             .unwrap()
-            .create_vertex_buffer(usage, num_vertices, data_per_vertex);
+            .create_vertex_buffer(usage, num_vertices, data_32_per_vertex);
         Ok(Value::Object(VertexBuffer3DObject::from_handle(
             activation,
             *self,
             handle,
-            data_per_vertex as usize,
+            data_32_per_vertex as usize,
         )?))
     }
 

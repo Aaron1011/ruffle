@@ -255,7 +255,7 @@ impl WgpuContext3D {
                     self.buffer_staging_belt
                         .write_buffer(
                             &mut buffer_command_encoder,
-                            &buffer.0,
+                            &buffer.buffer,
                             (*start_vertex * *data_per_vertex * std::mem::size_of::<f32>()) as u64,
                             NonZeroU64::new(data.len() as u64).unwrap(),
                             &self.descriptors.device,
@@ -624,7 +624,10 @@ pub struct IndexBufferWrapper(wgpu::Buffer);
 
 #[derive(Collect, Debug)]
 #[collect(require_static)]
-pub struct VertexBufferWrapper(wgpu::Buffer);
+pub struct VertexBufferWrapper {
+    pub buffer: wgpu::Buffer,
+    pub data_32_per_vertex: u8,
+}
 
 #[derive(Collect)]
 #[collect(require_static)]
@@ -677,16 +680,19 @@ impl Context3D for WgpuContext3D {
         &mut self,
         _usage: ruffle_render::backend::BufferUsage,
         num_vertices: u32,
-        data_per_vertex: u32,
+        data_32_per_vertex: u8,
     ) -> Rc<dyn VertexBuffer> {
         let buffer = self.descriptors.device.create_buffer(&BufferDescriptor {
             label: None,
             // Each data value is 4 bytes
-            size: num_vertices as u64 * data_per_vertex as u64 * 4,
+            size: num_vertices as u64 * data_32_per_vertex as u64 * 4,
             usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
-        Rc::new(VertexBufferWrapper(buffer))
+        Rc::new(VertexBufferWrapper {
+            buffer,
+            data_32_per_vertex
+        })
     }
 
     fn disposed_index_buffer_handle(&self) -> Rc<dyn IndexBuffer> {
@@ -839,8 +845,8 @@ fn make_render_pass<'a>(
     for attr in vertex_attributes.iter() {
         if let Some(attr) = attr {
             if !seen.iter().any(|b| Rc::ptr_eq(b, &attr.buffer)) {
-                //eprintln!("Set vertex buffer: i={} buffer={:?}", i, attr.buffer.0);
-                pass.set_vertex_buffer(i as u32, attr.buffer.0.slice(..));
+                    eprintln!("Set vertex buffer: i={} buffer={:?}", i, attr.buffer.buffer);
+                pass.set_vertex_buffer(i as u32, attr.buffer.buffer.slice(..));
                 seen.push(attr.buffer.clone());
                 i += 1;
             }

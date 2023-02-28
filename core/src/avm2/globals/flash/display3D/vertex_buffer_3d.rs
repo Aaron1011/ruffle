@@ -85,6 +85,8 @@ pub fn upload_from_vector<'gc>(
             .take(num_vertices as usize * vertex_buffer.data_per_vertex())
             .collect();
 
+        eprintln!("Uploaded data: {:?}", data);
+
         let data_bytes = bytemuck::cast_slice::<f32, u8>(data?.as_slice()).to_vec();
 
         vertex_buffer.context3d().upload_vertex_buffer_data(
