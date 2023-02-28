@@ -1,7 +1,7 @@
 use naga::valid::{Capabilities, ValidationFlags, Validator};
 use ruffle_render::backend::{Context3DTriangleFace, Context3DVertexBufferFormat};
 
-use wgpu::Buffer;
+use wgpu::{Buffer, DepthStencilState, StencilFaceState};
 use wgpu::{
     BindGroupEntry, BindingResource, BufferDescriptor, BufferUsages, FrontFace, SamplerBindingType,
     TextureView,
@@ -63,6 +63,11 @@ pub struct CurrentPipeline {
     pub vertex_shader_uniforms: Buffer,
     pub fragment_shader_uniforms: Buffer,
 
+    has_depth_texture: bool,
+
+    depth_mask: bool,
+    pass_compare_mode: wgpu::CompareFunction,
+
     dirty: Cell<bool>,
 }
 
@@ -95,6 +100,12 @@ impl CurrentPipeline {
             fragment_shader_uniforms,
             dirty: Cell::new(true),
             culling: Context3DTriangleFace::None,
+
+            has_depth_texture: false,
+
+            // FIXME - what are the defaults?
+            depth_mask: true,
+            pass_compare_mode: wgpu::CompareFunction::Always,
         }
     }
     pub fn set_vertex_shader(&mut self, shader: Rc<ShaderModuleAgal>) {
@@ -126,6 +137,21 @@ impl CurrentPipeline {
     pub fn update_vertex_buffer_at(&mut self, _index: usize) {
         // FIXME - check if it's the same, so we can skip rebuilding the pipeline
         self.dirty.set(true);
+    }
+
+    pub fn update_depth(&mut self, depth_mask: bool, pass_compare_mode: wgpu::CompareFunction) {
+        if self.depth_mask != depth_mask || self.pass_compare_mode != pass_compare_mode {
+            self.dirty.set(true);
+        }
+        self.depth_mask = depth_mask;
+        self.pass_compare_mode = pass_compare_mode;
+    }
+
+    pub fn update_has_depth_texture(&mut self, has_depth_texture: bool) {
+        if self.has_depth_texture != has_depth_texture {
+            self.dirty.set(true);
+        }
+        self.has_depth_texture = has_depth_texture;
     }
 
     /// If the pipeline is dirty, recompiles it and returns `Some(freshly_compiled_pipeline`)
@@ -379,6 +405,24 @@ impl CurrentPipeline {
             Context3DTriangleFace::None => None,
         };
 
+        let depth_stencil = if self.has_depth_texture {
+            Some(DepthStencilState {
+                format: TextureFormat::Depth24PlusStencil8,
+                depth_write_enabled: self.depth_mask,
+                depth_compare: self.pass_compare_mode,
+                // FIXME - implement this
+                stencil: wgpu::StencilState {
+                    front: StencilFaceState::IGNORE,
+                    back: StencilFaceState::IGNORE,
+                    read_mask: !0,
+                    write_mask: !0,
+                },
+                bias: Default::default(),
+            })
+        } else {
+            None
+        };
+
         let compiled = descriptors
             .device
             .create_render_pipeline(&RenderPipelineDescriptor {
@@ -409,8 +453,7 @@ impl CurrentPipeline {
                     cull_mode,
                     ..Default::default()
                 },
-                // FIXME - get this from AS3
-                depth_stencil: None,
+                depth_stencil,
                 multisample: Default::default(),
                 multiview: Default::default(),
             });

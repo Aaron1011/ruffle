@@ -213,6 +213,7 @@ impl WgpuContext3D {
                         });
                         self.depth_texture_view = Some(depth_texture.create_view(&Default::default()));
                     }
+                    self.current_pipeline.update_has_depth_texture(*depth_and_stencil);
 
 
                     self.raw_texture_handle = BitmapHandle(Arc::new(Texture {
