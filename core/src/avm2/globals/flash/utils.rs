@@ -330,8 +330,6 @@ pub fn describe_type<'gc>(
                         AvmString::new_utf8(activation.context.gc_context, "*")
                     };
 
-                    eprintln!("Got prop: {:?} {:?}", prop_name, prop);
-
                     let elem_name = match prop {
                         Property::ConstSlot { .. } => "constant",
                         Property::Slot { .. } => "variable",
@@ -358,7 +356,7 @@ pub fn describe_type<'gc>(
 
     xml_string += "</type>";
 
-    eprintln!("Built describeXML: {}", xml_string);
+    //eprintln!("Built describeXML: {}", xml_string);
 
     let xml_avm_string = AvmString::new_utf8(activation.context.gc_context, xml_string);
 

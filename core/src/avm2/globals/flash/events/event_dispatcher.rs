@@ -59,7 +59,7 @@ pub fn add_event_listener<'gc>(
             .unwrap_or(Value::Integer(0))
             .coerce_to_i32(activation)?;
 
-        eprintln!("Add event listener: {:?} {:?}", this, event_type);
+        //eprintln!("Add event listener: {:?} {:?}", this, event_type);
 
         //TODO: If we ever get weak GC references, we should respect `useWeakReference`.
         dispatch_list

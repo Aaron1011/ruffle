@@ -442,6 +442,7 @@ impl<'gc> Stage<'gc> {
             stage.movie_size
         };
         let stage_size_changed = prev_stage_size != stage.stage_size;
+        eprintln!("Stage size changed: {:?} {:?}", stage_size_changed, stage.stage_size);
 
         // Create view matrix to scale stage into viewport area.
         let (movie_width, movie_height) = stage.movie_size;
