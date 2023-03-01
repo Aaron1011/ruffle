@@ -1471,6 +1471,9 @@ impl<'a, 'gc> Activation<'a, 'gc> {
             let object = self.pop_stack();
             let object = object.coerce_to_object_or_typeerror(self, Some(&multiname))?;
             let value = object.get_property(&multiname, self)?;
+            if &*multiname.local_name().unwrap() == b"supportsCursor" {
+                println!("supportsCursor: {:?}", value);
+            }
             self.push_stack(value);
             return Ok(FrameControl::Continue);
         }
@@ -1812,6 +1815,11 @@ impl<'a, 'gc> Activation<'a, 'gc> {
             .resolve_definition(&multiname)?
             .ok_or_else(|| panic!("Property does not exist: {:?}", *multiname));
 
+        if let Some(name) = multiname.local_name() {
+            if &*name == b"touchEventTypes" {
+                eprintln!("Got touchEventTypes: {:?}", found);
+            }
+        }
         self.push_stack(found?);
 
         Ok(FrameControl::Continue)

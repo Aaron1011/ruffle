@@ -72,6 +72,8 @@ pub fn configure_back_buffer<'gc>(
             .unwrap_or(&Value::Undefined)
             .coerce_to_u32(activation)?;
 
+        eprintln!("Request back buffer: width={:?} height={:?}", width, height);
+
         let anti_alias = args.get(2).unwrap_or(&Value::Undefined).coerce_to_u32(activation)?;
         let enable_depth_and_stencil = args.get(3).unwrap_or(&Value::Undefined).coerce_to_boolean();
         let wants_best_resolution = args.get(4).unwrap_or(&Value::Undefined).coerce_to_boolean();
@@ -526,7 +528,7 @@ pub fn set_blend_factors<'gc>(
         let source_factor = args[0].coerce_to_string(activation)?;
         let destination_factor = args[1].coerce_to_string(activation)?;
 
-        eprintln!("Setting blend factors: source_factor={:?} dest_factor={:?}", source_factor, destination_factor);
+        //eprintln!("Setting blend factors: source_factor={:?} dest_factor={:?}", source_factor, destination_factor);
 
         let source_factor = if let Ok(factor) = Context3DBlendFactor::from_wstr(&*source_factor) {
             factor

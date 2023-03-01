@@ -468,7 +468,7 @@ impl CurrentPipeline {
             })
             .collect::<Vec<_>>();
 
-        eprintln!("WGPU Vertex buffers: {:#?}", wgpu_vertex_buffers);
+        //eprintln!("WGPU Vertex buffers: {:#?}", wgpu_vertex_buffers);
 
         let compiled = descriptors
             .device

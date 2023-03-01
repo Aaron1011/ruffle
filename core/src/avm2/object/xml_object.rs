@@ -183,10 +183,10 @@ impl<'gc> TObject<'gc> for XmlObject<'gc> {
 
     fn set_property_local(
         self,
-        _name: &Multiname<'gc>,
-        _value: Value<'gc>,
+        name: &Multiname<'gc>,
+        value: Value<'gc>,
         _activation: &mut Activation<'_, 'gc>,
     ) -> Result<(), Error<'gc>> {
-        panic!("Modifying an XML object is not yet implemented")
+        panic!("Modifying an XML object is not yet implemented: {:?} = {:?}", name, value);
     }
 }

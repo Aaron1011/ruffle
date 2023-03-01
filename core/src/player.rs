@@ -1285,8 +1285,10 @@ impl Player {
                     if let Some(over_object) = context.mouse_over_object {
                         events.push((over_object, ClipEvent::Press));
                         context.mouse_down_object = context.mouse_over_object;
+                        eprintln!("Press on object {:?}", over_object);
                     } else {
                         events.push((context.stage.into(), ClipEvent::Press));
+                        eprintln!("Press on stage");
                     }
                 } else {
                     if let Some(over_object) = context.mouse_over_object {

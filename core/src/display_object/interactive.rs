@@ -237,6 +237,8 @@ pub trait TInteractiveObject<'gc>:
                     0,
                 );
 
+                eprintln!("Firing mouseDown to {:?}", target);
+
                 if let Err(e) = Avm2::dispatch_event(&mut activation.context, avm2_event, target) {
                     tracing::error!("Got error when dispatching {:?} to AVM2: {}", event, e);
                 }

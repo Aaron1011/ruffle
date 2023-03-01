@@ -845,7 +845,7 @@ fn make_render_pass<'a>(
     for attr in vertex_attributes.iter() {
         if let Some(attr) = attr {
             if !seen.iter().any(|b| Rc::ptr_eq(b, &attr.buffer)) {
-                    eprintln!("Set vertex buffer: i={} buffer={:?}", i, attr.buffer.buffer);
+                //eprintln!("Set vertex buffer: i={} buffer={:?}", i, attr.buffer.buffer);
                 pass.set_vertex_buffer(i as u32, attr.buffer.buffer.slice(..));
                 seen.push(attr.buffer.clone());
                 i += 1;
