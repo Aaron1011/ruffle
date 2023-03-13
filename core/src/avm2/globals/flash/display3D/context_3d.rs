@@ -403,6 +403,10 @@ pub fn create_texture<'gc>(
         let streaming_levels = args[4].as_integer(activation.context.gc_context)? as u32;
         let format = if &*format == b"bgra" {
             Context3DTextureFormat::Bgra
+        } else if &*format == b"compressed" {
+            Context3DTextureFormat::Compressed
+        } else if &*format == b"compressedAlpha" {
+            Context3DTextureFormat::CompressedAlpha
         } else {
             panic!("Unsupported texture format in createTexture: {:?}", format);
         };

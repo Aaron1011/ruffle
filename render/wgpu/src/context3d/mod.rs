@@ -880,6 +880,9 @@ fn convert_texture_format(input: Context3DTextureFormat) -> Result<wgpu::Texture
         // and penalizes the case where we upload from a ByteArray
         // (we'll need to convert from Bgra to Rgba).
         Context3DTextureFormat::Bgra => Ok(TextureFormat::Rgba8Unorm),
+        // idk exactly what to do here
+        Context3DTextureFormat::CompressedAlpha => Ok(TextureFormat::Rgba8Unorm),
+        Context3DTextureFormat::Compressed => Ok(TextureFormat::Rgba8Unorm),
         _ => Err(Error::Unimplemented(
             format!("Texture format {input:?}").into(),
         )),
