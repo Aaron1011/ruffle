@@ -252,7 +252,6 @@ impl<'gc> E4XNode<'gc> {
                 Event::Eof => break,
             }
         }
-        eprintln!("Parsed {:?} to {:?}", data_utf8, top_level);
         Ok(top_level)
     }
 

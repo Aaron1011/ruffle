@@ -490,7 +490,31 @@ impl WgpuContext3D {
                     drop(texture_buffer_view);
                     texture_buffer.unmap();
 
-                    buffer_command_encoder.copy_buffer_to_texture(
+                    /*if (4 * source.width()) % wgpu::COPY_BYTES_PER_ROW_ALIGNMENT != 0 {
+                        panic!("Bad copy: width={:?} height={:?}", source.width(), source.height());
+                    }*/
+
+                    // FIXME - is this ordered correctly relative the the command buffer?
+                    self.descriptors.queue.write_texture(wgpu::ImageCopyTexture {
+                        texture: &dest.texture,
+                        mip_level: 0,
+                        origin: wgpu::Origin3d {
+                            x: 0,
+                            y: 0,
+                            z: *layer,
+                        },
+                        aspect: wgpu::TextureAspect::All,
+                    }, image_data, wgpu::ImageDataLayout {
+                        offset: 0,
+                        bytes_per_row: NonZeroU32::new(4 * source.width()),
+                        rows_per_image: Some(NonZeroU32::new(source.height()).unwrap()),
+                    }, wgpu::Extent3d {
+                        width: source.width(),
+                        height: source.height(),
+                        depth_or_array_layers: 1,
+                    });
+
+                    /*buffer_command_encoder.copy_buffer_to_texture(
                         wgpu::ImageCopyBuffer {
                             buffer: &texture_buffer,
                             layout: wgpu::ImageDataLayout {
@@ -514,7 +538,7 @@ impl WgpuContext3D {
                             height: source.height(),
                             depth_or_array_layers: 1,
                         },
-                    );
+                    );*/
                 }
                 Context3DCommand::SetTextureAt {
                     sampler,

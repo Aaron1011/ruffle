@@ -251,6 +251,29 @@ package flash.geom {
 			rawData[15] = m141 * m214 + m142 * m224 + m143 * m234 + m144 * m244;
 		}
 
+		public function copyFrom(other:Matrix3D):void {
+			rawData = other.rawData.concat();
+		}
+
+
+		public function copyRawDataTo(vector: Vector.<Number>, index:uint = 0, transpose:Boolean = false):void
+		{
+			if (transpose)
+			{
+				this.transpose();
+			}
+
+			for (var i = 0; i < rawData.length; i++)
+			{
+				vector[i + index] = rawData[i];
+			}
+
+			if (transpose)
+			{
+				this.transpose();
+			}
+		}
+
 		public function clone():Matrix3D {
 			return new Matrix3D(this.rawData.concat());
 		}

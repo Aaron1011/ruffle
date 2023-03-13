@@ -231,9 +231,6 @@ pub fn append_child<'gc>(
         return Err(format!("XML.appendChild is not yet implemented for {child:?}").into())
     };
 
-
-    eprintln!("appendChild: {:?} {:?}", xml, child);
-
     let child = child.node();
     
     xml.node().append_child(activation.context.gc_context, *child)?;

@@ -621,11 +621,13 @@ impl<'a> NagaBuilder<'a> {
                 }),
             });
 
+            let arg_index = self.func.arguments.len() - 1;
+
             // Arguments map one-to-one to vertex attributes.
             let expr = self
                 .func
                 .expressions
-                .append(Expression::FunctionArgument(index as u32), Span::UNDEFINED);
+                .append(Expression::FunctionArgument(arg_index as u32), Span::UNDEFINED);
             self.vertex_input_expressions[index] = Some(expr);
         }
         Ok(self.vertex_input_expressions[index].unwrap())
