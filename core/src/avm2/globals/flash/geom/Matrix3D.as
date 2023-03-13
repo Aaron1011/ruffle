@@ -180,6 +180,77 @@ package flash.geom {
 				])));
 		}
 
+		public function prependTranslation(x:Number, y:Number, z:Number):void {
+			var m = new Matrix3D();
+			m.position = new Vector3D(x, y, z);
+			this.prepend(m);
+		}
+
+		public function get position():Vector3D {
+			return new Vector3D(rawData[12], rawData[13], rawData[14]);
+		}
+
+		public function set position(val:Vector3D):void {
+			rawData[12] = val.x;
+			rawData[13] = val.y;
+			rawData[14] = val.z;
+		}
+
+		public function prepend(rhs:Matrix3D):void {
+			var m111:Number = rhs.rawData[0],
+				m121:Number = rhs.rawData[4],
+				m131:Number = rhs.rawData[8],
+				m141:Number = rhs.rawData[12],
+				m112:Number = rhs.rawData[1],
+				m122:Number = rhs.rawData[5],
+				m132:Number = rhs.rawData[9],
+				m142:Number = rhs.rawData[13],
+				m113:Number = rhs.rawData[2],
+				m123:Number = rhs.rawData[6],
+				m133:Number = rhs.rawData[10],
+				m143:Number = rhs.rawData[14],
+				m114:Number = rhs.rawData[3],
+				m124:Number = rhs.rawData[7],
+				m134:Number = rhs.rawData[11],
+				m144:Number = rhs.rawData[15],
+				m211:Number = this.rawData[0],
+				m221:Number = this.rawData[4],
+				m231:Number = this.rawData[8],
+				m241:Number = this.rawData[12],
+				m212:Number = this.rawData[1],
+				m222:Number = this.rawData[5],
+				m232:Number = this.rawData[9],
+				m242:Number = this.rawData[13],
+				m213:Number = this.rawData[2],
+				m223:Number = this.rawData[6],
+				m233:Number = this.rawData[10],
+				m243:Number = this.rawData[14],
+				m214:Number = this.rawData[3],
+				m224:Number = this.rawData[7],
+				m234:Number = this.rawData[11],
+				m244:Number = this.rawData[15];
+
+			rawData[0] = m111 * m211 + m112 * m221 + m113 * m231 + m114 * m241;
+			rawData[1] = m111 * m212 + m112 * m222 + m113 * m232 + m114 * m242;
+			rawData[2] = m111 * m213 + m112 * m223 + m113 * m233 + m114 * m243;
+			rawData[3] = m111 * m214 + m112 * m224 + m113 * m234 + m114 * m244;
+
+			rawData[4] = m121 * m211 + m122 * m221 + m123 * m231 + m124 * m241;
+			rawData[5] = m121 * m212 + m122 * m222 + m123 * m232 + m124 * m242;
+			rawData[6] = m121 * m213 + m122 * m223 + m123 * m233 + m124 * m243;
+			rawData[7] = m121 * m214 + m122 * m224 + m123 * m234 + m124 * m244;
+
+			rawData[8] = m131 * m211 + m132 * m221 + m133 * m231 + m134 * m241;
+			rawData[9] = m131 * m212 + m132 * m222 + m133 * m232 + m134 * m242;
+			rawData[10] = m131 * m213 + m132 * m223 + m133 * m233 + m134 * m243;
+			rawData[11] = m131 * m214 + m132 * m224 + m133 * m234 + m134 * m244;
+
+			rawData[12] = m141 * m211 + m142 * m221 + m143 * m231 + m144 * m241;
+			rawData[13] = m141 * m212 + m142 * m222 + m143 * m232 + m144 * m242;
+			rawData[14] = m141 * m213 + m142 * m223 + m143 * m233 + m144 * m243;
+			rawData[15] = m141 * m214 + m142 * m224 + m143 * m234 + m144 * m244;
+		}
+
 		public function clone():Matrix3D {
 			return new Matrix3D(this.rawData.concat());
 		}
