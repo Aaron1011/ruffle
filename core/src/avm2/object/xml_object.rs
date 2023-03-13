@@ -224,8 +224,28 @@ impl<'gc> TObject<'gc> for XmlObject<'gc> {
         self,
         name: &Multiname<'gc>,
         value: Value<'gc>,
-        _activation: &mut Activation<'_, 'gc>,
+        activation: &mut Activation<'_, 'gc>,
     ) -> Result<(), Error<'gc>> {
+        let write = self.0.write(activation.context.gc_context);
+        let mut kind = write.node.kind_mut(activation.context.gc_context);
+        let E4XNodeKind::Element {
+            children,
+            attributes,
+        } = &mut *kind else {
+                return Ok(());
+            };
+
+        if name.contains_public_namespace() && name.is_attribute() {
+            if attributes.iter_mut().find(|attr| attr.matches_name(name)).is_none() {
+                if value.as_object().map_or(true, |obj| obj.as_xml_list_object().is_none()) {
+                    let value = value.coerce_to_string(activation)?;
+                    let new_attr = E4XNode::attribute(activation.context.gc_context, name.local_name().unwrap(), value);
+                    attributes.push(new_attr);
+                    return Ok(());
+                }
+            }
+        }
+
         Err(format!("Modifying an XML object is not yet implemented: {name:?} = {value:?}").into())
     }
 }
