@@ -10,6 +10,7 @@ use quick_xml::{
 };
 
 use super::{object::E4XOrXml, string::AvmString, Activation, Error, Multiname, Value};
+use std::fmt::Write;
 
 /// The underlying XML node data, based on E4XNode in avmplus
 /// This wrapped by XMLObject when necessary (see `E4XOrXml`)
@@ -87,7 +88,7 @@ impl<'gc> E4XNode<'gc> {
         ))
     }    
 
-    fn append_child(
+    pub fn append_child(
         &self,
         gc_context: MutationContext<'gc, '_>,
         child: Self,
@@ -115,9 +116,9 @@ impl<'gc> E4XNode<'gc> {
             _ => {
                 // FIXME - figure out exactly when appending is allowed in FP,
                 // and throw the proper AVM error.
-                return Err(Error::RustError(
-                    format!("Cannot append child {child:?} to node {:?}", this.kind).into(),
-                ));
+                return panic!("{}",
+                    format!("Cannot append child {child:?} to node {:?}", this.kind),
+                );
             }
         }
         Ok(())
@@ -251,6 +252,7 @@ impl<'gc> E4XNode<'gc> {
                 Event::Eof => break,
             }
         }
+        eprintln!("Parsed {:?} to {:?}", data_utf8, top_level);
         Ok(top_level)
     }
 
@@ -356,12 +358,28 @@ impl<'gc> E4XNode<'gc> {
 
     pub fn xml_to_xml_string(
         &self,
-        _activation: &mut Activation<'_, 'gc>,
+        activation: &mut Activation<'_, 'gc>,
     ) -> Result<AvmString<'gc>, Error<'gc>> {
         match &self.0.read().kind {
             E4XNodeKind::Text(text) => Ok(*text),
-            E4XNodeKind::Element { .. } => {
-                Err(format!("XML.toXMLString(): Not yet implemented element {:?}", self).into())
+            E4XNodeKind::Element { children, attributes } => {
+                let mut out = String::new();
+                write!(out, "<{}", self.local_name().unwrap()).unwrap();
+                for attr in attributes {
+                    write!(out, " {}=\"{}\"", attr.local_name().unwrap(), attr.xml_to_string(activation)?).unwrap();
+                }
+
+                if children.is_empty() {
+                    write!(out, "/>").unwrap();
+                } else {
+                    write!(out, ">").unwrap();
+                    for child in children {
+                        write!(out, "{}", child.xml_to_xml_string(activation)?).unwrap();
+                    }
+                    write!(out, "</{}>", self.local_name().unwrap()).unwrap();
+                }
+
+                Ok(AvmString::new_utf8(activation.context.gc_context, out))
             }
             other => Err(format!("XML.toXMLString(): Not yet implemented for {other:?}").into()),
         }

@@ -13,7 +13,12 @@ pub fn init<'gc>(
     args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
     let this = this.unwrap().as_xml_object().unwrap();
-    let value = args[0];
+    let mut value = args[0];
+
+    if let Some(xml) = value.as_object().and_then(|o| o.as_xml_object()) {
+        // Convert it to a string and re-parse (deep clone)
+        value = xml.node().xml_to_xml_string(activation)?.into();
+    }
 
     match E4XNode::parse(value, activation) {
         Ok(nodes) => {
@@ -205,4 +210,33 @@ pub fn attribute<'gc>(
         Some(xml.into()),
     )
     .into())
+}
+
+pub fn append_child<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    this: Option<Object<'gc>>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let this = this.unwrap();
+    let xml = this.as_xml_object().unwrap();
+
+    let child = args
+        .get(0)
+        .unwrap_or(&Value::Undefined)
+        .coerce_to_object(activation)?;
+
+    let child = if let Some(child) = child.as_xml_object() {
+        child
+    } else {
+        return Err(format!("XML.appendChild is not yet implemented for {child:?}").into())
+    };
+
+
+    eprintln!("appendChild: {:?} {:?}", xml, child);
+
+    let child = child.node();
+    
+    xml.node().append_child(activation.context.gc_context, *child)?;
+
+    Ok(Value::Undefined)
 }
