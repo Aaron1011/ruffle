@@ -135,3 +135,30 @@ fn test_complex_fractal() {
         ShaderType::Fragment
     );
 }
+
+#[test]
+fn test_misc_opcodes() {
+    const MISC_OPCODES_VERTEX: &[u8] = include!("misc_opcodes_vertex.agal");
+    const MISC_OPCODES_FRAGMENT: &[u8] = include!("misc_opcodes_fragment.agal");
+
+    test_shader!(
+        MISC_OPCODES_VERTEX,
+        &[
+            Some(VertexAttributeFormat::Float4),
+            Some(VertexAttributeFormat::Float4),
+            Some(VertexAttributeFormat::Float4),
+            Some(VertexAttributeFormat::Float4),
+            Some(VertexAttributeFormat::Float4),
+            Some(VertexAttributeFormat::Float4),
+            Some(VertexAttributeFormat::Float4),
+            Some(VertexAttributeFormat::Float4),
+        ],
+        ShaderType::Vertex
+    );
+
+    test_shader!(
+        MISC_OPCODES_FRAGMENT,
+        &[None, None, None, None, None, None, None, None],
+        ShaderType::Fragment
+    );    
+}

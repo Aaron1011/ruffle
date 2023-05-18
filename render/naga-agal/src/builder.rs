@@ -3,7 +3,7 @@ use std::io::Read;
 use naga::{
     AddressSpace, ArraySize, Block, BuiltIn, Constant, ConstantInner, EntryPoint, FunctionArgument,
     FunctionResult, GlobalVariable, ImageClass, ImageDimension, Interpolation, ResourceBinding,
-    ScalarValue, ShaderStage, StructMember, SwizzleComponent, UnaryOperator,
+    ScalarValue, ShaderStage, StructMember, SwizzleComponent, UnaryOperator, DerivativeControl,
 };
 use naga::{BinaryOperator, MathFunction};
 use naga::{
@@ -627,7 +627,9 @@ impl<'a> NagaBuilder<'a> {
     fn get_vertex_input(&mut self, index: usize) -> Result<Handle<Expression>> {
         if index >= self.vertex_input_expressions.len() {
             self.vertex_input_expressions.resize(index + 1, None);
+        }
 
+        if self.vertex_input_expressions[index].is_none() {
             let ty = self.shader_config.vertex_attributes[index]
                 .as_ref()
                 .ok_or(Error::MissingVertexAttributeData(index))?
@@ -1048,10 +1050,10 @@ impl<'a> NagaBuilder<'a> {
                     _ => unreachable!(),
                 };
 
-                let (num_rows, ty, vec_size) = match opcode {
-                    Opcode::M33 => (3, self.matrix3x3f, VectorSize::Tri),
-                    Opcode::M34 => (3, self.matrix4x3f, VectorSize::Quad),
-                    Opcode::M44 => (4, self.matrix4x4f, VectorSize::Quad),
+                let (num_rows, ty, vec_size, out_size) = match opcode {
+                    Opcode::M33 => (3, self.matrix3x3f, VectorSize::Tri, VertexAttributeFormat::Float3),
+                    Opcode::M34 => (3, self.matrix4x3f, VectorSize::Quad, VertexAttributeFormat::Float3),
+                    Opcode::M44 => (4, self.matrix4x4f, VectorSize::Quad, VertexAttributeFormat::Float4),
                     _ => unreachable!(),
                 };
 
@@ -1095,7 +1097,9 @@ impl<'a> NagaBuilder<'a> {
                     right: vector,
                 });
 
-                self.emit_dest_store(dest, multiply)?;
+                let extended_out = out_size.extend_to_float4(multiply, self)?;
+
+                self.emit_dest_store(dest, extended_out)?;
             }
             Opcode::Tex => {
                 let sampler_field = source2.assert_sampler();
@@ -1542,6 +1546,7 @@ impl<'a> NagaBuilder<'a> {
                 let derivative = self.evaluate_expr(Expression::Derivative {
                     axis: DerivativeAxis::X,
                     expr: source,
+                    ctrl: DerivativeControl::None,
                 });
                 self.emit_dest_store(dest, derivative)?;
             }
@@ -1550,6 +1555,7 @@ impl<'a> NagaBuilder<'a> {
                 let derivative = self.evaluate_expr(Expression::Derivative {
                     axis: DerivativeAxis::Y,
                     expr: source,
+                    ctrl: DerivativeControl::None,
                 });
                 self.emit_dest_store(dest, derivative)?;
             }
@@ -1557,7 +1563,7 @@ impl<'a> NagaBuilder<'a> {
                 if ![SWIZZLE_XXXX, SWIZZLE_YYYY, SWIZZLE_ZZZZ, SWIZZLE_WWWW]
                     .contains(&source1.swizzle)
                 {
-                    panic!("Kil op with source swizzle involving multiple distinct components");
+                    panic!("Kil op with source swizzle involving multiple distinct components: {:?}", source1.swizzle);
                 }
 
                 let source = self.emit_source_field_load(source1, false)?;
