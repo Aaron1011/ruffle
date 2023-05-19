@@ -528,6 +528,14 @@ impl<'gc> DisplayObjectBase<'gc> {
         self.flags.set(DisplayObjectFlags::HAS_EXPLICIT_NAME, value);
     }
 
+    pub fn is_button_state(&self) -> bool {
+        self.flags.contains(DisplayObjectFlags::IS_BUTTON_STATE)
+    }
+
+    pub fn set_is_button_state(&mut self, value: bool) {
+        self.flags.set(DisplayObjectFlags::IS_BUTTON_STATE, value);
+    }
+
     fn masker(&self) -> Option<DisplayObject<'gc>> {
         self.masker
     }
@@ -1856,6 +1864,8 @@ bitflags! {
         /// which are observed to lag behind objects placed by the timeline
         /// (even if they are both placed in the same frame)
         const SKIP_NEXT_ENTER_FRAME          = 1 << 11;
+
+        const IS_BUTTON_STATE                = 1 << 12;
     }
 }
 

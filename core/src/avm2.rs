@@ -239,6 +239,7 @@ impl<'gc> Avm2<'gc> {
     /// behavior. This should not be called manually - `movie_clip` will
     /// call it when necessary.
     pub fn add_orphan_obj(&mut self, dobj: DisplayObject<'gc>) {
+        eprintln!("Adding orphan {:?} {:?}", dobj, dobj.object2());
         if self
             .orphan_objects
             .iter()
@@ -291,8 +292,14 @@ impl<'gc> Avm2<'gc> {
                 // which have not been moved in the displaylist by ActionScript. Therefore,
                 // any orphan we see that has 'placed_by_script()' should stay on the orphan
                 // list, because it was not removed by a RemoveObject tag.
-                dobj.placed_by_script()
+                if dobj.placed_by_script() || dobj.base().is_button_state() {
+                    true
+                } else {
+                    eprintln!("Removing valid orphan {:?} {:?}", dobj, dobj.object2());
+                    false
+                }
             } else {
+                eprintln!("Removing orphan {:?}", d.upgrade(context.gc_context));
                 false
             }
         });

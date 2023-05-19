@@ -1,7 +1,7 @@
 use crate::avm1::Object as Avm1Object;
 use crate::avm2::{
     Activation as Avm2Activation, ClassObject as Avm2ClassObject, Error as Avm2Error,
-    Object as Avm2Object, StageObject as Avm2StageObject, Value as Avm2Value,
+    Object as Avm2Object, StageObject as Avm2StageObject, Value as Avm2Value, Avm2,
 };
 use crate::backend::ui::MouseCursor;
 use crate::context::{RenderContext, UpdateContext};
@@ -75,6 +75,10 @@ pub struct Avm2ButtonData<'gc> {
     /// This flag is consumed during frame construction.
     needs_frame_construction: bool,
 
+    /// When this is `true`, the next call to `run_frame_scripts` will consume
+    /// this flag, and run child framescripts in an unusual order. This is used
+    /// for the weird sub-frame that occurs during construction. All other frame
+    /// script executions run child framescripts in the 'normal' order
     weird_frame_script_order: bool,
 
     has_focus: bool,
@@ -226,6 +230,7 @@ impl<'gc> Avm2Button<'gc> {
 
         if children.len() == 1 {
             let child = children.first().cloned().unwrap().0;
+            child.base_mut(context.gc_context).set_is_button_state(true);
 
             child.set_parent(context, Some(self.into()));
             child.post_instantiation(context, None, Instantiator::Movie, false);
@@ -234,6 +239,7 @@ impl<'gc> Avm2Button<'gc> {
             (child, false)
         } else {
             let state_sprite = MovieClip::new(movie, context.gc_context);
+            state_sprite.base_mut(context.gc_context).set_is_button_state(true);
 
             state_sprite.set_avm2_class(context.gc_context, Some(sprite_class));
             state_sprite.set_parent(context, Some(self.into()));
@@ -419,7 +425,13 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
     }
 
     fn enter_frame(&self, context: &mut UpdateContext<'_, 'gc>) {
-        let hit_area = self.0.read().hit_area;
+        let state = self.0.read().state;
+        let current_state = self.get_state_child(state.into());
+        if let Some(state) = current_state {
+            state.enter_frame(context);
+        }
+
+        /*let hit_area = self.0.read().hit_area;
         if let Some(hit_area) = hit_area {
             hit_area.enter_frame(context);
         }
@@ -437,11 +449,17 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
         let over_state = self.0.read().over_state;
         if let Some(over_state) = over_state {
             over_state.enter_frame(context);
-        }
+        }*/
     }
 
     fn construct_frame(&self, context: &mut UpdateContext<'_, 'gc>) {
-        let hit_area = self.0.read().hit_area;
+        let state = self.0.read().state;
+        let current_state = self.get_state_child(state.into());
+        if let Some(state) = current_state {
+            state.construct_frame(context);
+        }
+
+        /*let hit_area = self.0.read().hit_area;
         if let Some(hit_area) = hit_area {
             hit_area.construct_frame(context);
         }
@@ -459,7 +477,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
         let over_state = self.0.read().over_state;
         if let Some(over_state) = over_state {
             over_state.construct_frame(context);
-        }
+        }*/
 
         let needs_avm2_construction = self.0.read().object.is_none();
         let class = self.0.read().class;
@@ -544,6 +562,10 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
 
                 self.0.write(context.gc_context).weird_frame_script_order = true;
 
+                Avm2::each_orphan_obj(context, |orphan, context| {
+                    orphan.run_frame_scripts(context);
+                });
+                
                 self.avm2_root(context)
                 .unwrap_or_else(|| (*self).into())
                 .run_frame_scripts(context);
@@ -573,7 +595,13 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
     }
 
     fn run_frame_scripts(self, context: &mut UpdateContext<'_, 'gc>) {
-        let hit_area = self.0.read().hit_area;
+        let state = self.0.read().state;
+        let current_state = self.get_state_child(state.into());
+        if let Some(state) = current_state {
+            state.run_frame_scripts(context);
+        }
+
+        /*let hit_area = self.0.read().hit_area;
         let up_state = self.0.read().up_state;
         let down_state = self.0.read().down_state;
         let over_state = self.0.read().over_state;
@@ -605,7 +633,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
             if let Some(over_state) = over_state {
                 over_state.run_frame_scripts(context);
             }
-        }
+        }*/
 
     }
 

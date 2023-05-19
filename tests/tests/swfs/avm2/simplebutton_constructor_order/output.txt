@@ -2,16 +2,21 @@ Constructed SideObserver
 SideObserver (frame 1):[Event type="added" bubbles=true cancelable=false eventPhase=2]
 SideObserver (frame 1):[Event type="addedToStage" bubbles=false cancelable=false eventPhase=2]
 SideObserver (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 Main frame 1
 SideObserver frame 1
+MyOrphan frame 1
 SideObserver (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 SideObserver (frame 2):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 1):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState constructor called
 MyOverState constructor called
 MyDownState constructor called!
 MyUpState (frame 1):[Event type="added" bubbles=true cancelable=false eventPhase=2]
 MyUpState (frame 1):[Event type="addedToStage" bubbles=false cancelable=false eventPhase=2]
 SideObserver (frame 2):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
@@ -21,6 +26,7 @@ MyUpState frame 1
 MyOverState frame 1
 MyDownState frame 1
 SideObserver (frame 2):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
@@ -28,21 +34,25 @@ MyButton constructor called!
 MyButton:[Event type="added" bubbles=true cancelable=false eventPhase=2]
 MyButton:[Event type="addedToStage" bubbles=false cancelable=false eventPhase=2]
 SideObserver (frame 2):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyButton:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 SideObserver (frame 2):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyButton:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 SideObserver (frame 3):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 2):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 2):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 2):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 2):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 MyButton:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 SideObserver (frame 3):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 2):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 2):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 2):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 2):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
@@ -52,17 +62,21 @@ MyOverState frame 2
 Main frame 3
 SideObserver frame 3
 MyUpState frame 2
+MyOrphan frame 2
 SideObserver (frame 3):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 2):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 2):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 2):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 2):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyButton:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 SideObserver (frame 4):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 3):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 3):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 3):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 3):[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 MyButton:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2]
 SideObserver (frame 4):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 3):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 3):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 3):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 3):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
@@ -72,7 +86,9 @@ MyOverState frame 3
 Main frame 4
 SideObserver frame 4
 MyUpState frame 3
+MyOrphan frame 3
 SideObserver (frame 4):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
+MyOrphan (frame 3):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 3):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 3):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyDownState (frame 3):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
