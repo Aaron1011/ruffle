@@ -281,9 +281,6 @@ impl<'gc> Avm2Button<'gc> {
         }
         if let Some(state) = self.get_state_child(state.into()) {
             state.set_parent(context, Some(self.into()));
-            // FIXME - should this happen as part of set_parent?
-            dispatch_added_event(self.into(), state, false, context);
-
         }
     }
 
@@ -540,6 +537,13 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
             if needs_avm2_construction {
                 self.0.write(context.gc_context).needs_avm2_initialization = true;
                 self.set_state(context, ButtonState::Up);
+                if let Some(up_state) = self.0.read().up_state {
+                    if !up_should_fire {
+                        dispatch_added_event((*self).into(), up_state, false, context);
+                    }
+                }
+                
+
                 self.frame_constructed(context);
 
                 self.avm2_root(context)
