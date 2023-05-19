@@ -542,10 +542,9 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                 self.set_state(context, ButtonState::Up);
                 self.frame_constructed(context);
 
-                up_state.run_frame_scripts(context);
-                over_state.run_frame_scripts(context);
-                down_state.run_frame_scripts(context);
-                hit_area.run_frame_scripts(context);
+                self.avm2_root(context)
+                .unwrap_or_else(|| (*self).into())
+                .run_frame_scripts(context);
 
                 self.exit_frame(context);
             }
