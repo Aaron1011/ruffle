@@ -75,11 +75,6 @@ pub struct Avm2ButtonData<'gc> {
     /// This flag is consumed during frame construction.
     needs_frame_construction: bool,
 
-    /// If this button needs to have it's AVM2 side initialized, or not.
-    ///
-    /// All buttons start out not needing AVM2 initialization.
-    needs_avm2_initialization: bool,
-
     weird_frame_script_order: bool,
 
     has_focus: bool,
@@ -124,7 +119,6 @@ impl<'gc> Avm2Button<'gc> {
                 class: context.avm2.classes().simplebutton,
                 object: None,
                 needs_frame_construction: construct_blank_states,
-                needs_avm2_initialization: false,
                 tracking: if button.is_track_as_menu {
                     ButtonTracking::Menu
                 } else {
@@ -538,7 +532,6 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
             }
 
             if needs_avm2_construction {
-                self.0.write(context.gc_context).needs_avm2_initialization = true;
                 self.set_state(context, ButtonState::Up);
                 if let Some(up_state) = self.0.read().up_state {
                     if !up_should_fire {
@@ -556,32 +549,27 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                 .run_frame_scripts(context);
 
                 self.exit_frame(context);
+
+                let avm2_object = self.0.read().object;
+                if let Some(avm2_object) = avm2_object {
+                    let mut constr_thing = || {
+                        let mut activation = Avm2Activation::from_nothing(context.reborrow());
+                        self.0.read().class.call_native_init(Some(avm2_object), &[], &mut activation)?;
+    
+                        Ok(())
+                    };
+                    let result: Result<(), Avm2Error> = constr_thing();
+    
+                    if let Err(e) = result {
+                        tracing::error!("Got {} when constructing AVM2 side of button", e);
+                    }
+    
+                    if let Some(parent) = self.parent() {
+                        dispatch_added_event(parent, (*self).into(), false, context);
+                    }
+                }
             }
         }
-    }
-
-    fn on_exit_frame(&self, context: &mut UpdateContext<'_, 'gc>) {
-        if self.0.read().needs_avm2_initialization {
-            self.0.write(context.gc_context).needs_avm2_initialization = false;
-            let avm2_object = self.0.read().object;
-            if let Some(avm2_object) = avm2_object {
-                let mut constr_thing = || {
-                    let mut activation = Avm2Activation::from_nothing(context.reborrow());
-                    self.0.read().class.call_native_init(Some(avm2_object), &[], &mut activation)?;
-
-                    Ok(())
-                };
-                let result: Result<(), Avm2Error> = constr_thing();
-
-                if let Err(e) = result {
-                    tracing::error!("Got {} when constructing AVM2 side of button", e);
-                }
-
-                if let Some(parent) = self.parent() {
-                    dispatch_added_event(parent, (*self).into(), false, context);
-                }
-            }
-        }        
     }
 
     fn run_frame_scripts(self, context: &mut UpdateContext<'_, 'gc>) {
