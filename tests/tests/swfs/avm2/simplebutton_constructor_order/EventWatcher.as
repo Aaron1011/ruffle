@@ -3,6 +3,7 @@
 	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.utils.getQualifiedClassName;
 	
 	public class EventWatcher {
 		private var target: DisplayObject;
@@ -13,7 +14,7 @@
 		}
 		
 		function trace_event(event: Event) {
-			var out = this.target.name;
+			var out = getQualifiedClassName(this.target);
 			if (this.target is MovieClip) {
 				out += " (frame " + MovieClip(this.target).currentFrame + ")";
 			}
