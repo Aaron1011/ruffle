@@ -17,6 +17,8 @@ MyOverState (frame 1):[Event type="frameConstructed" bubbles=false cancelable=fa
 MyDownState (frame 1):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 Main frame 2
 SideObserver frame 2
+MyUpState frame 1
+MyOverState frame 1
 MyDownState frame 1
 SideObserver (frame 2):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 1):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
@@ -46,8 +48,10 @@ MyOverState (frame 2):[Event type="frameConstructed" bubbles=false cancelable=fa
 MyDownState (frame 2):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyButton:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyDownState frame 2
+MyOverState frame 2
 Main frame 3
 SideObserver frame 3
+MyUpState frame 2
 SideObserver (frame 3):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 2):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 2):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
@@ -64,8 +68,10 @@ MyOverState (frame 3):[Event type="frameConstructed" bubbles=false cancelable=fa
 MyDownState (frame 3):[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyButton:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2]
 MyDownState frame 3
+MyOverState frame 3
 Main frame 4
 SideObserver frame 4
+MyUpState frame 3
 SideObserver (frame 4):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyUpState (frame 3):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
 MyOverState (frame 3):[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2]
