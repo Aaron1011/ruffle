@@ -80,6 +80,8 @@ pub struct Avm2ButtonData<'gc> {
     /// All buttons start out not needing AVM2 initialization.
     needs_avm2_initialization: bool,
 
+    weird_frame_script_order: bool,
+
     has_focus: bool,
     enabled: bool,
     use_hand_cursor: bool,
@@ -129,6 +131,7 @@ impl<'gc> Avm2Button<'gc> {
                     ButtonTracking::Push
                 },
                 has_focus: false,
+                weird_frame_script_order: false,
                 enabled: true,
                 use_hand_cursor: true,
                 skip_current_frame: false,
@@ -546,6 +549,8 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
 
                 self.frame_constructed(context);
 
+                self.0.write(context.gc_context).weird_frame_script_order = true;
+
                 self.avm2_root(context)
                 .unwrap_or_else(|| (*self).into())
                 .run_frame_scripts(context);
@@ -581,24 +586,39 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
 
     fn run_frame_scripts(self, context: &mut UpdateContext<'_, 'gc>) {
         let hit_area = self.0.read().hit_area;
-        if let Some(hit_area) = hit_area {
-            hit_area.run_frame_scripts(context);
-        }
-
         let up_state = self.0.read().up_state;
-        if let Some(up_state) = up_state {
-            up_state.run_frame_scripts(context);
-        }
-
         let down_state = self.0.read().down_state;
-        if let Some(down_state) = down_state {
-            down_state.run_frame_scripts(context);
+        let over_state = self.0.read().over_state;
+
+        if self.0.read().weird_frame_script_order {
+            self.0.write(context.gc_context).weird_frame_script_order = false;
+            if let Some(up_state) = up_state {
+                up_state.run_frame_scripts(context);
+            }
+            if let Some(over_state) = over_state {
+                over_state.run_frame_scripts(context);
+            }
+            if let Some(down_state) = down_state {
+                down_state.run_frame_scripts(context);
+            }
+            if let Some(hit_area) = hit_area {
+                hit_area.run_frame_scripts(context);
+            }
+        } else {
+            if let Some(hit_area) = hit_area {
+                hit_area.run_frame_scripts(context);
+            }
+            if let Some(up_state) = up_state {
+                up_state.run_frame_scripts(context);
+            }
+            if let Some(down_state) = down_state {
+                down_state.run_frame_scripts(context);
+            }
+            if let Some(over_state) = over_state {
+                over_state.run_frame_scripts(context);
+            }
         }
 
-        let over_state = self.0.read().over_state;
-        if let Some(over_state) = over_state {
-            over_state.run_frame_scripts(context);
-        }
     }
 
     fn render_self(&self, context: &mut RenderContext<'_, 'gc>) {
