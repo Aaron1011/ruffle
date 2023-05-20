@@ -524,13 +524,12 @@ pub fn draw<'gc>(
             } else if let Some(source_bitmap) = source.as_bitmap_data_object() {
                 IBitmapDrawable::BitmapData(source_bitmap.bitmap_data())
             } else {
-                avm_error!(
-                    activation,
-                    "BitmapData.draw: Unexpected source {:?} {:?}",
+                panic!(
+                    "BitmapData.draw: Unexpected source {:?} {:?} Activation:\n{}",
                     source,
-                    args.get(0)
+                    args.get(0),
+                    activation.id,
                 );
-                return Ok(Value::Undefined);
             };
 
             // Do this last, so that we only call `overwrite_cpu_pixels_from_gpu`
