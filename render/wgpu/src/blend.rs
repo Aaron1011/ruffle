@@ -45,7 +45,12 @@ impl BlendType {
 
     pub fn default_color(&self) -> wgpu::Color {
         match self {
-            BlendType::Trivial(TrivialBlend::Multiply) => wgpu::Color::WHITE,
+            BlendType::Trivial(TrivialBlend::Multiply) => wgpu::Color {
+                r: 1.0,
+                g: 1.0,
+                b: 1.0,
+                a: 0.0,
+            },
             _ => wgpu::Color::TRANSPARENT,
         }
     }
