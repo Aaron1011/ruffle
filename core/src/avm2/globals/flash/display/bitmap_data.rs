@@ -10,7 +10,7 @@ use crate::avm2::value::Value;
 use crate::avm2::vector::VectorStorage;
 use crate::avm2::Error;
 use crate::bitmap::bitmap_data::{
-    BitmapData, BitmapDataWrapper, ChannelOptions, Color, ThresholdOperation,
+    BitmapData, BitmapDataWrapper, ChannelOptions, ThresholdOperation,
 };
 use crate::bitmap::bitmap_data::{BitmapDataDrawError, IBitmapDrawable};
 use crate::bitmap::{is_size_valid, operations};
@@ -476,38 +476,19 @@ pub fn set_vector<'gc>(
         let y_min = y_min as u32;
         let y_max = y_max as u32;
 
-        // If the vector doesn't contain enough data, no change happens and error immediately.
-        let width = (x_max - x_min) as usize;
-        let height = (y_max - y_min) as usize;
         let vec_read = vec
             .as_vector_storage()
             .expect("BitmapData.setVector: Expected vector");
-        if vec_read.length() < width * height {
-            return Err(Error::AvmError(range_error(
-                activation,
-                "Error #2006: The supplied index is out of bounds.",
-                2006,
-            )?));
-        }
 
-        let bitmap_data = bitmap_data.sync();
-        let mut bitmap_data = bitmap_data.write(activation.context.gc_context);
-        let transparency = bitmap_data.transparency();
-        let mut iter = vec_read.iter();
-        for y in y_min..y_max {
-            for x in x_min..x_max {
-                let color = iter
-                    .next()
-                    .expect("BitmapData.setVector: Expected element")
-                    .as_u32(activation.context.gc_context)
-                    .expect("BitmapData.setVector: Expected uint vector");
-                bitmap_data.set_pixel32_raw(
-                    x,
-                    y,
-                    Color::from(color).to_premultiplied_alpha(transparency),
-                );
-            }
-        }
+        operations::set_vector(
+            activation,
+            bitmap_data,
+            x_min,
+            y_min,
+            x_max,
+            y_max,
+            &*vec_read,
+        )?;
     }
 
     Ok(Value::Undefined)
