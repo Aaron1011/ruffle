@@ -487,7 +487,7 @@ pub fn set_vector<'gc>(
             y_min,
             x_max,
             y_max,
-            &*vec_read,
+            &vec_read,
         )?;
     }
 

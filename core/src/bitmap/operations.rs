@@ -1584,18 +1584,15 @@ pub fn set_vector<'gc>(
         )?));
     }
 
+    let region = PixelRegion::for_region(x_min, y_min, width as u32, height as u32);
+
     let bitmap_data = target.sync();
     let mut bitmap_data = bitmap_data.write(activation.context.gc_context);
     let transparency = bitmap_data.transparency();
     let mut iter = vector.iter();
-    bitmap_data.set_cpu_dirty(PixelRegion::for_region(
-        x_min,
-        y_min,
-        width as u32,
-        height as u32,
-    ));
-    for y in y_min..y_max {
-        for x in x_min..x_max {
+    bitmap_data.set_cpu_dirty(region);
+    for y in region.y_min..region.y_max {
+        for x in region.x_min..region.x_max {
             let color = iter
                 .next()
                 .expect("BitmapData.setVector: Expected element")
