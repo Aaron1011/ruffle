@@ -483,7 +483,7 @@ impl<'a> ShaderBuilder<'a> {
             function: builder.func,
         });
 
-        eprintln!("Module:\n{:#?}", builder.module);
+        //eprintln!("Module:\n{:#?}", builder.module);
 
         Ok(NagaModules {
             vertex: vertex_shader,
