@@ -869,12 +869,11 @@ pub fn draw_path<'gc>(
             .expect("commands is not a Vec.<int>");
 
         let mut read_point = || {
-
             let x = data
-            .get(data_index, activation)
-            .expect("missing data")
-            .as_number(activation.context.gc_context)
-            .expect("data is not a Vec.<Number>");
+                .get(data_index, activation)
+                .expect("missing data")
+                .as_number(activation.context.gc_context)
+                .expect("data is not a Vec.<Number>");
 
             let y = data
                 .get(data_index + 1, activation)
@@ -884,25 +883,24 @@ pub fn draw_path<'gc>(
 
             data_index += 2;
 
-            Point { x: Twips::from_pixels(x), y: Twips::from_pixels(y) }
+            Point {
+                x: Twips::from_pixels(x),
+                y: Twips::from_pixels(y),
+            }
         };
-
 
         let draw_command = match command {
             // NO_OP
             0 => None,
             // MOVE_TO
-            1 => {
-                Some(DrawCommand::MoveTo(read_point()))
-            }
+            1 => Some(DrawCommand::MoveTo(read_point())),
             // LINE_TO
-            2 => {
-                Some(DrawCommand::LineTo(read_point()))
-            }
+            2 => Some(DrawCommand::LineTo(read_point())),
             // CURVE_TO
-            3 => {
-                Some(DrawCommand::CurveTo { control: read_point(), anchor: read_point() })
-            }
+            3 => Some(DrawCommand::CurveTo {
+                control: read_point(),
+                anchor: read_point(),
+            }),
             // WIDE_MOVE_TO
             4 => {
                 // FIXME - which one is dummy?
@@ -922,7 +920,7 @@ pub fn draw_path<'gc>(
                 // FIXME - implement this
                 None
             }
-            _ => panic!("Unexpected command value {command}")
+            _ => panic!("Unexpected command value {command}"),
         };
 
         if let Some(draw_command) = draw_command {
