@@ -1303,6 +1303,16 @@ impl<'a> ShaderBuilder<'a> {
                             arg2: None,
                             arg3: None,
                         }),
+                        Opcode::Atan2 => {
+                            let dst_val = self.load_src_register(&dst)?;
+                            self.evaluate_expr(Expression::Math {
+                                fun: MathFunction::Atan2,
+                                arg: dst_val,
+                                arg1: Some(src),
+                                arg2: None,
+                                arg3: None,
+                            })
+                        }
                         Opcode::DotProduct => {
                             let src_val: Handle<Expression> =
                                 self.load_src_register_with_padding(src_reg, false)?;
@@ -1340,6 +1350,34 @@ impl<'a> ShaderBuilder<'a> {
                             });
                             self.pad_result(res, src_reg.is_scalar())
                         }
+                        Opcode::NotEqual => {
+                            let src_val = self.load_src_register_with_padding(src_reg, false)?;
+                            let dst_val = self.load_src_register_with_padding(&dst, false)?;
+                            let res = self.evaluate_expr(Expression::Binary {
+                                op: BinaryOperator::NotEqual,
+                                left: dst_val,
+                                right: src_val,
+                            });
+                            self.pad_result(res, src_reg.is_scalar())
+                        }
+                        Opcode::Mod => {
+                            let dst_val = self.load_src_register(&dst)?;
+                            self.evaluate_expr(Expression::Binary {
+                                op: BinaryOperator::Modulo,
+                                left: dst_val,
+                                right: src,
+                            })
+                        }
+                        Opcode::FloatToInt => self.evaluate_expr(Expression::As {
+                            kind: crate::ScalarKind::Sint,
+                            expr: src,
+                            convert: Some(4),
+                        }),
+                        Opcode::IntToFloat => self.evaluate_expr(Expression::As {
+                            kind: crate::ScalarKind::Float,
+                            expr: src,
+                            convert: Some(4),
+                        }),
 
                         _ => {
                             panic!("Unimplemented opcode {opcode:?}")
@@ -1651,19 +1689,22 @@ impl<'a> ShaderBuilder<'a> {
 
     /// Normally, we pad all loads (including scalar loads) to a vec4, and operate component-wise
     /// on them. This removes the need to check for scalar vs vector everywhere.
-    /// 
+    ///
     /// However, some operations
     /// will give a different result if we pad out to a vec4 (e.g. Sqrt, Equal, DotProduct).
     /// For these operations, we work with the original un-padded register load (possibly a scalar).
     /// To simplify the rest of the code, we then pad the *result* to a vec4, which allows the dest
     /// writing code to operate on a vector component-wise, and not worry about scalar vs vector.
     /// (the dest mask ensures that the padding is not written).
-    /// 
+    ///
     /// This function pads out a result to a vec4 if it was a scalar. We leave other vector
     /// types (e.g. vec3) unmodified, since they can still be used with AccessIndex
     fn pad_result(&mut self, result: Handle<Expression>, is_scalar: bool) -> Handle<Expression> {
         if is_scalar {
-            self.evaluate_expr(Expression::Splat { size: VectorSize::Quad, value: result })
+            self.evaluate_expr(Expression::Splat {
+                size: VectorSize::Quad,
+                value: result,
+            })
         } else {
             result
         }
