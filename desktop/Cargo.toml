@@ -36,6 +36,7 @@ wgpu = { workspace = true }
 futures = "0.3.28"
 chrono = { version = "0.4", default-features = false, features = [] }
 fluent-templates = "0.8.0"
+tracing-log = { workspace = true }
 
 # Deliberately held back to match tracy client used by profiling crate
 tracing-tracy = { version = "=0.10.2", optional = true }

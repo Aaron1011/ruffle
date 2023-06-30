@@ -3854,6 +3854,7 @@ dependencies = [
  "ruffle_video_software",
  "sys-locale",
  "tracing",
+ "tracing-log",
  "tracing-subscriber",
  "tracing-tracy",
  "unic-langid",

@@ -483,6 +483,8 @@ impl<'a> ShaderBuilder<'a> {
             function: builder.func,
         });
 
+        eprintln!("Module:\n{:#?}", builder.module);
+
         Ok(NagaModules {
             vertex: vertex_shader,
             fragment: builder.module,
@@ -1179,6 +1181,7 @@ impl<'a> ShaderBuilder<'a> {
                         }
                         Opcode::MatVecMul => {
                             let right = self.load_src_register_with_padding(&dst, false)?;
+                            // This is always a vector, so no need to use `pad_result`
                             self.evaluate_expr(Expression::Binary {
                                 op: BinaryOperator::Multiply,
                                 left: src,
@@ -1187,6 +1190,7 @@ impl<'a> ShaderBuilder<'a> {
                         }
                         Opcode::VecMatMul => {
                             let vec = self.load_src_register_with_padding(&dst, false)?;
+                            // This is always a vector, so no need to use `pad_result`
                             self.evaluate_expr(Expression::Binary {
                                 op: BinaryOperator::Multiply,
                                 left: vec,
@@ -1203,10 +1207,11 @@ impl<'a> ShaderBuilder<'a> {
                                 arg2: None,
                                 arg3: None,
                             });
-                            self.evaluate_expr(Expression::Splat {
+                            let res = self.evaluate_expr(Expression::Splat {
                                 size: VectorSize::Quad,
                                 value: dist,
-                            })
+                            });
+                            self.pad_result(res, src_reg.is_scalar())
                         }
                         Opcode::Max => {
                             let right = self.load_src_register(&dst)?;
@@ -1230,13 +1235,14 @@ impl<'a> ShaderBuilder<'a> {
                         }
                         Opcode::Normalize => {
                             let src = self.load_src_register_with_padding(src_reg, false)?;
-                            self.evaluate_expr(Expression::Math {
+                            let res = self.evaluate_expr(Expression::Math {
                                 fun: MathFunction::Normalize,
                                 arg: src,
                                 arg1: None,
                                 arg2: None,
                                 arg3: None,
-                            })
+                            });
+                            self.pad_result(res, src_reg.is_scalar())
                         }
                         Opcode::Pow => {
                             let dst_val = self.load_src_register(&dst)?;
@@ -1248,6 +1254,93 @@ impl<'a> ShaderBuilder<'a> {
                                 arg3: None,
                             })
                         }
+                        Opcode::Abs => self.evaluate_expr(Expression::Math {
+                            fun: MathFunction::Abs,
+                            arg: src,
+                            arg1: None,
+                            arg2: None,
+                            arg3: None,
+                        }),
+                        Opcode::Sin => self.evaluate_expr(Expression::Math {
+                            fun: MathFunction::Sin,
+                            arg: src,
+                            arg1: None,
+                            arg2: None,
+                            arg3: None,
+                        }),
+                        Opcode::Asin => self.evaluate_expr(Expression::Math {
+                            fun: MathFunction::Asin,
+                            arg: src,
+                            arg1: None,
+                            arg2: None,
+                            arg3: None,
+                        }),
+                        Opcode::Cos => self.evaluate_expr(Expression::Math {
+                            fun: MathFunction::Cos,
+                            arg: src,
+                            arg1: None,
+                            arg2: None,
+                            arg3: None,
+                        }),
+                        Opcode::Acos => self.evaluate_expr(Expression::Math {
+                            fun: MathFunction::Acos,
+                            arg: src,
+                            arg1: None,
+                            arg2: None,
+                            arg3: None,
+                        }),
+                        Opcode::Tan => self.evaluate_expr(Expression::Math {
+                            fun: MathFunction::Tan,
+                            arg: src,
+                            arg1: None,
+                            arg2: None,
+                            arg3: None,
+                        }),
+                        Opcode::Atan => self.evaluate_expr(Expression::Math {
+                            fun: MathFunction::Atan,
+                            arg: src,
+                            arg1: None,
+                            arg2: None,
+                            arg3: None,
+                        }),
+                        Opcode::DotProduct => {
+                            let src_val: Handle<Expression> =
+                                self.load_src_register_with_padding(src_reg, false)?;
+                            let dst_val = self.load_src_register_with_padding(&dst, false)?;
+                            let dot = self.evaluate_expr(Expression::Math {
+                                fun: MathFunction::Dot,
+                                arg: dst_val,
+                                arg1: Some(src_val),
+                                arg2: None,
+                                arg3: None,
+                            });
+                            self.evaluate_expr(Expression::Splat {
+                                size: VectorSize::Quad,
+                                value: dot,
+                            })
+                        }
+                        Opcode::Sqrt => {
+                            let src_val = self.load_src_register_with_padding(src_reg, false)?;
+                            let res = self.evaluate_expr(Expression::Math {
+                                fun: MathFunction::Sqrt,
+                                arg: src_val,
+                                arg1: None,
+                                arg2: None,
+                                arg3: None,
+                            });
+                            self.pad_result(res, src_reg.is_scalar())
+                        }
+                        Opcode::Equal => {
+                            let src_val = self.load_src_register_with_padding(src_reg, false)?;
+                            let dst_val = self.load_src_register_with_padding(&dst, false)?;
+                            let res = self.evaluate_expr(Expression::Binary {
+                                op: BinaryOperator::Equal,
+                                left: dst_val,
+                                right: src_val,
+                            });
+                            self.pad_result(res, src_reg.is_scalar())
+                        }
+
                         _ => {
                             panic!("Unimplemented opcode {opcode:?}")
                         }
@@ -1521,7 +1614,12 @@ impl<'a> ShaderBuilder<'a> {
             VectorSize::Quad
         } else {
             match reg.channels.len() {
-                1 => panic!("Cannot load single channel as vector for reg {reg:?}"),
+                1 => {
+                    return Ok(self.evaluate_expr(Expression::AccessIndex {
+                        base: reg_value,
+                        index: swizzle_components[0] as u32,
+                    }))
+                }
                 2 => VectorSize::Bi,
                 3 => VectorSize::Tri,
                 4 => VectorSize::Quad,
@@ -1549,6 +1647,26 @@ impl<'a> ShaderBuilder<'a> {
         let range = self.func.expressions.range_from(prev_len);
         self.push_statement(Statement::Emit(range));
         expr
+    }
+
+    /// Normally, we pad all loads (including scalar loads) to a vec4, and operate component-wise
+    /// on them. This removes the need to check for scalar vs vector everywhere.
+    /// 
+    /// However, some operations
+    /// will give a different result if we pad out to a vec4 (e.g. Sqrt, Equal, DotProduct).
+    /// For these operations, we work with the original un-padded register load (possibly a scalar).
+    /// To simplify the rest of the code, we then pad the *result* to a vec4, which allows the dest
+    /// writing code to operate on a vector component-wise, and not worry about scalar vs vector.
+    /// (the dest mask ensures that the padding is not written).
+    /// 
+    /// This function pads out a result to a vec4 if it was a scalar. We leave other vector
+    /// types (e.g. vec3) unmodified, since they can still be used with AccessIndex
+    fn pad_result(&mut self, result: Handle<Expression>, is_scalar: bool) -> Handle<Expression> {
+        if is_scalar {
+            self.evaluate_expr(Expression::Splat { size: VectorSize::Quad, value: result })
+        } else {
+            result
+        }
     }
 
     // Emits a store of `expr` to the destination register, taking into account the store mask.

@@ -694,6 +694,22 @@ package flash.geom {
 				+ (_rawData[8] * _rawData[13] - _rawData[12] * _rawData[9]) * (_rawData[2] * _rawData[7] - _rawData[6] * _rawData[3]));
 		}
 
+		public function transformVectors(vin:Vector.<Number>, vout:Vector.<Number>):void {
+			var i = 0;
+			var x, y, z;
+
+			while (i + 3 <= vin.length) {
+				x = vin[i];
+				y = vin[i + 1];
+				z = vin[i + 2];
+
+				vout[i] = x * _rawData[0] + y * _rawData[4] + z * _rawData[8] + _rawData[12];
+				vout[i + 1] = x * _rawData[1] + y * rawData[5] + z * _rawData[9] + _rawData[13];
+				vout[i + 2] = x * _rawData[2] + y * rawData[6] + z * _rawData[10] + _rawData[14];
+
+				i += 3;
+			}
+		}
 	}
 }
 

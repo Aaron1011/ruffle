@@ -65,6 +65,13 @@ fn init() {
         panic_hook(info);
     }));
 
+    // Redirect Log to Tracing if it isn't already
+    let _ = tracing_log::LogTracer::builder()
+        // wgpu crates are extremely verbose
+        .ignore_crate("wgpu_hal")
+        .ignore_crate("wgpu_core")
+        .init();
+
     let subscriber = tracing_subscriber::fmt::Subscriber::builder()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .finish();
