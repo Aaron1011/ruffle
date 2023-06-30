@@ -41,7 +41,13 @@ pub fn init<'gc>(
         }
     }
 
-    let nodes = E4XNode::parse(value, activation)?;
+    let nodes = match E4XNode::parse(value, activation) {
+        Ok(nodes) => nodes,
+        Err(_) => {
+            // FIXME - what error should this be?
+            return Err(Error::AvmError(ill_formed_markup_err(activation)?));
+        }
+    };
 
     let node = match nodes.as_slice() {
         // XML defaults to an empty text node when nothing was parsed
