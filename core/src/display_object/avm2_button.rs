@@ -482,7 +482,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
         let needs_avm2_construction = self.0.read().object.is_none();
         let class = self.0.read().class;
         if needs_avm2_construction {
-            let mut activation = Avm2Activation::from_nothing(context.reborrow());
+            let mut activation = Avm2Activation::from_nothing(context);
             match Avm2StageObject::for_display_object(&mut activation, (*self).into(), class) {
                 Ok(object) => self.0.write(context.gc_context).object = Some(object.into()),
                 Err(e) => tracing::error!("Got {} when constructing AVM2 side of button", e),
@@ -568,7 +568,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
             let avm2_object = self.0.read().object;
             if let Some(avm2_object) = avm2_object {
                 let mut constr_thing = || {
-                    let mut activation = Avm2Activation::from_nothing(context.reborrow());
+                    let mut activation = Avm2Activation::from_nothing(context);
                     class.call_native_init(avm2_object.into(), &[], &mut activation)?;
 
                     Ok(())

@@ -651,7 +651,7 @@ impl<'gc> NetStream<'gc> {
                 let root = context.stage.root_clip().expect("root");
                 let object_proto = context.avm1.prototypes().object;
                 let mut activation = Avm1Activation::from_nothing(
-                    context.reborrow(),
+                    context,
                     Avm1ActivationIdentifier::root("[NetStream Status Event]"),
                     root,
                 );
@@ -682,7 +682,7 @@ impl<'gc> NetStream<'gc> {
             }
             Some(AvmObject::Avm2(object)) => {
                 let domain = context.avm2.stage_domain();
-                let mut activation = Avm2Activation::from_domain(context.reborrow(), domain);
+                let mut activation = Avm2Activation::from_domain(context, domain);
                 let net_status_event =
                     Avm2EventObject::net_status_event(&mut activation, "netStatus", values);
                 Avm2::dispatch_event(&mut activation.context, net_status_event, object);
@@ -704,7 +704,7 @@ impl<'gc> NetStream<'gc> {
                     b"onCuePoint" => {
                         let root = context.stage.root_clip().expect("root");
                         let mut activation = Avm1Activation::from_nothing(
-                            context.reborrow(),
+                            context,
                             Avm1ActivationIdentifier::root("[FLV onCuePoint]"),
                             root,
                         );

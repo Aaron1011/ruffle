@@ -410,7 +410,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
                 let translation_unit = method.translation_unit();
                 let abc_method = method.method();
                 let mut dummy_activation =
-                    Activation::from_domain(context.reborrow(), outer.domain());
+                    Activation::from_domain(context, outer.domain());
                 dummy_activation.set_outer(outer);
                 let activation_class = Class::for_activation(
                     &mut dummy_activation,

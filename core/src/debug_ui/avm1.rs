@@ -25,7 +25,7 @@ impl Avm1ObjectWindow {
         let mut keep_open = true;
         let base_clip = context.stage.into();
         let mut activation = Activation::from_nothing(
-            context.reborrow(),
+            context,
             ActivationIdentifier::root("Debug"),
             base_clip,
         );

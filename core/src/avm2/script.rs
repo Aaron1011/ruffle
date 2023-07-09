@@ -207,7 +207,7 @@ impl<'gc> TranslationUnit<'gc> {
 
         drop(read);
 
-        let mut activation = Activation::from_domain(uc.reborrow(), domain);
+        let mut activation = Activation::from_domain(uc, domain);
         let global_class = activation.avm2().classes().global;
         let global_obj = global_class.construct(&mut activation, &[])?;
         global_obj.fork_vtable(activation.context.gc_context);
@@ -533,7 +533,7 @@ impl<'gc> Script<'gc> {
             write.initialized = true;
 
             let mut globals = write.globals;
-            let mut null_activation = Activation::from_nothing(context.reborrow());
+            let mut null_activation = Activation::from_nothing(context);
             let domain = write.domain;
 
             drop(write);

@@ -314,7 +314,7 @@ pub trait TDisplayObjectContainer<'gc>:
         if !context.is_action_script_3() {
             let should_delay_removal = {
                 let mut activation = Activation::from_stub(
-                    context.reborrow(),
+                    context,
                     ActivationIdentifier::root("[Unload Handler Check]"),
                 );
 
@@ -653,7 +653,7 @@ impl<'gc> ChildContainer<'gc> {
                 );
                 if child.has_explicit_name() {
                     if let Avm2Value::Object(mut parent_obj) = parent.object2() {
-                        let mut activation = Avm2Activation::from_nothing(context.reborrow());
+                        let mut activation = Avm2Activation::from_nothing(context);
                         let current_val =
                             parent_obj.get_public_property(child.name(), &mut activation);
                         match current_val {

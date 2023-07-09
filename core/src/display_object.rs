@@ -1688,7 +1688,7 @@ pub trait TDisplayObject<'gc>:
                             .unwrap()
                             .avm2_domain();
                         let mut activation =
-                            Avm2Activation::from_domain(context.reborrow(), domain);
+                            Avm2Activation::from_domain(context, domain);
                         let name =
                             Avm2Multiname::new(activation.avm2().public_namespace, self.name());
                         if let Err(e) = p.init_property(&name, c.into(), &mut activation) {

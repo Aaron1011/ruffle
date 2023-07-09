@@ -238,7 +238,7 @@ pub trait TInteractiveObject<'gc>:
             return ClipEventResult::NotHandled;
         };
 
-        let mut activation = Avm2Activation::from_nothing(context.reborrow());
+        let mut activation = Avm2Activation::from_nothing(context);
 
         match event {
             ClipEvent::Press => {

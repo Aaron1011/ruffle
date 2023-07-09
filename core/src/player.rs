@@ -529,7 +529,7 @@ impl Player {
                 .set_movie(context.gc_context, context.swf.clone());
 
             let stage_domain = context.avm2.stage_domain();
-            let mut activation = Avm2Activation::from_domain(context.reborrow(), stage_domain);
+            let mut activation = Avm2Activation::from_domain(context, stage_domain);
 
             activation
                 .context
@@ -584,7 +584,7 @@ impl Player {
 
             // Set the version parameter on the root.
             let mut activation = Activation::from_stub(
-                context.reborrow(),
+                context,
                 ActivationIdentifier::root("[Version Setter]"),
             );
             let object = root.object().coerce_to_object(&mut activation);
@@ -765,7 +765,7 @@ impl Player {
 
             let menu = if let Some(Value::Object(obj)) = root_dobj.map(|root| root.object()) {
                 let mut activation = Activation::from_stub(
-                    context.reborrow(),
+                    context,
                     ActivationIdentifier::root("[ContextMenu]"),
                 );
                 let menu_object = if let Ok(Value::Object(menu)) = obj.get("menu", &mut activation)
@@ -786,7 +786,7 @@ impl Player {
                 // TODO: send "menuSelect" event
                 tracing::warn!("AVM2 Context menu callbacks are not implemented");
 
-                let mut activation = Avm2Activation::from_nothing(context.reborrow());
+                let mut activation = Avm2Activation::from_nothing(context);
 
                 let menu_object = root_dobj
                     .expect("Root is confirmed to exist here")
@@ -854,7 +854,7 @@ impl Player {
     ) {
         if let Some(root_clip) = context.stage.root_clip() {
             let mut activation = Activation::from_nothing(
-                context.reborrow(),
+                context,
                 ActivationIdentifier::root("[Context Menu Callback]"),
                 root_clip,
             );
@@ -1042,7 +1042,7 @@ impl Player {
                         let mut dumper = VariableDumper::new("  ");
 
                         let mut activation = Activation::from_stub(
-                            context.reborrow(),
+                            context,
                             ActivationIdentifier::root("[Variable Dumper]"),
                         );
 
@@ -1149,7 +1149,7 @@ impl Player {
                     let alt_key = context.input.is_key_down(KeyCode::Alt);
                     let shift_key = context.input.is_key_down(KeyCode::Shift);
 
-                    let mut activation = Avm2Activation::from_nothing(context.reborrow());
+                    let mut activation = Avm2Activation::from_nothing(context);
 
                     let event_name = match event {
                         PlayerEvent::KeyDown { .. } => "keyDown",
@@ -1615,7 +1615,7 @@ impl Player {
                 did_finish = root.preload(context, limit);
 
                 if let Some(loader_info) = root.loader_info().filter(|_| !was_root_movie_loaded) {
-                    let mut activation = Avm2Activation::from_nothing(context.reborrow());
+                    let mut activation = Avm2Activation::from_nothing(context);
 
                     let progress_evt = activation.avm2().classes().progressevent.construct(
                         &mut activation,
@@ -1812,7 +1812,7 @@ impl Player {
                     events,
                 } => {
                     let mut activation = Activation::from_nothing(
-                        context.reborrow(),
+                        context,
                         ActivationIdentifier::root("[Construct]"),
                         action.clip,
                     );
@@ -2064,7 +2064,7 @@ impl Player {
     pub fn flush_shared_objects(&mut self) {
         self.update(|context| {
             if let Some(mut avm1_activation) =
-                Activation::try_from_stub(context.reborrow(), ActivationIdentifier::root("[Flush]"))
+                Activation::try_from_stub(context, ActivationIdentifier::root("[Flush]"))
             {
                 for so in avm1_activation.context.avm1_shared_objects.clone().values() {
                     if let Err(e) = crate::avm1::flush(&mut avm1_activation, *so, &[]) {
@@ -2073,7 +2073,7 @@ impl Player {
                 }
             }
 
-            let mut avm2_activation = Avm2Activation::from_nothing(context.reborrow());
+            let mut avm2_activation = Avm2Activation::from_nothing(context);
             for so in avm2_activation.context.avm2_shared_objects.clone().values() {
                 if let Err(e) = crate::avm2::globals::flash::net::shared_object::flush(
                     &mut avm2_activation,

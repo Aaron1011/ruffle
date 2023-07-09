@@ -1358,7 +1358,7 @@ impl<'gc> EditText<'gc> {
             }
             if changed {
                 let mut activation = Avm1Activation::from_nothing(
-                    context.reborrow(),
+                    context,
                     ActivationIdentifier::root("[Propagate Text Binding]"),
                     self.into(),
                 );
@@ -1397,7 +1397,7 @@ impl<'gc> EditText<'gc> {
 
             if changed {
                 let mut activation = Avm1Activation::from_nothing(
-                    context.reborrow(),
+                    context,
                     ActivationIdentifier::root("[Propagate Text Binding]"),
                     self.into(),
                 );
@@ -1485,7 +1485,7 @@ impl<'gc> EditText<'gc> {
         display_object: DisplayObject<'gc>,
     ) {
         let textfield_constr = context.avm2.classes().textfield;
-        let mut activation = Avm2Activation::from_nothing(context.reborrow());
+        let mut activation = Avm2Activation::from_nothing(context);
 
         match Avm2StageObject::for_display_object_childless(
             &mut activation,

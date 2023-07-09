@@ -115,7 +115,7 @@ impl<'gc> SoundObject<'gc> {
         sound: SoundHandle,
     ) -> Result<(), Error<'gc>> {
         let mut this = self.0.write(context.gc_context);
-        let mut activation = Activation::from_nothing(context.reborrow());
+        let mut activation = Activation::from_nothing(context);
         match &mut this.sound_data {
             SoundData::NotLoaded { queued_plays } => {
                 for queued in std::mem::take(queued_plays) {

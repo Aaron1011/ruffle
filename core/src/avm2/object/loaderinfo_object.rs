@@ -241,7 +241,7 @@ impl<'gc> LoaderInfoObject<'gc> {
             };
 
             if should_complete {
-                let mut activation = Activation::from_nothing(context.reborrow());
+                let mut activation = Activation::from_nothing(context);
                 let http_status_evt = activation
                     .avm2()
                     .classes()

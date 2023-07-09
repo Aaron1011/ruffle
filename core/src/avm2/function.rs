@@ -127,7 +127,7 @@ impl<'gc> Executable<'gc> {
                 let caller_domain = activation.caller_domain();
                 let subclass_object = bm.bound_superclass;
                 let mut activation = Activation::from_builtin(
-                    activation.context.reborrow(),
+                    activation.context,
                     subclass_object,
                     bm.scope,
                     caller_domain,
@@ -176,7 +176,7 @@ impl<'gc> Executable<'gc> {
                 let subclass_object = bm.bound_superclass;
 
                 let mut activation = Activation::from_method(
-                    activation.context.reborrow(),
+                    activation.context,
                     bm.method,
                     bm.scope,
                     receiver,

@@ -278,7 +278,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         avm_debug!(self.context.avm1, "START {id}");
         Activation {
             id,
-            context: self.context.reborrow(),
+            context: self.context,
             swf_version: self.swf_version,
             scope,
             constant_pool: self.constant_pool,
@@ -358,7 +358,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         code: SwfSlice,
     ) -> Result<ReturnType<'gc>, Error<'gc>> {
         let mut parent_activation = Activation::from_nothing(
-            self.context.reborrow(),
+            self.context,
             self.id.child("[Actions Parent]"),
             active_clip,
         );
@@ -376,7 +376,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         let constant_pool = parent_activation.context.avm1.constant_pool();
         let child_name = parent_activation.id.child(name);
         let mut child_activation = Activation::from_action(
-            parent_activation.context.reborrow(),
+            parent_activation.context,
             child_name,
             active_clip.swf_version(),
             child_scope,
@@ -413,7 +413,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         );
         let constant_pool = self.context.avm1.constant_pool();
         let mut activation = Activation::from_action(
-            self.context.reborrow(),
+            self.context,
             self.id.child(name),
             swf_version,
             child_scope,
@@ -2261,7 +2261,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         if let Some((catch_vars, actions)) = &action.catch_body {
             if let Err(Error::ThrownValue(value)) = &result {
                 let mut activation = Activation::from_action(
-                    self.context.reborrow(),
+                    self.context,
                     self.id.child("[Catch]"),
                     self.swf_version,
                     self.scope,
