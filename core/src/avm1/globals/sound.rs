@@ -367,7 +367,7 @@ fn set_volume<'gc>(
         } else {
             let transform = SoundTransform {
                 volume,
-                ..*activation.context.global_sound_transform()
+                ..activation.context.global_sound_transform()
             };
             activation.context.set_global_sound_transform(transform);
         }

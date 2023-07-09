@@ -1383,7 +1383,7 @@ fn load_bitmap<'gc>(
         .unwrap_or(&Value::Undefined)
         .coerce_to_string(activation)?;
 
-    let library = &*activation.context.library;
+    let library = &activation.context.library;
 
     let movie = <DisplayObject as crate::display_object::TDisplayObject>::movie(
         &activation.target_clip_or_root(),

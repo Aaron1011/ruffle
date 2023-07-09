@@ -1276,11 +1276,11 @@ pub fn start_drag_impl<'gc>(
 
     let drag_object = crate::player::DragObject {
         display_object,
-        last_mouse_position: *activation.context.mouse_position,
+        last_mouse_position: activation.context.mouse_position,
         lock_center,
         constraint,
     };
-    *activation.context.drag_object = Some(drag_object);
+    activation.context.drag_object = Some(drag_object);
 }
 
 fn stop<'gc>(
@@ -1304,7 +1304,7 @@ fn stop_drag<'gc>(
     // so let's do it here.
     crate::player::Player::update_drag(&mut activation.context);
 
-    *activation.context.drag_object = None;
+    activation.context.drag_object = None;
     Ok(Value::Undefined)
 }
 

@@ -828,7 +828,7 @@ fn shader_filter_to_avm2<'gc>(
         .downcast_ref::<ObjectWrapper>()
         .expect("ShaderObject was not an ObjectWrapper");
 
-    let obj = *activation.context.dynamic_root.fetch(&object_wrapper.root);
+    let obj = activation.context.dynamic_root.fetch(&object_wrapper.root);
     activation
         .avm2()
         .classes()
