@@ -340,7 +340,10 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
         self.audio_manager.global_sound_transform()
     }
 
-    pub fn set_global_sound_transform(&mut self, sound_transform: crate::display_object::SoundTransform) {
+    pub fn set_global_sound_transform(
+        &mut self,
+        sound_transform: crate::display_object::SoundTransform,
+    ) {
         self.audio_manager
             .set_global_sound_transform(sound_transform);
     }
@@ -1300,8 +1303,8 @@ impl Player {
         }
 
         if let PlayerEvent::MouseWheel { delta } = event {
-            self.mutate_with_update_context(|context| {
-                if let Some(over_object) = context.mouse_over_object {
+            self.mutate_with_update_context(|context: &mut GcRootData<'_, &Mutation<'_>>| {
+                if let Some(over_object) = context.mouse_hovered_object {
                     if context.is_action_script_3()
                         || !over_object.as_displayobject().avm1_removed()
                     {
@@ -1379,13 +1382,14 @@ impl Player {
 
     /// Updates the hover state of buttons.
     fn update_mouse_state(&mut self, is_mouse_button_changed: bool, is_mouse_moved: bool) -> bool {
-        let mut new_cursor = self.mouse_cursor;
-        let mut mouse_cursor_needs_check = self.mouse_cursor_needs_check;
         let mouse_in_stage = self.mouse_in_stage();
 
         // Determine the display object the mouse is hovering over.
         // Search through levels from top-to-bottom, returning the first display object that is under the mouse.
         let needs_render = self.mutate_with_update_context(|context| {
+            let mut new_cursor = context.mouse_cursor;
+            let mut mouse_cursor_needs_check = context.mouse_cursor_needs_check;
+
             let new_over_object = if mouse_in_stage {
                 run_mouse_pick(context, true)
             } else {
@@ -1402,9 +1406,9 @@ impl Player {
             }
 
             // Cancel hover if an object is removed from the stage.
-            if let Some(hovered) = context.mouse_over_object {
+            if let Some(hovered) = context.mouse_hovered_object {
                 if !context.is_action_script_3() && hovered.as_displayobject().avm1_removed() {
-                    context.mouse_over_object = None;
+                    context.mouse_hovered_object = None;
                 }
             }
             if let Some(pressed) = context.mouse_down_object {
@@ -1416,7 +1420,7 @@ impl Player {
             // Update the cursor if the object was removed from the stage.
             if new_cursor != MouseCursor::Arrow {
                 let object_removed =
-                    context.mouse_over_object.is_none() && context.mouse_down_object.is_none();
+                    context.mouse_hovered_object.is_none() && context.mouse_down_object.is_none();
                 if !object_removed {
                     mouse_cursor_needs_check = false;
                     if is_mouse_button_changed {
@@ -1437,13 +1441,13 @@ impl Player {
                 mouse_cursor_needs_check = false;
             }
 
-            let cur_over_object = context.mouse_over_object;
+            let cur_over_object = context.mouse_hovered_object;
             // Check if a new object has been hovered over.
             if !InteractiveObject::option_ptr_eq(cur_over_object, new_over_object) {
                 // If the mouse button is down, the object the user clicked on grabs the focus
                 // and fires "drag" events. Other objects are ignored.
                 if context.input.is_mouse_down() {
-                    context.mouse_over_object = new_over_object;
+                    context.mouse_hovered_object = new_over_object;
                     if let Some(down_object) = context.mouse_down_object {
                         if InteractiveObject::option_ptr_eq(
                             context.mouse_down_object,
@@ -1494,20 +1498,20 @@ impl Player {
                     }
                 }
             }
-            context.mouse_over_object = new_over_object;
+            context.mouse_hovered_object = new_over_object;
 
             // Handle presses and releases.
             if is_mouse_button_changed {
                 if context.input.is_mouse_down() {
                     // Pressed on a hovered object.
-                    if let Some(over_object) = context.mouse_over_object {
+                    if let Some(over_object) = context.mouse_hovered_object {
                         events.push((over_object, ClipEvent::Press));
-                        context.mouse_down_object = context.mouse_over_object;
+                        context.mouse_down_object = context.mouse_hovered_object;
                     } else {
                         events.push((context.stage.into(), ClipEvent::Press));
                     }
                 } else {
-                    if let Some(over_object) = context.mouse_over_object {
+                    if let Some(over_object) = context.mouse_hovered_object {
                         events.push((over_object, ClipEvent::MouseUpInside));
                     } else {
                         events.push((context.stage.into(), ClipEvent::MouseUpInside));
@@ -1515,7 +1519,7 @@ impl Player {
 
                     let released_inside = InteractiveObject::option_ptr_eq(
                         context.mouse_down_object,
-                        context.mouse_over_object,
+                        context.mouse_hovered_object,
                     );
                     if released_inside {
                         // Released inside the clicked object.
@@ -1533,7 +1537,7 @@ impl Player {
                             events.push((context.stage.into(), ClipEvent::ReleaseOutside));
                         }
                         // The new object is rolled over immediately.
-                        if let Some(over_object) = context.mouse_over_object {
+                        if let Some(over_object) = context.mouse_hovered_object {
                             new_cursor = over_object.mouse_cursor(context);
                             events.push((
                                 over_object,
@@ -2385,7 +2389,9 @@ impl PlayerBuilder {
                                     interner,
                                     current_context_menu: None,
                                     drag_object: None,
-                                    external_interface: ExternalInterface::new(self.external_interface_providers),
+                                    external_interface: ExternalInterface::new(
+                                        self.external_interface_providers,
+                                    ),
                                     focus_tracker: FocusTracker::new(gc_context),
                                     library: Library::empty(),
                                     load_manager: LoadManager::new(),
@@ -2399,7 +2405,6 @@ impl PlayerBuilder {
                                     stream_manager: StreamManager::new(),
                                     dynamic_root,
 
-                                                       
                                     gc_context,
                                     player_version,
 
@@ -2436,7 +2441,9 @@ impl PlayerBuilder {
                                     mouse_cursor_needs_check: false,
 
                                     // Misc. state
-                                    rng: SmallRng::seed_from_u64(get_current_date_time().timestamp_millis() as u64),
+                                    rng: SmallRng::seed_from_u64(
+                                        get_current_date_time().timestamp_millis() as u64,
+                                    ),
                                     system: SystemProperties::new(self.sandbox_type),
                                     transform_stack: TransformStack::new(),
                                     instance_counter: 0,
@@ -2448,11 +2455,11 @@ impl PlayerBuilder {
                                     load_behavior: self.load_behavior,
                                     spoofed_url: self.spoofed_url.clone(),
                                     compatibility_rules: self.compatibility_rules.clone(),
-                                    stub_tracker: StubCollection::new()
+                                    stub_tracker: StubCollection::new(),
                                 },
                             ),
                         }
-                    },      
+                    },
                 ))),
             })
         });

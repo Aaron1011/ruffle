@@ -128,7 +128,7 @@ pub struct UpdateContext<'gc> {
     pub stage: Stage<'gc>,
 
     /// The display object that the mouse is currently hovering over.
-    pub mouse_over_object: Option<InteractiveObject<'gc>>,
+    pub mouse_hovered_object: Option<InteractiveObject<'gc>>,
 
     /// If the mouse is down, the display object that the mouse is currently pressing.
     pub mouse_down_object: Option<InteractiveObject<'gc>>,

@@ -168,7 +168,7 @@ pub fn catchup_display_object_to_frame<'gc>(
         return;
     }
 
-    match *context.frame_phase {
+    match context.frame_phase {
         FramePhase::Enter => {
             dobj.enter_frame(context);
         }
