@@ -6,10 +6,14 @@ use crate::avm1::SystemProperties;
 use crate::avm1::VariableDumper;
 use crate::avm1::{Activation, ActivationIdentifier};
 use crate::avm1::{ScriptObject, TObject, Value};
+use crate::avm2::SoundChannelObject;
 use crate::avm2::{
     object::LoaderInfoObject, object::TObject as _, Activation as Avm2Activation, Avm2, CallStack,
     Object as Avm2Object,
 };
+use crate::backend::audio::SoundHandle;
+use crate::backend::audio::SoundInstanceHandle;
+use crate::backend::audio::SoundTransform;
 use crate::backend::{
     audio::{AudioBackend, AudioManager},
     log::LogBackend,
@@ -46,6 +50,7 @@ use crate::stub::StubCollection;
 use crate::tag_utils::SwfMovie;
 use crate::timer::Timers;
 use crate::vminterface::Instantiator;
+use gc_arena::Mutation;
 use gc_arena::{ArenaParameters, Collect, DynamicRootSet, GcCell, Rootable};
 use instant::Instant;
 use rand::{rngs::SmallRng, SeedableRng};
@@ -105,64 +110,68 @@ impl StaticCallstack {
 
 #[derive(Collect)]
 #[collect(no_drop)]
-struct GcRootData<'gc> {
-    library: Library<'gc>,
+pub struct GcRootData<'gc, T> {
+    pub gc_context: T,
+
+    pub library: Library<'gc>,
 
     /// The root of the display object hierarchy.
     ///
     /// It's children are the `level`s of AVM1, it may also be directly
     /// accessed in AVM2.
-    stage: Stage<'gc>,
+    pub stage: Stage<'gc>,
 
     /// The display object that the mouse is currently hovering over.
-    mouse_hovered_object: Option<InteractiveObject<'gc>>,
+    pub mouse_hovered_object: Option<InteractiveObject<'gc>>,
 
     /// If the mouse is down, the display object that the mouse is currently pressing.
-    mouse_pressed_object: Option<InteractiveObject<'gc>>,
+    pub mouse_pressed_object: Option<InteractiveObject<'gc>>,
 
     /// The object being dragged via a `startDrag` action.
-    drag_object: Option<DragObject<'gc>>,
+    pub drag_object: Option<DragObject<'gc>>,
 
     /// Interpreter state for AVM1 code.
-    avm1: Avm1<'gc>,
+    pub avm1: Avm1<'gc>,
 
     /// Interpreter state for AVM2 code.
-    avm2: Avm2<'gc>,
+    pub avm2: Avm2<'gc>,
 
-    action_queue: ActionQueue<'gc>,
-    interner: AvmStringInterner<'gc>,
+    pub action_queue: ActionQueue<'gc>,
+    pub interner: AvmStringInterner<'gc>,
 
     /// Object which manages asynchronous processes that need to interact with
     /// data in the GC arena.
-    load_manager: LoadManager<'gc>,
+    pub load_manager: LoadManager<'gc>,
 
-    avm1_shared_objects: HashMap<String, Object<'gc>>,
+    pub avm1_shared_objects: HashMap<String, Object<'gc>>,
 
-    avm2_shared_objects: HashMap<String, Avm2Object<'gc>>,
+    pub avm2_shared_objects: HashMap<String, Avm2Object<'gc>>,
 
     /// Text fields with unbound variable bindings.
-    unbound_text_fields: Vec<EditText<'gc>>,
+    pub unbound_text_fields: Vec<EditText<'gc>>,
 
     /// Timed callbacks created with `setInterval`/`setTimeout`.
-    timers: Timers<'gc>,
+    pub timers: Timers<'gc>,
 
-    current_context_menu: Option<ContextMenuState<'gc>>,
+    pub current_context_menu: Option<ContextMenuState<'gc>>,
 
     /// External interface for (for example) JavaScript <-> ActionScript interaction
-    external_interface: ExternalInterface<'gc>,
+    pub external_interface: ExternalInterface<'gc>,
 
     /// A tracker for the current keyboard focused element
-    focus_tracker: FocusTracker<'gc>,
+    pub focus_tracker: FocusTracker<'gc>,
 
     /// Manager of active sound instances.
-    audio_manager: AudioManager<'gc>,
+    pub audio_manager: AudioManager<'gc>,
 
     /// List of actively playing streams to decode.
-    stream_manager: StreamManager<'gc>,
+    pub stream_manager: StreamManager<'gc>,
 
     /// Dynamic root for allowing handles to GC objects to exist outside of the GC.
-    dynamic_root: DynamicRootSet<'gc>,
+    pub dynamic_root: DynamicRootSet<'gc>,
 }
+
+pub type PlayerContext<'gc> = GcRootData<'gc, *const Mutation<'gc>>;
 
 impl<'gc> GcRootData<'gc> {
     /// Splits out parameters for creating an `UpdateContext`
@@ -208,6 +217,126 @@ impl<'gc> GcRootData<'gc> {
             &mut self.stream_manager,
             self.dynamic_root,
         )
+    }
+}
+
+/// Convenience methods for controlling audio.
+impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
+    pub fn global_sound_transform(&self) -> &SoundTransform {
+        self.audio_manager.global_sound_transform()
+    }
+
+    pub fn set_global_sound_transform(&mut self, sound_transform: SoundTransform) {
+        self.audio_manager
+            .set_global_sound_transform(sound_transform);
+    }
+
+    /// Get the local sound transform of a single sound instance.
+    pub fn local_sound_transform(&self, instance: SoundInstanceHandle) -> Option<&SoundTransform> {
+        self.audio_manager.local_sound_transform(instance)
+    }
+
+    /// Set the local sound transform of a single sound instance.
+    pub fn set_local_sound_transform(
+        &mut self,
+        instance: SoundInstanceHandle,
+        sound_transform: SoundTransform,
+    ) {
+        self.audio_manager
+            .set_local_sound_transform(instance, sound_transform);
+    }
+
+    pub fn start_sound(
+        &mut self,
+        sound: SoundHandle,
+        settings: &swf::SoundInfo,
+        owner: Option<DisplayObject<'gc>>,
+        avm1_object: Option<crate::avm1::SoundObject<'gc>>,
+    ) -> Option<SoundInstanceHandle> {
+        self.audio_manager
+            .start_sound(self.audio, sound, settings, owner, avm1_object)
+    }
+
+    pub fn attach_avm2_sound_channel(
+        &mut self,
+        instance: SoundInstanceHandle,
+        avm2_object: SoundChannelObject<'gc>,
+    ) {
+        self.audio_manager
+            .attach_avm2_sound_channel(instance, avm2_object);
+    }
+
+    pub fn stop_sound(&mut self, instance: SoundInstanceHandle) {
+        self.audio_manager.stop_sound(self.audio, instance)
+    }
+
+    pub fn stop_sounds_with_handle(&mut self, sound: SoundHandle) {
+        self.audio_manager
+            .stop_sounds_with_handle(self.audio, sound)
+    }
+
+    pub fn stop_sounds_with_display_object(&mut self, display_object: DisplayObject<'gc>) {
+        self.audio_manager
+            .stop_sounds_with_display_object(self.audio, display_object)
+    }
+
+    pub fn stop_all_sounds(&mut self) {
+        self.audio_manager.stop_all_sounds(self.audio)
+    }
+
+    pub fn is_sound_playing(&mut self, sound: SoundInstanceHandle) -> bool {
+        self.audio_manager.is_sound_playing(sound)
+    }
+
+    pub fn is_sound_playing_with_handle(&mut self, sound: SoundHandle) -> bool {
+        self.audio_manager.is_sound_playing_with_handle(sound)
+    }
+
+    pub fn start_stream(
+        &mut self,
+        stream_handle: Option<SoundHandle>,
+        movie_clip: MovieClip<'gc>,
+        frame: u16,
+        data: crate::tag_utils::SwfSlice,
+        stream_info: &swf::SoundStreamHead,
+    ) -> Option<SoundInstanceHandle> {
+        self.audio_manager.start_stream(
+            self.audio,
+            stream_handle,
+            movie_clip,
+            frame,
+            data,
+            stream_info,
+        )
+    }
+
+    pub fn set_sound_transforms_dirty(&mut self) {
+        self.audio_manager.set_sound_transforms_dirty()
+    }
+}
+
+impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
+    /// Convenience method to retrieve the current GC context. Note that explicitely writing
+    /// `self.gc_context` can be sometimes necessary to satisfy the borrow checker.
+    #[inline(always)]
+    pub fn gc(&self) -> &'gc Mutation<'gc> {
+        self.gc_context
+    }
+
+    #[inline]
+    pub fn borrow_gc<'b>(&'b mut self) -> GcContext<'b, 'gc> {
+        GcContext {
+            gc_context: self.gc_context,
+            interner: &mut self.interner,
+        }
+    }
+
+    pub fn is_action_script_3(&self) -> bool {
+        self.swf.is_action_script_3()
+    }
+
+    pub fn avm_trace(&self, message: &str) {
+        self.log.avm_trace(&message.replace('\r', "\n"));
     }
 }
 

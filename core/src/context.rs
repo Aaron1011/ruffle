@@ -4,13 +4,6 @@ use crate::avm1::Avm1;
 use crate::avm1::SystemProperties;
 use crate::avm1::{Object as Avm1Object, Value as Avm1Value};
 use crate::avm2::{Avm2, Object as Avm2Object, SoundChannelObject};
-use crate::backend::{
-    audio::{AudioBackend, AudioManager, SoundHandle, SoundInstanceHandle},
-    log::LogBackend,
-    navigator::NavigatorBackend,
-    storage::StorageBackend,
-    ui::{InputManager, UiBackend},
-};
 use crate::context_menu::ContextMenuState;
 use crate::display_object::{EditText, InteractiveObject, MovieClip, SoundTransform, Stage};
 use crate::external::ExternalInterface;
@@ -18,6 +11,7 @@ use crate::focus_tracker::FocusTracker;
 use crate::frame_lifecycle::FramePhase;
 use crate::library::Library;
 use crate::loader::LoadManager;
+use crate::player::GcRootData;
 use crate::player::Player;
 use crate::prelude::*;
 use crate::streams::StreamManager;
@@ -66,6 +60,7 @@ impl<'a, 'gc> GcContext<'a, 'gc> {
     }
 }
 
+/* 
 /// `UpdateContext` holds shared data that is used by the various subsystems of Ruffle.
 /// `Player` creates this when it begins a tick and passes it through the call stack to
 /// children and the VM.
@@ -228,191 +223,9 @@ pub struct UpdateContext<'a, 'gc> {
     pub dynamic_root: gc_arena::DynamicRootSet<'gc>,
 }
 
-/// Convenience methods for controlling audio.
-impl<'a, 'gc> UpdateContext<'a, 'gc> {
-    pub fn global_sound_transform(&self) -> &SoundTransform {
-        self.audio_manager.global_sound_transform()
-    }
+*/
 
-    pub fn set_global_sound_transform(&mut self, sound_transform: SoundTransform) {
-        self.audio_manager
-            .set_global_sound_transform(sound_transform);
-    }
-
-    /// Get the local sound transform of a single sound instance.
-    pub fn local_sound_transform(&self, instance: SoundInstanceHandle) -> Option<&SoundTransform> {
-        self.audio_manager.local_sound_transform(instance)
-    }
-
-    /// Set the local sound transform of a single sound instance.
-    pub fn set_local_sound_transform(
-        &mut self,
-        instance: SoundInstanceHandle,
-        sound_transform: SoundTransform,
-    ) {
-        self.audio_manager
-            .set_local_sound_transform(instance, sound_transform);
-    }
-
-    pub fn start_sound(
-        &mut self,
-        sound: SoundHandle,
-        settings: &swf::SoundInfo,
-        owner: Option<DisplayObject<'gc>>,
-        avm1_object: Option<crate::avm1::SoundObject<'gc>>,
-    ) -> Option<SoundInstanceHandle> {
-        self.audio_manager
-            .start_sound(self.audio, sound, settings, owner, avm1_object)
-    }
-
-    pub fn attach_avm2_sound_channel(
-        &mut self,
-        instance: SoundInstanceHandle,
-        avm2_object: SoundChannelObject<'gc>,
-    ) {
-        self.audio_manager
-            .attach_avm2_sound_channel(instance, avm2_object);
-    }
-
-    pub fn stop_sound(&mut self, instance: SoundInstanceHandle) {
-        self.audio_manager.stop_sound(self.audio, instance)
-    }
-
-    pub fn stop_sounds_with_handle(&mut self, sound: SoundHandle) {
-        self.audio_manager
-            .stop_sounds_with_handle(self.audio, sound)
-    }
-
-    pub fn stop_sounds_with_display_object(&mut self, display_object: DisplayObject<'gc>) {
-        self.audio_manager
-            .stop_sounds_with_display_object(self.audio, display_object)
-    }
-
-    pub fn stop_all_sounds(&mut self) {
-        self.audio_manager.stop_all_sounds(self.audio)
-    }
-
-    pub fn is_sound_playing(&mut self, sound: SoundInstanceHandle) -> bool {
-        self.audio_manager.is_sound_playing(sound)
-    }
-
-    pub fn is_sound_playing_with_handle(&mut self, sound: SoundHandle) -> bool {
-        self.audio_manager.is_sound_playing_with_handle(sound)
-    }
-
-    pub fn start_stream(
-        &mut self,
-        stream_handle: Option<SoundHandle>,
-        movie_clip: MovieClip<'gc>,
-        frame: u16,
-        data: crate::tag_utils::SwfSlice,
-        stream_info: &swf::SoundStreamHead,
-    ) -> Option<SoundInstanceHandle> {
-        self.audio_manager.start_stream(
-            self.audio,
-            stream_handle,
-            movie_clip,
-            frame,
-            data,
-            stream_info,
-        )
-    }
-
-    pub fn set_sound_transforms_dirty(&mut self) {
-        self.audio_manager.set_sound_transforms_dirty()
-    }
-}
-
-impl<'a, 'gc> UpdateContext<'a, 'gc> {
-    /// Convenience method to retrieve the current GC context. Note that explicitely writing
-    /// `self.gc_context` can be sometimes necessary to satisfy the borrow checker.
-    #[inline(always)]
-    pub fn gc(&self) -> &'gc Mutation<'gc> {
-        self.gc_context
-    }
-
-    /// Transform a borrowed update context into an owned update context with
-    /// a shorter internal lifetime.
-    ///
-    /// This is particularly useful for structures that may wish to hold an
-    /// update context without adding further lifetimes for its borrowing.
-    /// Please note that you will not be able to use the original update
-    /// context until this reborrowed copy has fallen out of scope.
-    #[inline]
-    pub fn reborrow<'b>(&'b mut self) -> UpdateContext<'b, 'gc>
-    where
-        'a: 'b,
-    {
-        UpdateContext {
-            action_queue: self.action_queue,
-            gc_context: self.gc_context,
-            interner: self.interner,
-            stub_tracker: self.stub_tracker,
-            library: self.library,
-            player_version: self.player_version,
-            needs_render: self.needs_render,
-            swf: self.swf,
-            audio: self.audio,
-            audio_manager: self.audio_manager,
-            navigator: self.navigator,
-            renderer: self.renderer,
-            log: self.log,
-            ui: self.ui,
-            video: self.video,
-            storage: self.storage,
-            rng: self.rng,
-            stage: self.stage,
-            mouse_over_object: self.mouse_over_object,
-            mouse_down_object: self.mouse_down_object,
-            input: self.input,
-            mouse_position: self.mouse_position,
-            drag_object: self.drag_object,
-            player: self.player.clone(),
-            load_manager: self.load_manager,
-            system: self.system,
-            instance_counter: self.instance_counter,
-            avm1_shared_objects: self.avm1_shared_objects,
-            avm2_shared_objects: self.avm2_shared_objects,
-            unbound_text_fields: self.unbound_text_fields,
-            timers: self.timers,
-            current_context_menu: self.current_context_menu,
-            avm1: self.avm1,
-            avm2: self.avm2,
-            external_interface: self.external_interface,
-            start_time: self.start_time,
-            update_start: self.update_start,
-            max_execution_duration: self.max_execution_duration,
-            focus_tracker: self.focus_tracker,
-            times_get_time_called: self.times_get_time_called,
-            time_offset: self.time_offset,
-            frame_rate: self.frame_rate,
-            forced_frame_rate: self.forced_frame_rate,
-            actions_since_timeout_check: self.actions_since_timeout_check,
-            frame_phase: self.frame_phase,
-            stream_manager: self.stream_manager,
-            dynamic_root: self.dynamic_root,
-        }
-    }
-
-    #[inline]
-    pub fn borrow_gc<'b>(&'b mut self) -> GcContext<'b, 'gc>
-    where
-        'a: 'b,
-    {
-        GcContext {
-            gc_context: self.gc_context,
-            interner: self.interner,
-        }
-    }
-
-    pub fn is_action_script_3(&self) -> bool {
-        self.swf.is_action_script_3()
-    }
-
-    pub fn avm_trace(&self, message: &str) {
-        self.log.avm_trace(&message.replace('\r', "\n"));
-    }
-}
+pub type UpdateContext<'gc> = GcRootData<'gc, &'gc Mutation<'gc>>;
 
 /// A queued ActionScript call.
 #[derive(Collect)]
