@@ -54,13 +54,13 @@ impl<'gc> StreamManager<'gc> {
         }
     }
 
-    pub fn ensure_playing(context: &mut UpdateContext<'_, 'gc>, stream: NetStream<'gc>) {
+    pub fn ensure_playing(context: &mut UpdateContext<'gc>, stream: NetStream<'gc>) {
         if !context.stream_manager.playing_streams.contains(&stream) {
             context.stream_manager.playing_streams.push(stream);
         }
     }
 
-    pub fn ensure_paused(context: &mut UpdateContext<'_, 'gc>, stream: NetStream<'gc>) {
+    pub fn ensure_paused(context: &mut UpdateContext<'gc>, stream: NetStream<'gc>) {
         let index = context
             .stream_manager
             .playing_streams
@@ -71,7 +71,7 @@ impl<'gc> StreamManager<'gc> {
         }
     }
 
-    pub fn toggle_paused(context: &mut UpdateContext<'_, 'gc>, stream: NetStream<'gc>) {
+    pub fn toggle_paused(context: &mut UpdateContext<'gc>, stream: NetStream<'gc>) {
         let index = context
             .stream_manager
             .playing_streams
@@ -91,7 +91,7 @@ impl<'gc> StreamManager<'gc> {
     /// support video framerates separate from the Stage frame rate.
     ///
     /// This does not borrow `&mut self` as we need the `UpdateContext`, too.
-    pub fn tick(context: &mut UpdateContext<'_, 'gc>, dt: f64) {
+    pub fn tick(context: &mut UpdateContext<'gc>, dt: f64) {
         let streams = context.stream_manager.playing_streams.clone();
         for stream in streams {
             stream.tick(context, dt)
@@ -204,7 +204,7 @@ impl<'gc> NetStream<'gc> {
         self.0.write(gc_context).avm_object = Some(avm_object);
     }
 
-    pub fn load_buffer(self, context: &mut UpdateContext<'_, 'gc>, data: &mut Vec<u8>) {
+    pub fn load_buffer(self, context: &mut UpdateContext<'gc>, data: &mut Vec<u8>) {
         self.0
             .write(context.gc_context)
             .buffer
@@ -240,7 +240,7 @@ impl<'gc> NetStream<'gc> {
     /// If `name` is specified, this will also trigger streaming download of
     /// the given resource. Otherwise, the stream will play whatever data is
     /// available in the buffer.
-    pub fn play(self, context: &mut UpdateContext<'_, 'gc>, name: Option<AvmString<'gc>>) {
+    pub fn play(self, context: &mut UpdateContext<'gc>, name: Option<AvmString<'gc>>) {
         if let Some(name) = name {
             let request = Request::get(name.to_string());
             let future = context
@@ -259,21 +259,21 @@ impl<'gc> NetStream<'gc> {
     }
 
     /// Pause stream playback.
-    pub fn pause(self, context: &mut UpdateContext<'_, 'gc>) {
+    pub fn pause(self, context: &mut UpdateContext<'gc>) {
         StreamManager::ensure_paused(context, self);
     }
 
     /// Resume stream playback.
-    pub fn resume(self, context: &mut UpdateContext<'_, 'gc>) {
+    pub fn resume(self, context: &mut UpdateContext<'gc>) {
         StreamManager::ensure_playing(context, self);
     }
 
     /// Resume stream playback if paused, pause otherwise.
-    pub fn toggle_paused(self, context: &mut UpdateContext<'_, 'gc>) {
+    pub fn toggle_paused(self, context: &mut UpdateContext<'gc>) {
         StreamManager::toggle_paused(context, self);
     }
 
-    pub fn tick(self, context: &mut UpdateContext<'_, 'gc>, dt: f64) {
+    pub fn tick(self, context: &mut UpdateContext<'gc>, dt: f64) {
         let mut write = self.0.write(context.gc_context);
         let buffer_owned = write.buffer.clone();
         let buffer = buffer_owned.lock().unwrap();
@@ -642,7 +642,7 @@ impl<'gc> NetStream<'gc> {
     /// Trigger a status event on the stream.
     pub fn trigger_status_event(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         values: &[(&'static str, &'static str)],
     ) {
         let object = self.0.read().avm_object;
@@ -694,7 +694,7 @@ impl<'gc> NetStream<'gc> {
     fn handle_script_data(
         self,
         avm_object: Option<AvmObject<'gc>>,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         variable_name: &[u8],
         variable_data: FlvValue,
     ) {

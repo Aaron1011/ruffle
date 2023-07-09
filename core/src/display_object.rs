@@ -1356,7 +1356,7 @@ pub trait TDisplayObject<'gc>:
     }
 
     /// Set the parent of this display object.
-    fn set_parent(&self, context: &mut UpdateContext<'_, 'gc>, parent: Option<DisplayObject<'gc>>) {
+    fn set_parent(&self, context: &mut UpdateContext<'gc>, parent: Option<DisplayObject<'gc>>) {
         self.base_mut(context.gc_context)
             .set_parent_ignoring_orphan_list(parent);
     }
@@ -1513,7 +1513,7 @@ pub trait TDisplayObject<'gc>:
     /// The sound transform for sounds played inside this display object.
     fn set_sound_transform(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         sound_transform: SoundTransform,
     ) {
         self.base_mut(context.gc_context)
@@ -1580,7 +1580,7 @@ pub trait TDisplayObject<'gc>:
     fn on_focus_changed(&self, _gc_context: MutationContext<'gc, '_>, _focused: bool) {}
 
     /// Whether or not this clip may be focusable for keyboard input.
-    fn is_focusable(&self, _context: &mut UpdateContext<'_, 'gc>) -> bool {
+    fn is_focusable(&self, _context: &mut UpdateContext<'gc>) -> bool {
         false
     }
 
@@ -1634,7 +1634,7 @@ pub trait TDisplayObject<'gc>:
     /// Run any start-of-frame actions for this display object.
     ///
     /// When fired on `Stage`, this also emits the AVM2 `enterFrame` broadcast.
-    fn enter_frame(&self, _context: &mut UpdateContext<'_, 'gc>) {}
+    fn enter_frame(&self, _context: &mut UpdateContext<'gc>) {}
 
     /// Construct all display objects that the timeline indicates should exist
     /// this frame, and their children.
@@ -1645,7 +1645,7 @@ pub trait TDisplayObject<'gc>:
     /// 1. That the object itself has been allocated, if not constructed
     /// 2. That newly created children have been instantiated and are present
     ///    as properties on the class
-    fn construct_frame(&self, _context: &mut UpdateContext<'_, 'gc>) {}
+    fn construct_frame(&self, _context: &mut UpdateContext<'gc>) {}
 
     /// To be called when an AVM2 display object has finished being constructed.
     ///
@@ -1663,7 +1663,7 @@ pub trait TDisplayObject<'gc>:
     /// Since we construct AVM2 display objects after they are allocated and
     /// placed on the render list, these steps have to be done by the child
     /// object to signal to its parent that it was added.
-    fn on_construction_complete(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn on_construction_complete(&self, context: &mut UpdateContext<'gc>) {
         if !self.placed_by_script() {
             // Since we construct AVM2 display objects after they are
             // allocated and placed on the render list, we have to emit all
@@ -1719,11 +1719,11 @@ pub trait TDisplayObject<'gc>:
     }
 
     /// Execute all other timeline actions on this object.
-    fn run_frame_avm1(&self, _context: &mut UpdateContext<'_, 'gc>) {}
+    fn run_frame_avm1(&self, _context: &mut UpdateContext<'gc>) {}
 
     /// Emit a `frameConstructed` event on this DisplayObject and any children it
     /// may have.
-    fn frame_constructed(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn frame_constructed(&self, context: &mut UpdateContext<'gc>) {
         let frame_constructed_evt =
             Avm2EventObject::bare_default_event(context, "frameConstructed");
         let dobject_constr = context.avm2.classes().display_object;
@@ -1731,7 +1731,7 @@ pub trait TDisplayObject<'gc>:
     }
 
     /// Run any frame scripts (if they exist and this object needs to run them).
-    fn run_frame_scripts(self, context: &mut UpdateContext<'_, 'gc>) {
+    fn run_frame_scripts(self, context: &mut UpdateContext<'gc>) {
         if let Some(container) = self.as_container() {
             for child in container.iter_render_list() {
                 child.run_frame_scripts(context);
@@ -1740,7 +1740,7 @@ pub trait TDisplayObject<'gc>:
     }
 
     /// Emit an `exitFrame` broadcast event.
-    fn exit_frame(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn exit_frame(&self, context: &mut UpdateContext<'gc>) {
         let exit_frame_evt = Avm2EventObject::bare_default_event(context, "exitFrame");
         let dobject_constr = context.avm2.classes().display_object;
         Avm2::broadcast_event(context, exit_frame_evt, dobject_constr);
@@ -1748,7 +1748,7 @@ pub trait TDisplayObject<'gc>:
         self.on_exit_frame(context);
     }
 
-    fn on_exit_frame(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn on_exit_frame(&self, context: &mut UpdateContext<'gc>) {
         if let Some(container) = self.as_container() {
             for child in container.iter_render_list() {
                 child.on_exit_frame(context);
@@ -1809,7 +1809,7 @@ pub trait TDisplayObject<'gc>:
         }
     }
 
-    fn avm1_unload(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn avm1_unload(&self, context: &mut UpdateContext<'gc>) {
         // Unload children.
         if let Some(ctr) = self.as_container() {
             for child in ctr.iter_render_list() {
@@ -1869,7 +1869,7 @@ pub trait TDisplayObject<'gc>:
 
     fn apply_place_object(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         place_object: &swf::PlaceObject,
     ) {
         // PlaceObject tags only apply if this object has not been dynamically moved by AS code.
@@ -1930,7 +1930,7 @@ pub trait TDisplayObject<'gc>:
     }
 
     /// Called when this object should be replaced by a PlaceObject tag.
-    fn replace_with(&self, _context: &mut UpdateContext<'_, 'gc>, _id: CharacterId) {
+    fn replace_with(&self, _context: &mut UpdateContext<'gc>, _id: CharacterId) {
         // Noop for most symbols; only shapes can replace their innards with another Graphic.
     }
 
@@ -1942,7 +1942,7 @@ pub trait TDisplayObject<'gc>:
         Avm2Value::Undefined // TODO: See above. Also, unconstructed objects should return null.
     }
 
-    fn set_object2(&self, _context: &mut UpdateContext<'_, 'gc>, _to: Avm2Object<'gc>) {}
+    fn set_object2(&self, _context: &mut UpdateContext<'gc>, _to: Avm2Object<'gc>) {}
 
     /// Tests if a given stage position point intersects with the world bounds of this object.
     fn hit_test_bounds(&self, point: Point<Twips>) -> bool {
@@ -1958,7 +1958,7 @@ pub trait TDisplayObject<'gc>:
     /// Tests if a given stage position point intersects within this object, considering the art.
     fn hit_test_shape(
         &self,
-        _context: &mut UpdateContext<'_, 'gc>,
+        _context: &mut UpdateContext<'gc>,
         point: Point<Twips>,
         options: HitTestOptions,
     ) -> bool {
@@ -1969,7 +1969,7 @@ pub trait TDisplayObject<'gc>:
 
     fn post_instantiation(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         _init_object: Option<Avm1Object<'gc>>,
         _instantiated_by: Instantiator,
         run_frame: bool,
@@ -2042,7 +2042,7 @@ pub trait TDisplayObject<'gc>:
     /// will fail to locate the current player's stage for objects that are not
     /// rooted to the DisplayObject hierarchy correctly. If you just want to
     /// access the current player's stage, grab it from the context.
-    fn avm2_stage(&self, _context: &UpdateContext<'_, 'gc>) -> Option<DisplayObject<'gc>> {
+    fn avm2_stage(&self, _context: &UpdateContext<'gc>) -> Option<DisplayObject<'gc>> {
         let mut parent = Some((*self).into());
         while let Some(p) = parent {
             if p.as_stage().is_some() {
@@ -2054,7 +2054,7 @@ pub trait TDisplayObject<'gc>:
     }
 
     /// Determine if this display object is currently on the stage.
-    fn is_on_stage(self, context: &UpdateContext<'_, 'gc>) -> bool {
+    fn is_on_stage(self, context: &UpdateContext<'gc>) -> bool {
         let mut ancestor = self.avm2_parent();
         while let Some(parent) = ancestor {
             if parent.avm2_parent().is_some() {
@@ -2069,7 +2069,7 @@ pub trait TDisplayObject<'gc>:
     }
 
     /// Assigns a default instance name `instanceN` to this object.
-    fn set_default_instance_name(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn set_default_instance_name(&self, context: &mut UpdateContext<'gc>) {
         if self.name().is_empty() {
             let name = format!("instance{}", *context.instance_counter);
             self.set_name(
@@ -2084,7 +2084,7 @@ pub trait TDisplayObject<'gc>:
     ///
     /// The default root names change based on the AVM configuration of the
     /// clip; AVM2 clips get `rootN` while AVM1 clips get blank strings.
-    fn set_default_root_name(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn set_default_root_name(&self, context: &mut UpdateContext<'gc>) {
         if context.is_action_script_3() {
             let name = AvmString::new_utf8(context.gc_context, format!("root{}", self.depth() + 1));
             self.set_name(context.gc_context, name);

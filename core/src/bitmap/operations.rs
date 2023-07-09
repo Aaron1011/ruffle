@@ -984,7 +984,7 @@ pub fn merge<'gc>(
 }
 
 pub fn copy_pixels<'gc>(
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     target: BitmapDataWrapper<'gc>,
     source_bitmap: BitmapDataWrapper<'gc>,
     src_rect: (i32, i32, i32, i32),
@@ -1022,7 +1022,7 @@ pub fn copy_pixels<'gc>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn copy_pixels_with_alpha_source<'gc>(
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     target: BitmapDataWrapper<'gc>,
     source_bitmap: BitmapDataWrapper<'gc>,
     src_rect: (i32, i32, i32, i32),
@@ -1160,7 +1160,7 @@ pub fn copy_pixels_with_alpha_source<'gc>(
 }
 
 pub fn apply_filter<'gc>(
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     target: BitmapDataWrapper<'gc>,
     source: BitmapDataWrapper<'gc>,
     source_point: (u32, u32),
@@ -1314,7 +1314,7 @@ fn copy_on_cpu<'gc>(
 
 #[allow(clippy::too_many_arguments)]
 fn blend_and_transform<'gc>(
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     source: BitmapDataWrapper<'gc>,
     dest: BitmapDataWrapper<'gc>,
     source_region: PixelRegion,
@@ -1370,7 +1370,7 @@ fn blend_and_transform<'gc>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn draw<'gc>(
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     target: BitmapDataWrapper<'gc>,
     mut source: IBitmapDrawable<'gc>,
     transform: Transform,

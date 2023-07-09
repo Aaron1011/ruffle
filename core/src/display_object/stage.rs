@@ -263,7 +263,7 @@ impl<'gc> Stage<'gc> {
     /// In the Flash Player, the quality setting affects anti-aliasing and smoothing of bitmaps.
     /// This setting is currently ignored in Ruffle.
     /// Used by AVM1 `stage.quality` and AVM2 `Stage.quality` properties.
-    pub fn set_quality(self, context: &mut UpdateContext<'_, 'gc>, quality: StageQuality) {
+    pub fn set_quality(self, context: &mut UpdateContext<'gc>, quality: StageQuality) {
         let mut this = self.0.write(context.gc_context);
         this.quality = quality;
         this.use_bitmap_downsampling = matches!(
@@ -313,7 +313,7 @@ impl<'gc> Stage<'gc> {
     }
 
     /// Set the stage scale mode.
-    pub fn set_scale_mode(self, context: &mut UpdateContext<'_, 'gc>, scale_mode: StageScaleMode) {
+    pub fn set_scale_mode(self, context: &mut UpdateContext<'gc>, scale_mode: StageScaleMode) {
         if !self.forced_scale_mode() {
             self.0.write(context.gc_context).scale_mode = scale_mode;
             self.build_matrices(context);
@@ -326,7 +326,7 @@ impl<'gc> Stage<'gc> {
     }
 
     /// Set whether movies are prevented from changing the stage scale mode.
-    pub fn set_forced_scale_mode(self, context: &mut UpdateContext<'_, 'gc>, force: bool) {
+    pub fn set_forced_scale_mode(self, context: &mut UpdateContext<'gc>, force: bool) {
         self.0.write(context.gc_context).forced_scale_mode = force;
     }
 
@@ -348,7 +348,7 @@ impl<'gc> Stage<'gc> {
     }
 
     /// Toggles display state between fullscreen and normal
-    pub fn toggle_display_state(self, context: &mut UpdateContext<'_, 'gc>) {
+    pub fn toggle_display_state(self, context: &mut UpdateContext<'gc>) {
         if self.is_fullscreen() {
             self.set_display_state(context, StageDisplayState::Normal);
         } else {
@@ -359,7 +359,7 @@ impl<'gc> Stage<'gc> {
     /// Set the stage display state.
     pub fn set_display_state(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         display_state: StageDisplayState,
     ) {
         if display_state == self.display_state()
@@ -389,7 +389,7 @@ impl<'gc> Stage<'gc> {
 
     /// Set the stage alignment.
     /// This only has an effect if the scale mode is not `StageScaleMode::ExactFit`.
-    pub fn set_align(self, context: &mut UpdateContext<'_, 'gc>, align: StageAlign) {
+    pub fn set_align(self, context: &mut UpdateContext<'gc>, align: StageAlign) {
         if !self.forced_align() {
             self.0.write(context.gc_context).align = align;
             self.build_matrices(context);
@@ -402,7 +402,7 @@ impl<'gc> Stage<'gc> {
     }
 
     /// Set whether movies are prevented from changing the stage alignment.
-    pub fn set_forced_align(self, context: &mut UpdateContext<'_, 'gc>, force: bool) {
+    pub fn set_forced_align(self, context: &mut UpdateContext<'gc>, force: bool) {
         self.0.write(context.gc_context).forced_align = force;
     }
 
@@ -426,7 +426,7 @@ impl<'gc> Stage<'gc> {
     }
 
     /// Sets the window mode.
-    pub fn set_window_mode(self, context: &mut UpdateContext<'_, 'gc>, window_mode: WindowMode) {
+    pub fn set_window_mode(self, context: &mut UpdateContext<'gc>, window_mode: WindowMode) {
         self.0.write(context.gc_context).window_mode = window_mode;
     }
 
@@ -438,7 +438,7 @@ impl<'gc> Stage<'gc> {
         self.0.read().show_menu
     }
 
-    pub fn set_show_menu(self, context: &mut UpdateContext<'_, 'gc>, show_menu: bool) {
+    pub fn set_show_menu(self, context: &mut UpdateContext<'gc>, show_menu: bool) {
         let mut write = self.0.write(context.gc_context);
         write.show_menu = show_menu;
     }
@@ -457,7 +457,7 @@ impl<'gc> Stage<'gc> {
     }
 
     /// Update the stage's transform matrix in response to a root movie change.
-    pub fn build_matrices(self, context: &mut UpdateContext<'_, 'gc>) {
+    pub fn build_matrices(self, context: &mut UpdateContext<'gc>) {
         let mut stage = self.0.write(context.gc_context);
         let scale_mode = stage.scale_mode;
         let align = stage.align;
@@ -658,7 +658,7 @@ impl<'gc> Stage<'gc> {
     }
 
     /// Fires `Stage.onResize` in AVM1 or `Event.RESIZE` in AVM2.
-    fn fire_resize_event(self, context: &mut UpdateContext<'_, 'gc>) {
+    fn fire_resize_event(self, context: &mut UpdateContext<'gc>) {
         // This event fires immediately when scaleMode is changed;
         // it doesn't queue up.
         if !context.is_action_script_3() {
@@ -681,7 +681,7 @@ impl<'gc> Stage<'gc> {
     ///
     /// TODO: Need additional check as Flash Player does not
     /// broadcast the 'render' event on the first render
-    pub fn broadcast_render(&self, context: &mut UpdateContext<'_, 'gc>) {
+    pub fn broadcast_render(&self, context: &mut UpdateContext<'gc>) {
         let render_evt = Avm2EventObject::bare_default_event(context, "render");
         let dobject_constr = context.avm2.classes().display_object;
         Avm2::broadcast_event(context, render_evt, dobject_constr);
@@ -690,7 +690,7 @@ impl<'gc> Stage<'gc> {
     }
 
     /// Fires `Stage.onFullScreen` in AVM1 or `Event.FULLSCREEN` in AVM2.
-    pub fn fire_fullscreen_event(self, context: &mut UpdateContext<'_, 'gc>) {
+    pub fn fire_fullscreen_event(self, context: &mut UpdateContext<'gc>) {
         if !context.is_action_script_3() {
             if let Some(root_clip) = self.root_clip() {
                 crate::avm1::Avm1::notify_system_listeners(
@@ -746,7 +746,7 @@ impl<'gc> TDisplayObject<'gc> for Stage<'gc> {
 
     fn post_instantiation(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         _init_object: Option<Avm1Object<'gc>>,
         _instantiated_by: Instantiator,
         _run_frame: bool,
@@ -833,7 +833,7 @@ impl<'gc> TDisplayObject<'gc> for Stage<'gc> {
         context.transform_stack.pop();
     }
 
-    fn enter_frame(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn enter_frame(&self, context: &mut UpdateContext<'gc>) {
         for child in self.iter_render_list() {
             child.enter_frame(context);
         }
@@ -843,7 +843,7 @@ impl<'gc> TDisplayObject<'gc> for Stage<'gc> {
         Avm2::broadcast_event(context, enter_frame_evt, dobject_constr);
     }
 
-    fn construct_frame(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn construct_frame(&self, context: &mut UpdateContext<'gc>) {
         for child in self.iter_render_list() {
             child.construct_frame(context);
         }
@@ -893,7 +893,7 @@ impl<'gc> TInteractiveObject<'gc> for Stage<'gc> {
 
     fn filter_clip_event(
         self,
-        _context: &mut UpdateContext<'_, 'gc>,
+        _context: &mut UpdateContext<'gc>,
         _event: ClipEvent,
     ) -> ClipEventResult {
         ClipEventResult::Handled
@@ -901,13 +901,13 @@ impl<'gc> TInteractiveObject<'gc> for Stage<'gc> {
 
     fn event_dispatch(
         self,
-        _context: &mut UpdateContext<'_, 'gc>,
+        _context: &mut UpdateContext<'gc>,
         _event: ClipEvent<'gc>,
     ) -> ClipEventResult {
         ClipEventResult::NotHandled
     }
 
-    fn mouse_cursor(self, _context: &mut UpdateContext<'_, 'gc>) -> MouseCursor {
+    fn mouse_cursor(self, _context: &mut UpdateContext<'gc>) -> MouseCursor {
         MouseCursor::Arrow
     }
 }

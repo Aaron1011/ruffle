@@ -198,7 +198,7 @@ impl<'gc> Avm2<'gc> {
         }
     }
 
-    pub fn load_player_globals(context: &mut UpdateContext<'_, 'gc>) -> Result<(), Error<'gc>> {
+    pub fn load_player_globals(context: &mut UpdateContext<'gc>) -> Result<(), Error<'gc>> {
         let globals = context.avm2.playerglobals_domain;
         let mut activation = Activation::from_domain(context.reborrow(), globals);
         globals::load_player_globals(&mut activation, globals)
@@ -218,7 +218,7 @@ impl<'gc> Avm2<'gc> {
     /// Run a script's initializer method.
     pub fn run_script_initializer(
         script: Script<'gc>,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
     ) -> Result<(), Error<'gc>> {
         let mut init_activation = Activation::from_script(context.reborrow(), script)?;
 
@@ -276,8 +276,8 @@ impl<'gc> Avm2<'gc> {
     }
 
     pub fn each_orphan_obj(
-        context: &mut UpdateContext<'_, 'gc>,
-        mut f: impl FnMut(DisplayObject<'gc>, &mut UpdateContext<'_, 'gc>),
+        context: &mut UpdateContext<'gc>,
+        mut f: impl FnMut(DisplayObject<'gc>, &mut UpdateContext<'gc>),
     ) {
         // Clone the Rc before iterating over it. Any modifications must go through
         // `Rc::make_mut` in `orphan_objects_mut`, which will leave this `Rc` unmodified.
@@ -295,7 +295,7 @@ impl<'gc> Avm2<'gc> {
     /// Called at the end of `run_all_phases_avm2` - removes any movies
     /// that have been garbage collected, or are no longer orphans
     /// (they've since acquired a parent).
-    pub fn cleanup_dead_orphans(context: &mut UpdateContext<'_, 'gc>) {
+    pub fn cleanup_dead_orphans(context: &mut UpdateContext<'gc>) {
         context.avm2.orphan_objects_mut().retain(|d| {
             if let Some(dobj) = valid_orphan(*d, context.gc_context) {
                 // All clips that become orphaned (have their parent removed, or start out with no parent)
@@ -332,7 +332,7 @@ impl<'gc> Avm2<'gc> {
     ///
     /// Attempts to dispatch a non-event object will panic.
     pub fn dispatch_event(
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         event: Object<'gc>,
         target: Object<'gc>,
     ) {
@@ -362,7 +362,7 @@ impl<'gc> Avm2<'gc> {
     /// Attempts to register the same listener for the same event will also do
     /// nothing.
     pub fn register_broadcast_listener(
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: Object<'gc>,
         event_name: AvmString<'gc>,
     ) {
@@ -398,7 +398,7 @@ impl<'gc> Avm2<'gc> {
     ///
     /// Attempts to broadcast a non-event object will panic.
     pub fn broadcast_event(
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         event: Object<'gc>,
         on_type: ClassObject<'gc>,
     ) {
@@ -459,7 +459,7 @@ impl<'gc> Avm2<'gc> {
         receiver: Value<'gc>,
         args: &[Value<'gc>],
         domain: Domain<'gc>,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
     ) -> Result<(), String> {
         let mut evt_activation = Activation::from_domain(context.reborrow(), domain);
         callable
@@ -471,7 +471,7 @@ impl<'gc> Avm2<'gc> {
 
     /// Load an ABC file embedded in a `DoAbc` or `DoAbc2` tag.
     pub fn do_abc(
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         data: &[u8],
         name: Option<AvmString<'gc>>,
         flags: DoAbc2Flag,

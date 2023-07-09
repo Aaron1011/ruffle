@@ -93,7 +93,7 @@ fn validate_remove_operation<'gc>(
 
 /// Remove an element from it's parent display list.
 fn remove_child_from_displaylist<'gc>(
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     child: DisplayObject<'gc>,
 ) {
     if let Some(parent) = child.parent() {
@@ -106,7 +106,7 @@ fn remove_child_from_displaylist<'gc>(
 
 /// Add the `child` to `parent`'s display list.
 pub(super) fn add_child_to_displaylist<'gc>(
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     parent: DisplayObject<'gc>,
     child: DisplayObject<'gc>,
     index: usize,

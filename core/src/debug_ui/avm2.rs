@@ -36,7 +36,7 @@ impl Avm2ObjectWindow {
     pub fn show<'gc>(
         &mut self,
         egui_ctx: &egui::Context,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: Object<'gc>,
         messages: &mut Vec<Message>,
     ) -> bool {
@@ -349,7 +349,7 @@ enum ValueWidget {
 }
 
 impl ValueWidget {
-    fn new<'gc>(context: &mut UpdateContext<'_, 'gc>, value: Value<'gc>) -> Self {
+    fn new<'gc>(context: &mut UpdateContext<'gc>, value: Value<'gc>) -> Self {
         match value {
             Value::Undefined => ValueWidget::Other(Cow::Borrowed("Undefined")),
             Value::Null => ValueWidget::Other(Cow::Borrowed("Null")),
@@ -413,7 +413,7 @@ impl ValueResultWidget {
 
 pub fn show_avm2_value<'gc>(
     ui: &mut Ui,
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     value: Value<'gc>,
     messages: &mut Vec<Message>,
 ) {

@@ -224,7 +224,7 @@ impl<'a, 'gc> LayoutContext<'a, 'gc> {
     /// parameter will result in no empty lines being added.
     fn fixup_line(
         &mut self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         only_line: bool,
         final_line_of_para: bool,
         text: Option<(&'a WStr, usize, &TextSpan)>,
@@ -341,7 +341,7 @@ impl<'a, 'gc> LayoutContext<'a, 'gc> {
     /// the current positions into the text and format spans we are laying out.
     fn explicit_newline(
         &mut self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         text: &'a WStr,
         end: usize,
         span: &TextSpan,
@@ -376,7 +376,7 @@ impl<'a, 'gc> LayoutContext<'a, 'gc> {
     /// the current positions into the text and format spans we are laying out.
     fn newline(
         &mut self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         text: &'a WStr,
         end: usize,
         span: &TextSpan,
@@ -438,7 +438,7 @@ impl<'a, 'gc> LayoutContext<'a, 'gc> {
 
     fn resolve_font(
         &mut self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         span: &TextSpan,
         is_device_font: bool,
     ) -> Option<Font<'gc>> {
@@ -504,7 +504,7 @@ impl<'a, 'gc> LayoutContext<'a, 'gc> {
     /// cursor is moved down.
     fn append_bullet(
         &mut self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         span: &TextSpan,
         is_device_font: bool,
     ) {
@@ -588,7 +588,7 @@ impl<'a, 'gc> LayoutContext<'a, 'gc> {
     /// Destroy the layout context, returning the newly constructed layout list.
     fn end_layout(
         mut self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         fs: &'a FormatSpans,
         is_device_font: bool,
     ) -> (Vec<LayoutBox<'gc>>, BoxBounds<Twips>) {
@@ -730,7 +730,7 @@ impl<'gc> LayoutBox<'gc> {
     /// as left and right margins on any of the lines.
     pub fn lower_from_text_spans(
         fs: &FormatSpans,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         movie: Arc<SwfMovie>,
         bounds: Twips,
         is_word_wrap: bool,

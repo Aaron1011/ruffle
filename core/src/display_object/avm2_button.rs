@@ -97,7 +97,7 @@ impl<'gc> Avm2Button<'gc> {
     pub fn from_swf_tag(
         button: &swf::Button,
         source_movie: &SwfSlice,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         construct_blank_states: bool,
     ) -> Self {
         let static_data = ButtonStatic {
@@ -137,7 +137,7 @@ impl<'gc> Avm2Button<'gc> {
         ))
     }
 
-    pub fn empty_button(context: &mut UpdateContext<'_, 'gc>) -> Self {
+    pub fn empty_button(context: &mut UpdateContext<'gc>) -> Self {
         let movie = context.swf.clone();
         let button_record = swf::Button {
             id: 0,
@@ -190,7 +190,7 @@ impl<'gc> Avm2Button<'gc> {
     /// should signal events on all children of the returned display object.
     fn create_state(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         swf_state: swf::ButtonState,
     ) -> (DisplayObject<'gc>, bool) {
         let movie = self.movie();
@@ -279,7 +279,7 @@ impl<'gc> Avm2Button<'gc> {
     }
 
     /// Change the rendered state of the button.
-    pub fn set_state(self, context: &mut UpdateContext<'_, 'gc>, state: ButtonState) {
+    pub fn set_state(self, context: &mut UpdateContext<'gc>, state: ButtonState) {
         self.0.write(context.gc_context).state = state;
         let button = self.0.read();
         if let Some(state) = button.up_state {
@@ -313,7 +313,7 @@ impl<'gc> Avm2Button<'gc> {
     /// Set the display object that represents a particular button state.
     pub fn set_state_child(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         state: swf::ButtonState,
         child: Option<DisplayObject<'gc>>,
     ) {
@@ -369,7 +369,7 @@ impl<'gc> Avm2Button<'gc> {
         self.0.read().enabled
     }
 
-    pub fn set_enabled(self, context: &mut UpdateContext<'_, 'gc>, enabled: bool) {
+    pub fn set_enabled(self, context: &mut UpdateContext<'gc>, enabled: bool) {
         self.0.write(context.gc_context).enabled = enabled;
         if !enabled {
             self.set_state(context, ButtonState::Up);
@@ -380,7 +380,7 @@ impl<'gc> Avm2Button<'gc> {
         self.0.read().use_hand_cursor
     }
 
-    pub fn set_use_hand_cursor(self, context: &mut UpdateContext<'_, 'gc>, use_hand_cursor: bool) {
+    pub fn set_use_hand_cursor(self, context: &mut UpdateContext<'gc>, use_hand_cursor: bool) {
         self.0.write(context.gc_context).use_hand_cursor = use_hand_cursor;
     }
 
@@ -390,7 +390,7 @@ impl<'gc> Avm2Button<'gc> {
 
     pub fn set_button_tracking(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         tracking: ButtonTracking,
     ) {
         self.0.write(context.gc_context).tracking = tracking;
@@ -428,7 +428,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
 
     fn post_instantiation(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         _init_object: Option<Avm1Object<'gc>>,
         _instantiated_by: Instantiator,
         _run_frame: bool,
@@ -436,7 +436,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
         self.set_default_instance_name(context);
     }
 
-    fn enter_frame(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn enter_frame(&self, context: &mut UpdateContext<'gc>) {
         let hit_area = self.0.read().hit_area;
         if let Some(hit_area) = hit_area {
             hit_area.enter_frame(context);
@@ -458,7 +458,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
         }
     }
 
-    fn construct_frame(&self, context: &mut UpdateContext<'_, 'gc>) {
+    fn construct_frame(&self, context: &mut UpdateContext<'gc>) {
         let hit_area = self.0.read().hit_area;
         if let Some(hit_area) = hit_area {
             hit_area.construct_frame(context);
@@ -582,7 +582,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
         }
     }
 
-    fn run_frame_scripts(self, context: &mut UpdateContext<'_, 'gc>) {
+    fn run_frame_scripts(self, context: &mut UpdateContext<'gc>) {
         let hit_area = self.0.read().hit_area;
         if let Some(hit_area) = hit_area {
             hit_area.run_frame_scripts(context);
@@ -635,7 +635,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
 
     fn hit_test_shape(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         point: Point<Twips>,
         options: HitTestOptions,
     ) -> bool {
@@ -671,7 +671,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
             .unwrap_or(Avm2Value::Null)
     }
 
-    fn set_object2(&self, context: &mut UpdateContext<'_, 'gc>, to: Avm2Object<'gc>) {
+    fn set_object2(&self, context: &mut UpdateContext<'gc>, to: Avm2Object<'gc>) {
         self.0.write(context.gc_context).object = Some(to);
     }
 
@@ -694,7 +694,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
         }
     }
 
-    fn is_focusable(&self, _context: &mut UpdateContext<'_, 'gc>) -> bool {
+    fn is_focusable(&self, _context: &mut UpdateContext<'gc>) -> bool {
         true
     }
 
@@ -721,7 +721,7 @@ impl<'gc> TInteractiveObject<'gc> for Avm2Button<'gc> {
 
     fn filter_clip_event(
         self,
-        _context: &mut UpdateContext<'_, 'gc>,
+        _context: &mut UpdateContext<'gc>,
         event: ClipEvent,
     ) -> ClipEventResult {
         if !self.visible() {
@@ -737,7 +737,7 @@ impl<'gc> TInteractiveObject<'gc> for Avm2Button<'gc> {
 
     fn propagate_to_children(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         event: ClipEvent<'gc>,
     ) -> ClipEventResult {
         if event.propagates() {
@@ -756,7 +756,7 @@ impl<'gc> TInteractiveObject<'gc> for Avm2Button<'gc> {
 
     fn event_dispatch(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         event: ClipEvent<'gc>,
     ) -> ClipEventResult {
         let write = self.0.write(context.gc_context);
@@ -790,7 +790,7 @@ impl<'gc> TInteractiveObject<'gc> for Avm2Button<'gc> {
 
     fn mouse_pick_avm2(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         mut point: Point<Twips>,
         require_button_mode: bool,
     ) -> Avm2MousePick<'gc> {
@@ -830,7 +830,7 @@ impl<'gc> TInteractiveObject<'gc> for Avm2Button<'gc> {
         Avm2MousePick::Miss
     }
 
-    fn mouse_cursor(self, _context: &mut UpdateContext<'_, 'gc>) -> MouseCursor {
+    fn mouse_cursor(self, _context: &mut UpdateContext<'gc>) -> MouseCursor {
         // TODO: Should we also need to check for the `enabled` property like AVM1 buttons?
         if self.use_hand_cursor() {
             MouseCursor::Hand
@@ -841,7 +841,7 @@ impl<'gc> TInteractiveObject<'gc> for Avm2Button<'gc> {
 }
 
 impl<'gc> Avm2ButtonData<'gc> {
-    fn play_sound(&self, context: &mut UpdateContext<'_, 'gc>, sound: Option<&swf::ButtonSound>) {
+    fn play_sound(&self, context: &mut UpdateContext<'gc>, sound: Option<&swf::ButtonSound>) {
         if let Some((id, sound_info)) = sound {
             if let Some(sound_handle) = context
                 .library

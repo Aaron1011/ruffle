@@ -216,7 +216,7 @@ impl<'gc> LoaderInfoObject<'gc> {
 
     pub fn fire_init_and_complete_events(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         status: u16,
         redirected: bool,
     ) {

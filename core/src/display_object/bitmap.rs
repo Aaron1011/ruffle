@@ -101,7 +101,7 @@ impl<'gc> Bitmap<'gc> {
     /// list. If no data is provided then you are free to add whatever handle
     /// you like.
     pub fn new_with_bitmap_data(
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         id: CharacterId,
         bitmap_data: BitmapDataWrapper<'gc>,
         smoothing: bool,
@@ -130,7 +130,7 @@ impl<'gc> Bitmap<'gc> {
 
     /// Create a `Bitmap` with static bitmap data only.
     pub fn new(
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         id: CharacterId,
         bitmap: ruffle_render::bitmap::Bitmap,
     ) -> Result<Self, ruffle_render::error::Error> {
@@ -188,7 +188,7 @@ impl<'gc> Bitmap<'gc> {
     /// if that has not already been done.
     pub fn set_bitmap_data(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         bitmap_data: BitmapDataWrapper<'gc>,
     ) {
         let mut write = self.0.write(context.gc_context);
@@ -216,7 +216,7 @@ impl<'gc> Bitmap<'gc> {
 
     pub fn set_avm2_bitmapdata_class(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         class: Avm2ClassObject<'gc>,
     ) {
         let bitmap_class = if class
@@ -275,7 +275,7 @@ impl<'gc> TDisplayObject<'gc> for Bitmap<'gc> {
 
     fn post_instantiation(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         _init_object: Option<avm1::Object<'gc>>,
         instantiated_by: Instantiator,
         run_frame: bool,
@@ -345,7 +345,7 @@ impl<'gc> TDisplayObject<'gc> for Bitmap<'gc> {
             .unwrap_or(Avm2Value::Null)
     }
 
-    fn set_object2(&self, context: &mut UpdateContext<'_, 'gc>, to: Avm2Object<'gc>) {
+    fn set_object2(&self, context: &mut UpdateContext<'gc>, to: Avm2Object<'gc>) {
         self.0.write(context.gc_context).avm2_object = Some(to);
     }
 

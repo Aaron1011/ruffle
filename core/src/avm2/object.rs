@@ -1063,7 +1063,7 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
     fn is_of_type(
         &self,
         test_class: GcCell<'gc, Class<'gc>>,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
     ) -> bool {
         let my_class = self.instance_of();
 
@@ -1221,7 +1221,7 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
     /// association.
     ///
     /// If not, then this function does nothing.
-    fn init_display_object(&self, _context: &mut UpdateContext<'_, 'gc>, _obj: DisplayObject<'gc>) {
+    fn init_display_object(&self, _context: &mut UpdateContext<'gc>, _obj: DisplayObject<'gc>) {
     }
 
     fn init_application_domain(&self, _mc: MutationContext<'gc, '_>, _domain: Domain<'gc>) {

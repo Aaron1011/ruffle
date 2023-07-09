@@ -427,7 +427,7 @@ impl<'gc> LoadManager<'gc> {
     /// Process tags on all loaders in the Parsing phase.
     ///
     /// Returns true if *all* loaders finished preloading.
-    pub fn preload_tick(context: &mut UpdateContext<'_, 'gc>, limit: &mut ExecutionLimit) -> bool {
+    pub fn preload_tick(context: &mut UpdateContext<'gc>, limit: &mut ExecutionLimit) -> bool {
         let mut did_finish = true;
         let handles: Vec<_> = context.load_manager.0.iter().map(|(h, _)| h).collect();
 
@@ -602,7 +602,7 @@ impl<'gc> Loader<'gc> {
     /// Returns any AVM errors encountered while sending events to user code.
     fn preload_tick(
         handle: Handle,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         limit: &mut ExecutionLimit,
         status: u16,
         redirected: bool,
@@ -1370,7 +1370,7 @@ impl<'gc> Loader<'gc> {
     }
 
     /// Report a movie loader start event to script code.
-    fn movie_loader_start(handle: Index, uc: &mut UpdateContext<'_, 'gc>) -> Result<(), Error> {
+    fn movie_loader_start(handle: Index, uc: &mut UpdateContext<'gc>) -> Result<(), Error> {
         let me = uc.load_manager.get_loader_mut(handle);
         if me.is_none() {
             return Err(Error::Cancelled);
@@ -1643,7 +1643,7 @@ impl<'gc> Loader<'gc> {
     /// The current and total length are always reported as compressed lengths.
     fn movie_loader_progress(
         handle: Index,
-        uc: &mut UpdateContext<'_, 'gc>,
+        uc: &mut UpdateContext<'gc>,
         cur_len: usize,
         total_len: usize,
     ) -> Result<(), Error> {
@@ -1709,7 +1709,7 @@ impl<'gc> Loader<'gc> {
     /// Report a movie loader completion to script code.
     fn movie_loader_complete(
         handle: Index,
-        uc: &mut UpdateContext<'_, 'gc>,
+        uc: &mut UpdateContext<'gc>,
         dobj: Option<DisplayObject<'gc>>,
         status: u16,
         redirected: bool,
@@ -1837,7 +1837,7 @@ impl<'gc> Loader<'gc> {
     /// context and one of it's loaders.
     fn movie_loader_error(
         handle: Index,
-        uc: &mut UpdateContext<'_, 'gc>,
+        uc: &mut UpdateContext<'gc>,
         msg: AvmString<'gc>,
         status: u16,
         redirected: bool,

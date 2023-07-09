@@ -256,7 +256,7 @@ pub enum Callback<'gc> {
 impl<'gc> Callback<'gc> {
     pub fn call(
         &self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         name: &str,
         args: impl IntoIterator<Item = Value>,
     ) -> Value {

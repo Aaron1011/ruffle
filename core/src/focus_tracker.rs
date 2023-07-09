@@ -22,7 +22,7 @@ impl<'gc> FocusTracker<'gc> {
     pub fn set(
         &self,
         focused_element: Option<DisplayObject<'gc>>,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
     ) {
         let old = std::mem::replace(&mut *self.0.write(context.gc_context), focused_element);
 

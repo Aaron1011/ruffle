@@ -128,7 +128,7 @@ impl<'gc> TObject<'gc> for StageObject<'gc> {
         self.0.read().display_object
     }
 
-    fn init_display_object(&self, context: &mut UpdateContext<'_, 'gc>, obj: DisplayObject<'gc>) {
+    fn init_display_object(&self, context: &mut UpdateContext<'gc>, obj: DisplayObject<'gc>) {
         self.0.write(context.gc_context).display_object = Some(obj);
         obj.set_object2(context, (*self).into());
     }

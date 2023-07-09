@@ -101,7 +101,7 @@ impl DisplayObjectWindow {
     pub fn show<'gc>(
         &mut self,
         egui_ctx: &egui::Context,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: DisplayObject<'gc>,
         messages: &mut Vec<Message>,
     ) -> bool {
@@ -152,7 +152,7 @@ impl DisplayObjectWindow {
     pub fn show_movieclip<'gc>(
         &mut self,
         ui: &mut Ui,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: MovieClip<'gc>,
     ) {
         Grid::new(ui.id().with("movieclip"))
@@ -265,7 +265,7 @@ impl DisplayObjectWindow {
     pub fn show_display<'gc>(
         &mut self,
         ui: &mut Ui,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: DisplayObject<'gc>,
         messages: &mut Vec<Message>,
     ) {
@@ -411,7 +411,7 @@ impl DisplayObjectWindow {
     pub fn show_position<'gc>(
         &mut self,
         ui: &mut Ui,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: DisplayObject<'gc>,
         messages: &mut Vec<Message>,
     ) {
@@ -536,7 +536,7 @@ impl DisplayObjectWindow {
     pub fn show_children<'gc>(
         &mut self,
         ui: &mut Ui,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: DisplayObject<'gc>,
         messages: &mut Vec<Message>,
     ) {
@@ -556,7 +556,7 @@ impl DisplayObjectWindow {
     pub fn show_display_tree<'gc>(
         &mut self,
         ui: &mut Ui,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: DisplayObject<'gc>,
         messages: &mut Vec<Message>,
         search: &WStr,
@@ -701,7 +701,7 @@ fn blend_mode_name(mode: BlendMode) -> &'static str {
 
 pub fn open_display_object_button<'gc>(
     ui: &mut Ui,
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     messages: &mut Vec<Message>,
     object: DisplayObject<'gc>,
     hover: &mut Option<DisplayObjectHandle>,

@@ -830,7 +830,7 @@ impl Player {
     fn run_context_menu_custom_callback<'gc>(
         item: Object<'gc>,
         callback: Object<'gc>,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
     ) {
         if let Some(root_clip) = context.stage.root_clip() {
             let mut activation = Activation::from_nothing(
@@ -2585,7 +2585,7 @@ pub struct DragObject<'gc> {
 }
 
 fn run_mouse_pick<'gc>(
-    context: &mut UpdateContext<'_, 'gc>,
+    context: &mut UpdateContext<'gc>,
     require_button_mode: bool,
 ) -> Option<InteractiveObject<'gc>> {
     context.stage.iter_render_list().rev().find_map(|level| {

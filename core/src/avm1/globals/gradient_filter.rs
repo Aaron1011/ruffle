@@ -180,7 +180,7 @@ impl<'gc> GradientFilter<'gc> {
         Ok(())
     }
 
-    fn colors(&self, context: &mut UpdateContext<'_, 'gc>) -> ArrayObject<'gc> {
+    fn colors(&self, context: &mut UpdateContext<'gc>) -> ArrayObject<'gc> {
         let read = self.0.read();
         ArrayObject::new(
             context.gc_context,
@@ -210,7 +210,7 @@ impl<'gc> GradientFilter<'gc> {
         Ok(())
     }
 
-    fn alphas(&self, context: &mut UpdateContext<'_, 'gc>) -> ArrayObject<'gc> {
+    fn alphas(&self, context: &mut UpdateContext<'gc>) -> ArrayObject<'gc> {
         let read = self.0.read();
         ArrayObject::new(
             context.gc_context,
@@ -247,7 +247,7 @@ impl<'gc> GradientFilter<'gc> {
         Ok(())
     }
 
-    fn ratios(&self, context: &mut UpdateContext<'_, 'gc>) -> ArrayObject<'gc> {
+    fn ratios(&self, context: &mut UpdateContext<'gc>) -> ArrayObject<'gc> {
         ArrayObject::new(
             context.gc_context,
             context.avm1.prototypes().array,

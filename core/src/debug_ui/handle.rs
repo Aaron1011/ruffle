@@ -15,7 +15,7 @@ pub struct DisplayObjectHandle {
 
 impl DisplayObjectHandle {
     pub fn new<'gc>(
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: impl Into<DisplayObject<'gc>>,
     ) -> Self {
         let object = object.into();
@@ -65,7 +65,7 @@ pub struct AVM1ObjectHandle {
 
 impl AVM1ObjectHandle {
     pub fn new<'gc>(
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: crate::avm1::Object<'gc>,
     ) -> Self {
         Self {
@@ -108,7 +108,7 @@ pub struct AVM2ObjectHandle {
 
 impl AVM2ObjectHandle {
     pub fn new<'gc>(
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         object: crate::avm2::Object<'gc>,
     ) -> Self {
         Self {

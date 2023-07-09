@@ -111,7 +111,7 @@ impl<'gc> SoundObject<'gc> {
 
     pub fn set_sound(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         sound: SoundHandle,
     ) -> Result<(), Error<'gc>> {
         let mut this = self.0.write(context.gc_context);

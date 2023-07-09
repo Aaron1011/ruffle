@@ -311,7 +311,7 @@ impl<'gc> AudioManager<'gc> {
     }
 
     /// Update state of active sounds. Should be called once per frame.
-    pub fn update_sounds(context: &mut UpdateContext<'_, 'gc>) {
+    pub fn update_sounds(context: &mut UpdateContext<'gc>) {
         // We can't use 'context' to construct an event inside the
         // 'retain()' closure, so we queue the events up here, and fire
         // them after running 'retain()'

@@ -170,7 +170,7 @@ pub trait TInteractiveObject<'gc>:
     /// onto other siblings of the display object instead.
     fn filter_clip_event(
         self,
-        _context: &mut UpdateContext<'_, 'gc>,
+        _context: &mut UpdateContext<'gc>,
         event: ClipEvent,
     ) -> ClipEventResult;
 
@@ -180,7 +180,7 @@ pub trait TInteractiveObject<'gc>:
     /// terminate, including the event default.
     fn propagate_to_children(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         event: ClipEvent<'gc>,
     ) -> ClipEventResult {
         if event.propagates() {
@@ -207,7 +207,7 @@ pub trait TInteractiveObject<'gc>:
     /// if the event will be passed onto siblings and parents.
     fn event_dispatch(
         self,
-        _context: &mut UpdateContext<'_, 'gc>,
+        _context: &mut UpdateContext<'gc>,
         _event: ClipEvent<'gc>,
     ) -> ClipEventResult;
 
@@ -219,7 +219,7 @@ pub trait TInteractiveObject<'gc>:
     /// event types should dispatch them in `event_dispatch`.
     fn event_dispatch_to_avm2(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         event: ClipEvent<'gc>,
     ) -> ClipEventResult {
         // Flash appears to not fire events *at all* for a targeted EditText
@@ -446,7 +446,7 @@ pub trait TInteractiveObject<'gc>:
     /// by its parent, and so forth.
     fn handle_clip_event(
         self,
-        context: &mut UpdateContext<'_, 'gc>,
+        context: &mut UpdateContext<'gc>,
         event: ClipEvent<'gc>,
     ) -> ClipEventResult {
         if !self.mouse_enabled() {
@@ -473,7 +473,7 @@ pub trait TInteractiveObject<'gc>:
     /// an `InteractiveObject`.
     fn mouse_pick_avm1(
         &self,
-        _context: &mut UpdateContext<'_, 'gc>,
+        _context: &mut UpdateContext<'gc>,
         _point: Point<Twips>,
         _require_button_mode: bool,
     ) -> Option<InteractiveObject<'gc>> {
@@ -482,7 +482,7 @@ pub trait TInteractiveObject<'gc>:
 
     fn mouse_pick_avm2(
         &self,
-        _context: &mut UpdateContext<'_, 'gc>,
+        _context: &mut UpdateContext<'gc>,
         _point: Point<Twips>,
         _require_button_mode: bool,
     ) -> Avm2MousePick<'gc> {
@@ -490,7 +490,7 @@ pub trait TInteractiveObject<'gc>:
     }
 
     /// The cursor to use when this object is the hovered element under a mouse.
-    fn mouse_cursor(self, _context: &mut UpdateContext<'_, 'gc>) -> MouseCursor {
+    fn mouse_cursor(self, _context: &mut UpdateContext<'gc>) -> MouseCursor {
         MouseCursor::Hand
     }
 }
