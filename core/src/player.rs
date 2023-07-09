@@ -169,6 +169,102 @@ pub struct GcRootData<'gc, T> {
 
     /// Dynamic root for allowing handles to GC objects to exist outside of the GC.
     pub dynamic_root: DynamicRootSet<'gc>,
+
+    /// The version of the player we're emulating.
+    ///
+    /// This serves a few purposes, primarily for compatibility:
+    ///
+    /// * ActionScript can query the player version, ostensibly for graceful
+    ///   degradation on older platforms. Certain SWF files broke with the
+    ///   release of Flash Player 10 because the version string contains two
+    ///   digits. This allows the user to play those old files.
+    /// * Player-specific behavior that was not properly versioned in Flash
+    ///   Player can be enabled by setting a particular player version.
+    pub player_version: u8,
+
+    pub swf: Arc<SwfMovie>,
+
+    pub stub_tracker: StubCollection,
+
+    pub update_start: Instant,
+
+    pub frame_rate: f64,
+    pub forced_frame_rate: bool,
+    pub actions_since_timeout_check: u16,
+
+    pub frame_phase: FramePhase,
+
+    pub renderer: Renderer,
+    pub audio: Audio,
+    pub navigator: Navigator,
+    pub storage: Storage,
+    pub log: Log,
+    pub ui: Ui,
+    pub video: Video,
+
+    pub transform_stack: TransformStack,
+
+    pub rng: SmallRng,
+
+    /// A time budget for executing frames.
+    /// Gained by passage of time between host frames, spent by executing SWF frames.
+    /// This is how we support custom SWF framerates
+    /// and compensate for small lags by "catching up" (up to MAX_FRAMES_PER_TICK).
+    pub frame_accumulator: f64,
+    pub recent_run_frame_timings: VecDeque<f64>,
+
+    /// Faked time passage for fooling hand-written busy-loop FPS limiters.
+    pub time_offset: u32,
+
+    pub input: InputManager,
+
+    pub mouse_in_stage: bool,
+    pub mouse_position: Point<Twips>,
+
+    /// The current mouse cursor icon.
+    pub mouse_cursor: MouseCursor,
+    pub mouse_cursor_needs_check: bool,
+
+    pub system: SystemProperties,
+
+    /// The current instance ID. Used to generate default `instanceN` names.
+    pub instance_counter: i32,
+
+    /// Time remaining until the next timer will fire.
+    pub time_til_next_timer: Option<f64>,
+
+    /// The instant at which the SWF was launched.
+    pub start_time: Instant,
+
+    /// The maximum amount of time that can be called before a `Error::ExecutionTimeout`
+    /// is raised. This defaults to 15 seconds but can be changed.
+    pub max_execution_duration: Duration,
+
+    /// Self-reference to ourselves.
+    ///
+    /// This is a weak reference that is upgraded and handed out in various
+    /// contexts to other parts of the player. It can be used to ensure the
+    /// player lives across `await` calls in async code.
+    pub self_reference: Weak<Mutex<Self>>,
+
+    /// The current frame of the main timeline, if available.
+    /// The first frame is frame 1.
+    pub current_frame: Option<u16>,
+
+    /// How Ruffle should load movies.
+    pub load_behavior: LoadBehavior,
+
+    /// The root SWF URL provided to ActionScript. If None,
+    /// the actual loaded url will be used
+    pub spoofed_url: Option<String>,
+
+    /// Any compatibility rules to apply for this movie.
+    pub compatibility_rules: CompatibilityRules,
+
+    pub warn_on_unsupported_content: bool,
+
+    pub is_playing: bool,
+    pub needs_render: bool,
 }
 
 pub type PlayerContext<'gc> = GcRootData<'gc, *const Mutation<'gc>>;
@@ -351,101 +447,7 @@ type Ui = Box<dyn UiBackend>;
 type Video = Box<dyn VideoBackend>;
 
 pub struct Player {
-    /// The version of the player we're emulating.
-    ///
-    /// This serves a few purposes, primarily for compatibility:
-    ///
-    /// * ActionScript can query the player version, ostensibly for graceful
-    ///   degradation on older platforms. Certain SWF files broke with the
-    ///   release of Flash Player 10 because the version string contains two
-    ///   digits. This allows the user to play those old files.
-    /// * Player-specific behavior that was not properly versioned in Flash
-    ///   Player can be enabled by setting a particular player version.
-    player_version: u8,
-
-    swf: Arc<SwfMovie>,
-
-    warn_on_unsupported_content: bool,
-
-    is_playing: bool,
-    needs_render: bool,
-
-    renderer: Renderer,
-    audio: Audio,
-    navigator: Navigator,
-    storage: Storage,
-    log: Log,
-    ui: Ui,
-    video: Video,
-
-    transform_stack: TransformStack,
-
-    rng: SmallRng,
-
     gc_arena: Rc<RefCell<GcArena>>,
-
-    frame_rate: f64,
-    forced_frame_rate: bool,
-    actions_since_timeout_check: u16,
-
-    frame_phase: FramePhase,
-
-    stub_tracker: StubCollection,
-
-    /// A time budget for executing frames.
-    /// Gained by passage of time between host frames, spent by executing SWF frames.
-    /// This is how we support custom SWF framerates
-    /// and compensate for small lags by "catching up" (up to MAX_FRAMES_PER_TICK).
-    frame_accumulator: f64,
-    recent_run_frame_timings: VecDeque<f64>,
-
-    /// Faked time passage for fooling hand-written busy-loop FPS limiters.
-    time_offset: u32,
-
-    input: InputManager,
-
-    mouse_in_stage: bool,
-    mouse_position: Point<Twips>,
-
-    /// The current mouse cursor icon.
-    mouse_cursor: MouseCursor,
-    mouse_cursor_needs_check: bool,
-
-    system: SystemProperties,
-
-    /// The current instance ID. Used to generate default `instanceN` names.
-    instance_counter: i32,
-
-    /// Time remaining until the next timer will fire.
-    time_til_next_timer: Option<f64>,
-
-    /// The instant at which the SWF was launched.
-    start_time: Instant,
-
-    /// The maximum amount of time that can be called before a `Error::ExecutionTimeout`
-    /// is raised. This defaults to 15 seconds but can be changed.
-    max_execution_duration: Duration,
-
-    /// Self-reference to ourselves.
-    ///
-    /// This is a weak reference that is upgraded and handed out in various
-    /// contexts to other parts of the player. It can be used to ensure the
-    /// player lives across `await` calls in async code.
-    self_reference: Weak<Mutex<Self>>,
-
-    /// The current frame of the main timeline, if available.
-    /// The first frame is frame 1.
-    current_frame: Option<u16>,
-
-    /// How Ruffle should load movies.
-    load_behavior: LoadBehavior,
-
-    /// The root SWF URL provided to ActionScript. If None,
-    /// the actual loaded url will be used
-    spoofed_url: Option<String>,
-
-    /// Any compatibility rules to apply for this movie.
-    compatibility_rules: CompatibilityRules,
 
     /// Debug UI windows
     #[cfg(feature = "egui")]
