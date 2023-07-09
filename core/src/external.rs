@@ -318,14 +318,14 @@ pub trait ExternalInterfaceProvider {
 }
 
 pub trait ExternalInterfaceMethod {
-    fn call(&self, context: &mut UpdateContext<'_, '_>, args: &[Value]) -> Value;
+    fn call(&self, context: &mut UpdateContext<'_>, args: &[Value]) -> Value;
 }
 
 impl<F> ExternalInterfaceMethod for F
 where
-    F: Fn(&mut UpdateContext<'_, '_>, &[Value]) -> Value,
+    F: Fn(&mut UpdateContext<'_>, &[Value]) -> Value,
 {
-    fn call(&self, context: &mut UpdateContext<'_, '_>, args: &[Value]) -> Value {
+    fn call(&self, context: &mut UpdateContext<'_>, args: &[Value]) -> Value {
         self(context, args)
     }
 }

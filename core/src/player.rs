@@ -76,7 +76,7 @@ pub const NEWEST_PLAYER_VERSION: u8 = 32;
 #[collect(no_drop)]
 struct GcRoot<'gc> {
     callstack: GcCell<'gc, GcCallstack<'gc>>,
-    data: GcCell<'gc, GcRootData<'gc>>,
+    data: GcCell<'gc, PlayerContext<'gc>>,
 }
 
 #[derive(Collect, Default)]
@@ -173,7 +173,7 @@ pub struct GcRootData<'gc, T> {
 
 pub type PlayerContext<'gc> = GcRootData<'gc, *const Mutation<'gc>>;
 
-impl<'gc> GcRootData<'gc> {
+impl<'gc, T> GcRootData<'gc, T> {
     /// Splits out parameters for creating an `UpdateContext`
     /// (because we can borrow fields of `self` independently)
     #[allow(clippy::type_complexity)]
@@ -863,7 +863,7 @@ impl Player {
         });
     }
 
-    fn toggle_play_root_movie(context: &mut UpdateContext<'_, '_>) {
+    fn toggle_play_root_movie(context: &mut UpdateContext<'_>) {
         if let Some(mc) = context
             .stage
             .root_clip()
@@ -876,7 +876,7 @@ impl Player {
             }
         }
     }
-    fn rewind_root_movie(context: &mut UpdateContext<'_, '_>) {
+    fn rewind_root_movie(context: &mut UpdateContext<'_>) {
         if let Some(mc) = context
             .stage
             .root_clip()
@@ -885,7 +885,7 @@ impl Player {
             mc.goto_frame(context, 1, true)
         }
     }
-    fn forward_root_movie(context: &mut UpdateContext<'_, '_>) {
+    fn forward_root_movie(context: &mut UpdateContext<'_>) {
         if let Some(mc) = context
             .stage
             .root_clip()
@@ -894,7 +894,7 @@ impl Player {
             mc.next_frame(context);
         }
     }
-    fn back_root_movie(context: &mut UpdateContext<'_, '_>) {
+    fn back_root_movie(context: &mut UpdateContext<'_>) {
         if let Some(mc) = context
             .stage
             .root_clip()
@@ -1304,7 +1304,7 @@ impl Player {
     }
 
     /// Update dragged object, if any.
-    pub fn update_drag(context: &mut UpdateContext<'_, '_>) {
+    pub fn update_drag(context: &mut UpdateContext<'_>) {
         let mouse_position = *context.mouse_position;
         let is_action_script_3 = context.is_action_script_3();
         if let Some(drag_object) = context.drag_object {
@@ -1770,7 +1770,7 @@ impl Player {
         &mut self.ui
     }
 
-    pub fn run_actions(context: &mut UpdateContext<'_, '_>) {
+    pub fn run_actions(context: &mut UpdateContext<'_>) {
         // Note that actions can queue further actions, so a while loop is necessary here.
         while let Some(action) = context.action_queue.pop_action() {
             // We don't run frame actions if the clip was removed (or scheduled to be removed) after it queued the action.
@@ -1869,7 +1869,7 @@ impl Player {
     /// This takes cares of populating the `UpdateContext` struct, avoiding borrow issues.
     pub(crate) fn mutate_with_update_context<F, R>(&mut self, f: F) -> R
     where
-        F: for<'a, 'gc> FnOnce(&mut UpdateContext<'a, 'gc>) -> R,
+        F: for<'a, 'gc> FnOnce(&mut UpdateContext<'gc>) -> R,
     {
         self.gc_arena.borrow().mutate(|gc_context, gc_root| {
             let mut root_data = gc_root.data.write(gc_context);
@@ -2019,7 +2019,7 @@ impl Player {
     /// hover state up to date, and running garbage collection.
     pub fn update<F, R>(&mut self, func: F) -> R
     where
-        F: for<'a, 'gc> FnOnce(&mut UpdateContext<'a, 'gc>) -> R,
+        F: for<'a, 'gc> FnOnce(&mut UpdateContext<'gc>) -> R,
     {
         let rval = self.mutate_with_update_context(|context| {
             let rval = func(context);

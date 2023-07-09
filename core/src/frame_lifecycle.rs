@@ -68,7 +68,7 @@ pub enum FramePhase {
 /// still be lurking bugs, but the current code matches Flash's
 /// output exactly for two complex test cases (see `avm2/orphan_movie*`)
 #[instrument(level = "debug", skip_all)]
-pub fn run_all_phases_avm2(context: &mut UpdateContext<'_, '_>) {
+pub fn run_all_phases_avm2(context: &mut UpdateContext<'_>) {
     let stage = context.stage;
 
     *context.frame_phase = FramePhase::Enter;

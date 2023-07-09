@@ -64,7 +64,7 @@ impl<'a, 'gc> GcContext<'a, 'gc> {
 /// `UpdateContext` holds shared data that is used by the various subsystems of Ruffle.
 /// `Player` creates this when it begins a tick and passes it through the call stack to
 /// children and the VM.
-pub struct UpdateContext<'a, 'gc> {
+pub struct UpdateContext<'gc> {
     /// The queue of actions that will be run after the display list updates.
     /// Display objects and actions can push actions onto the queue.
     pub action_queue: &'a mut ActionQueue<'gc>,

@@ -240,10 +240,10 @@ impl<'gc> Avm1<'gc> {
     /// method, such as an event handler.
     ///
     /// This creates a new frame stack.
-    pub fn run_stack_frame_for_method<'a, 'b>(
+    pub fn run_stack_frame_for_method<'a>(
         active_clip: DisplayObject<'gc>,
         obj: Object<'gc>,
-        context: &'a mut UpdateContext<'b, 'gc>,
+        context: &'a mut UpdateContext<'gc>,
         name: AvmString<'gc>,
         args: &[Value<'gc>],
     ) {
