@@ -125,7 +125,7 @@ pub struct GcRootData<'gc, T> {
     pub mouse_hovered_object: Option<InteractiveObject<'gc>>,
 
     /// If the mouse is down, the display object that the mouse is currently pressing.
-    pub mouse_pressed_object: Option<InteractiveObject<'gc>>,
+    pub mouse_down_object: Option<InteractiveObject<'gc>>,
 
     /// The object being dragged via a `startDrag` action.
     pub drag_object: Option<DragObject<'gc>>,
@@ -194,6 +194,7 @@ pub struct GcRootData<'gc, T> {
     pub forced_frame_rate: bool,
     pub actions_since_timeout_check: u16,
 
+    #[collect(require_static)]
     pub frame_phase: FramePhase,
 
     #[collect(require_static)]
