@@ -336,17 +336,20 @@ impl<'gc, T> GcRootData<'gc, T> {
 
 /// Convenience methods for controlling audio.
 impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
-    pub fn global_sound_transform(&self) -> &SoundTransform {
+    pub fn global_sound_transform(&self) -> &display_object::SoundTransform {
         self.audio_manager.global_sound_transform()
     }
 
-    pub fn set_global_sound_transform(&mut self, sound_transform: SoundTransform) {
+    pub fn set_global_sound_transform(&mut self, sound_transform: display_object::SoundTransform) {
         self.audio_manager
             .set_global_sound_transform(sound_transform);
     }
 
     /// Get the local sound transform of a single sound instance.
-    pub fn local_sound_transform(&self, instance: SoundInstanceHandle) -> Option<&SoundTransform> {
+    pub fn local_sound_transform(
+        &self,
+        instance: SoundInstanceHandle,
+    ) -> Option<&display_object::SoundTransform> {
         self.audio_manager.local_sound_transform(instance)
     }
 
@@ -354,7 +357,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
     pub fn set_local_sound_transform(
         &mut self,
         instance: SoundInstanceHandle,
-        sound_transform: SoundTransform,
+        sound_transform: display_object::SoundTransform,
     ) {
         self.audio_manager
             .set_local_sound_transform(instance, sound_transform);
@@ -368,7 +371,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
         avm1_object: Option<crate::avm1::SoundObject<'gc>>,
     ) -> Option<SoundInstanceHandle> {
         self.audio_manager
-            .start_sound(self.audio, sound, settings, owner, avm1_object)
+            .start_sound(&mut self.audio, sound, settings, owner, avm1_object)
     }
 
     pub fn attach_avm2_sound_channel(
@@ -381,21 +384,21 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
     }
 
     pub fn stop_sound(&mut self, instance: SoundInstanceHandle) {
-        self.audio_manager.stop_sound(self.audio, instance)
+        self.audio_manager.stop_sound(&mut self.audio, instance)
     }
 
     pub fn stop_sounds_with_handle(&mut self, sound: SoundHandle) {
         self.audio_manager
-            .stop_sounds_with_handle(self.audio, sound)
+            .stop_sounds_with_handle(&mut self.audio, sound)
     }
 
     pub fn stop_sounds_with_display_object(&mut self, display_object: DisplayObject<'gc>) {
         self.audio_manager
-            .stop_sounds_with_display_object(self.audio, display_object)
+            .stop_sounds_with_display_object(&mut self.audio, display_object)
     }
 
     pub fn stop_all_sounds(&mut self) {
-        self.audio_manager.stop_all_sounds(self.audio)
+        self.audio_manager.stop_all_sounds(&mut self.audio)
     }
 
     pub fn is_sound_playing(&mut self, sound: SoundInstanceHandle) -> bool {
@@ -415,7 +418,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
         stream_info: &swf::SoundStreamHead,
     ) -> Option<SoundInstanceHandle> {
         self.audio_manager.start_stream(
-            self.audio,
+            &mut self.audio,
             stream_handle,
             movie_clip,
             frame,
@@ -583,10 +586,8 @@ impl Player {
             }
 
             // Set the version parameter on the root.
-            let mut activation = Activation::from_stub(
-                context,
-                ActivationIdentifier::root("[Version Setter]"),
-            );
+            let mut activation =
+                Activation::from_stub(context, ActivationIdentifier::root("[Version Setter]"));
             let object = root.object().coerce_to_object(&mut activation);
             let version_string = activation
                 .context
@@ -764,10 +765,8 @@ impl Player {
             let root_dobj = context.stage.root_clip();
 
             let menu = if let Some(Value::Object(obj)) = root_dobj.map(|root| root.object()) {
-                let mut activation = Activation::from_stub(
-                    context,
-                    ActivationIdentifier::root("[ContextMenu]"),
-                );
+                let mut activation =
+                    Activation::from_stub(context, ActivationIdentifier::root("[ContextMenu]"));
                 let menu_object = if let Ok(Value::Object(menu)) = obj.get("menu", &mut activation)
                 {
                     if let Ok(Value::Object(on_select)) = menu.get("onSelect", &mut activation) {
