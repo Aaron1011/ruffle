@@ -2402,7 +2402,6 @@ impl PlayerBuilder {
                                                        
                                     gc_context,
                                     player_version,
-                                    fake_movie.clone(),
 
                                     // Backends
                                     audio,
