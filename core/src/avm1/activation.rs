@@ -444,9 +444,9 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         data: &'b SwfSlice,
         reader: &mut Reader<'b>,
     ) -> Result<FrameControl<'gc>, Error<'gc>> {
-        *self.context.actions_since_timeout_check += 1;
-        if *self.context.actions_since_timeout_check >= 2000 {
-            *self.context.actions_since_timeout_check = 0;
+        self.context.actions_since_timeout_check += 1;
+        if self.context.actions_since_timeout_check >= 2000 {
+            self.context.actions_since_timeout_check = 0;
             if self.context.update_start.elapsed() >= self.context.max_execution_duration {
                 return Err(Error::ExecutionTimeout);
             }
@@ -1017,7 +1017,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         // so let's do it here.
         crate::player::Player::update_drag(&mut self.context);
 
-        *self.context.drag_object = None;
+        self.context.drag_object = None;
         Ok(FrameControl::Continue)
     }
 
@@ -1173,13 +1173,13 @@ impl<'a, 'gc> Activation<'a, 'gc> {
         self.context.times_get_time_called += 1;
         // heuristic to detect busy loops used for delays and slowly progress fake time
         if self.context.times_get_time_called >= 20 && self.context.times_get_time_called % 5 == 0 {
-            *self.context.time_offset += 1;
+            self.context.time_offset += 1;
         }
 
         let time = Instant::now()
             .duration_since(self.context.start_time)
             .as_millis() as u32;
-        let result = time.wrapping_add(*self.context.time_offset);
+        let result = time.wrapping_add(self.context.time_offset);
         self.context.avm1.push(result.into());
         Ok(FrameControl::Continue)
     }
