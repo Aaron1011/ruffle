@@ -1896,100 +1896,25 @@ impl Player {
             let mouse_pressed_object = root_data.mouse_pressed_object;
             let focus_tracker = root_data.focus_tracker;
 
-            #[allow(unused_variables)]
-            let (
-                stage,
-                library,
-                action_queue,
-                interner,
-                avm1,
-                avm2,
-                drag_object,
-                load_manager,
-                avm1_shared_objects,
-                avm2_shared_objects,
-                unbound_text_fields,
-                timers,
-                current_context_menu,
-                external_interface,
-                audio_manager,
-                stream_manager,
-                dynamic_root,
-            ) = root_data.update_context_params();
+            let update_context = &mut *root_data;
 
-            let mut update_context = UpdateContext {
-                player_version: self.player_version,
-                swf: &self.swf,
-                library,
-                rng: &mut self.rng,
-                renderer: self.renderer.deref_mut(),
-                audio: self.audio.deref_mut(),
-                navigator: self.navigator.deref_mut(),
-                ui: self.ui.deref_mut(),
-                action_queue,
-                gc_context,
-                interner,
-                stage,
-                mouse_over_object: mouse_hovered_object,
-                mouse_down_object: mouse_pressed_object,
-                input: &self.input,
-                mouse_position: &self.mouse_position,
-                drag_object,
-                player: self.self_reference.clone(),
-                load_manager,
-                system: &mut self.system,
-                instance_counter: &mut self.instance_counter,
-                storage: self.storage.deref_mut(),
-                log: self.log.deref_mut(),
-                video: self.video.deref_mut(),
-                avm1_shared_objects,
-                avm2_shared_objects,
-                unbound_text_fields,
-                timers,
-                current_context_menu,
-                needs_render: &mut self.needs_render,
-                avm1,
-                avm2,
-                external_interface,
-                start_time: self.start_time,
-                update_start: Instant::now(),
-                max_execution_duration: self.max_execution_duration,
-                focus_tracker,
-                times_get_time_called: 0,
-                time_offset: &mut self.time_offset,
-                audio_manager,
-                frame_rate: &mut self.frame_rate,
-                forced_frame_rate: self.forced_frame_rate,
-                actions_since_timeout_check: &mut self.actions_since_timeout_check,
-                frame_phase: &mut self.frame_phase,
-                stub_tracker: &mut self.stub_tracker,
-                stream_manager,
-                dynamic_root,
-            };
+            let prev_frame_rate = update_context.frame_rate;
 
-            let prev_frame_rate = *update_context.frame_rate;
-
-            let ret = f(&mut update_context);
+            let ret = f(update_context);
 
             // If we changed the framerate, let the audio handler now.
             #[allow(clippy::float_cmp)]
-            if *update_context.frame_rate != prev_frame_rate {
+            if update_context.frame_rate != prev_frame_rate {
                 update_context
                     .audio
                     .set_frame_rate(*update_context.frame_rate);
             }
 
-            self.current_frame = update_context
+            update_context.current_frame = update_context
                 .stage
                 .root_clip()
                 .and_then(|root| root.as_movie_clip())
                 .map(|clip| clip.current_frame());
-
-            // Hovered object may have been updated; copy it back to the GC root.
-            let mouse_hovered_object = update_context.mouse_over_object;
-            let mouse_pressed_object = update_context.mouse_down_object;
-            root_data.mouse_hovered_object = mouse_hovered_object;
-            root_data.mouse_pressed_object = mouse_pressed_object;
 
             ret
         })
