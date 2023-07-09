@@ -2320,50 +2320,6 @@ impl PlayerBuilder {
         self
     }
 
-    fn create_gc_root<'gc>(
-        gc_context: &'gc gc_arena::Mutation<'gc>,
-        player_version: u8,
-        fullscreen: bool,
-        fake_movie: Arc<SwfMovie>,
-        external_interface_providers: Vec<Box<dyn ExternalInterfaceProvider>>,
-    ) -> GcRoot<'gc> {
-        let mut interner = AvmStringInterner::new();
-        let mut init = GcContext {
-            gc_context,
-            interner: &mut interner,
-        };
-        let dynamic_root = DynamicRootSet::new(gc_context);
-
-        GcRoot {
-            callstack: GcCell::new(gc_context, GcCallstack::default()),
-            data: GcCell::new(
-                gc_context,
-                GcRootData {
-                    audio_manager: AudioManager::new(),
-                    action_queue: ActionQueue::new(),
-                    avm1: Avm1::new(&mut init, player_version),
-                    avm2: Avm2::new(&mut init, player_version),
-                    interner,
-                    current_context_menu: None,
-                    drag_object: None,
-                    external_interface: ExternalInterface::new(external_interface_providers),
-                    focus_tracker: FocusTracker::new(gc_context),
-                    library: Library::empty(),
-                    load_manager: LoadManager::new(),
-                    mouse_hovered_object: None,
-                    mouse_pressed_object: None,
-                    avm1_shared_objects: HashMap::new(),
-                    avm2_shared_objects: HashMap::new(),
-                    stage: Stage::empty(gc_context, fullscreen, fake_movie),
-                    timers: Timers::new(),
-                    unbound_text_fields: Vec::new(),
-                    stream_manager: StreamManager::new(),
-                    dynamic_root,
-                },
-            ),
-        }
-    }
-
     /// Builds the player, wiring up the backends and configuring the specified settings.
     pub fn build(self) -> Arc<Mutex<Player>> {
         use crate::backend::*;
@@ -2400,54 +2356,16 @@ impl PlayerBuilder {
         let fake_movie = Arc::new(SwfMovie::empty(player_version));
         let frame_rate = self.frame_rate.unwrap_or(12.0);
         let forced_frame_rate = self.frame_rate.is_some();
+
+        let mut interner = AvmStringInterner::new();
+        let mut init = GcContext {
+            gc_context,
+            interner: &mut interner,
+        };
+        let dynamic_root = DynamicRootSet::new(gc_context);
+
         let player = Arc::new_cyclic(|self_ref| {
             Mutex::new(Player {
-                // Backends
-                audio,
-                log,
-                navigator,
-                renderer,
-                storage,
-                ui,
-                video,
-
-                // SWF info
-                swf: fake_movie.clone(),
-                current_frame: None,
-
-                // Timing
-                frame_rate,
-                forced_frame_rate,
-                frame_phase: Default::default(),
-                frame_accumulator: 0.0,
-                recent_run_frame_timings: VecDeque::with_capacity(10),
-                start_time: Instant::now(),
-                time_offset: 0,
-                time_til_next_timer: None,
-                max_execution_duration: self.max_execution_duration,
-                actions_since_timeout_check: 0,
-
-                // Input
-                input: Default::default(),
-                mouse_in_stage: true,
-                mouse_position: Point::ZERO,
-                mouse_cursor: MouseCursor::Arrow,
-                mouse_cursor_needs_check: false,
-
-                // Misc. state
-                rng: SmallRng::seed_from_u64(get_current_date_time().timestamp_millis() as u64),
-                system: SystemProperties::new(self.sandbox_type),
-                transform_stack: TransformStack::new(),
-                instance_counter: 0,
-                player_version,
-                is_playing: self.autoplay,
-                needs_render: true,
-                warn_on_unsupported_content: self.warn_on_unsupported_content,
-                self_reference: self_ref.clone(),
-                load_behavior: self.load_behavior,
-                spoofed_url: self.spoofed_url.clone(),
-                compatibility_rules: self.compatibility_rules.clone(),
-                stub_tracker: StubCollection::new(),
                 #[cfg(feature = "egui")]
                 debug_ui: Default::default(),
 
@@ -2455,14 +2373,88 @@ impl PlayerBuilder {
                 gc_arena: Rc::new(RefCell::new(GcArena::new(
                     ArenaParameters::default(),
                     |gc_context| {
-                        Self::create_gc_root(
-                            gc_context,
-                            player_version,
-                            self.fullscreen,
-                            fake_movie.clone(),
-                            self.external_interface_providers,
-                        )
-                    },
+                        GcRoot {
+                            callstack: GcCell::new(gc_context, GcCallstack::default()),
+                            data: GcCell::new(
+                                gc_context,
+                                GcRootData {
+                                    update_start: Instant::now(),
+                                    audio_manager: AudioManager::new(),
+                                    action_queue: ActionQueue::new(),
+                                    avm1: Avm1::new(&mut init, player_version),
+                                    avm2: Avm2::new(&mut init, player_version),
+                                    interner,
+                                    current_context_menu: None,
+                                    drag_object: None,
+                                    external_interface: ExternalInterface::new(self.external_interface_providers),
+                                    focus_tracker: FocusTracker::new(gc_context),
+                                    library: Library::empty(),
+                                    load_manager: LoadManager::new(),
+                                    mouse_hovered_object: None,
+                                    mouse_down_object: None,
+                                    avm1_shared_objects: HashMap::new(),
+                                    avm2_shared_objects: HashMap::new(),
+                                    stage: Stage::empty(gc_context, self.fullscreen, fake_movie),
+                                    timers: Timers::new(),
+                                    unbound_text_fields: Vec::new(),
+                                    stream_manager: StreamManager::new(),
+                                    dynamic_root,
+
+                                                       
+                                    gc_context,
+                                    player_version,
+                                    fake_movie.clone(),
+
+                                    // Backends
+                                    audio,
+                                    log,
+                                    navigator,
+                                    renderer,
+                                    storage,
+                                    ui,
+                                    video,
+
+                                    // SWF info
+                                    swf: fake_movie.clone(),
+                                    current_frame: None,
+
+                                    // Timing
+                                    frame_rate,
+                                    forced_frame_rate,
+                                    frame_phase: Default::default(),
+                                    frame_accumulator: 0.0,
+                                    recent_run_frame_timings: VecDeque::with_capacity(10),
+                                    start_time: Instant::now(),
+                                    time_offset: 0,
+                                    time_til_next_timer: None,
+                                    max_execution_duration: self.max_execution_duration,
+                                    actions_since_timeout_check: 0,
+
+                                    // Input
+                                    input: Default::default(),
+                                    mouse_in_stage: true,
+                                    mouse_position: Point::ZERO,
+                                    mouse_cursor: MouseCursor::Arrow,
+                                    mouse_cursor_needs_check: false,
+
+                                    // Misc. state
+                                    rng: SmallRng::seed_from_u64(get_current_date_time().timestamp_millis() as u64),
+                                    system: SystemProperties::new(self.sandbox_type),
+                                    transform_stack: TransformStack::new(),
+                                    instance_counter: 0,
+                                    player_version,
+                                    is_playing: self.autoplay,
+                                    needs_render: true,
+                                    warn_on_unsupported_content: self.warn_on_unsupported_content,
+                                    self_reference: self_ref.clone(),
+                                    load_behavior: self.load_behavior,
+                                    spoofed_url: self.spoofed_url.clone(),
+                                    compatibility_rules: self.compatibility_rules.clone(),
+                                    stub_tracker: StubCollection::new()
+                                },
+                            ),
+                        }
+                    },      
                 ))),
             })
         });
