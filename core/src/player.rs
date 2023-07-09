@@ -184,8 +184,10 @@ pub struct GcRootData<'gc, T> {
 
     pub swf: Arc<SwfMovie>,
 
+    #[collect(require_static)]
     pub stub_tracker: StubCollection,
 
+    #[collect(require_static)]
     pub update_start: Instant,
 
     pub frame_rate: f64,
@@ -194,16 +196,25 @@ pub struct GcRootData<'gc, T> {
 
     pub frame_phase: FramePhase,
 
+    #[collect(require_static)]
     pub renderer: Renderer,
+    #[collect(require_static)]
     pub audio: Audio,
+    #[collect(require_static)]
     pub navigator: Navigator,
+    #[collect(require_static)]
     pub storage: Storage,
+    #[collect(require_static)]
     pub log: Log,
+    #[collect(require_static)]
     pub ui: Ui,
+    #[collect(require_static)]
     pub video: Video,
 
+    #[collect(require_static)]
     pub transform_stack: TransformStack,
 
+    #[collect(require_static)]
     pub rng: SmallRng,
 
     /// A time budget for executing frames.
@@ -211,11 +222,13 @@ pub struct GcRootData<'gc, T> {
     /// This is how we support custom SWF framerates
     /// and compensate for small lags by "catching up" (up to MAX_FRAMES_PER_TICK).
     pub frame_accumulator: f64,
+    #[collect(require_static)]
     pub recent_run_frame_timings: VecDeque<f64>,
 
     /// Faked time passage for fooling hand-written busy-loop FPS limiters.
     pub time_offset: u32,
 
+    #[collect(require_static)]
     pub input: InputManager,
 
     pub mouse_in_stage: bool,
@@ -234,10 +247,12 @@ pub struct GcRootData<'gc, T> {
     pub time_til_next_timer: Option<f64>,
 
     /// The instant at which the SWF was launched.
+    #[collect(require_static)]
     pub start_time: Instant,
 
     /// The maximum amount of time that can be called before a `Error::ExecutionTimeout`
     /// is raised. This defaults to 15 seconds but can be changed.
+    #[collect(require_static)]
     pub max_execution_duration: Duration,
 
     /// Self-reference to ourselves.
@@ -252,6 +267,7 @@ pub struct GcRootData<'gc, T> {
     pub current_frame: Option<u16>,
 
     /// How Ruffle should load movies.
+    #[collect(require_static)]
     pub load_behavior: LoadBehavior,
 
     /// The root SWF URL provided to ActionScript. If None,
@@ -259,6 +275,7 @@ pub struct GcRootData<'gc, T> {
     pub spoofed_url: Option<String>,
 
     /// Any compatibility rules to apply for this movie.
+    #[collect(require_static)]
     pub compatibility_rules: CompatibilityRules,
 
     pub warn_on_unsupported_content: bool,
