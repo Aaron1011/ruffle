@@ -219,7 +219,7 @@ pub struct Activation<'a, 'gc: 'a> {
     /// Whether the base clip was removed when we started this frame.
     base_clip_unloaded: bool,
 
-    pub context: UpdateContext<'gc>,
+    pub context: &'a mut UpdateContext<'gc>,
 
     /// An identifier to refer to this activation by, when debugging.
     /// This is often the name of a function (if known), or some static name to indicate where

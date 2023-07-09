@@ -76,7 +76,7 @@ enum FrameControl<'gc> {
 }
 
 /// Represents a single activation of a given AVM2 function or keyframe.
-pub struct Activation<'a, 'gc: 'a> {
+pub struct Activation<'a, 'gc> {
     /// Amount of actions performed since the last timeout check
     actions_since_timeout_check: u16,
 
@@ -135,7 +135,7 @@ pub struct Activation<'a, 'gc: 'a> {
     /// Maximum size for the scope frame.
     max_scope_size: usize,
 
-    pub context: UpdateContext<'gc>,
+    pub context: &'a mut UpdateContext<'gc>,
 }
 
 impl<'a, 'gc> Activation<'a, 'gc> {
