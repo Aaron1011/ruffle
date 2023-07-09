@@ -1892,13 +1892,12 @@ impl Player {
     {
         self.gc_arena.borrow().mutate(|gc_context, gc_root| {
             let mut root_data = gc_root.data.write(gc_context);
-            let mouse_hovered_object = root_data.mouse_hovered_object;
-            let mouse_pressed_object = root_data.mouse_pressed_object;
             let focus_tracker = root_data.focus_tracker;
 
             let update_context = &mut *root_data;
 
             let prev_frame_rate = update_context.frame_rate;
+            update_context.update_start = Instant::now();
 
             let ret = f(update_context);
 
