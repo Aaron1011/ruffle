@@ -336,11 +336,11 @@ impl<'gc, T> GcRootData<'gc, T> {
 
 /// Convenience methods for controlling audio.
 impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
-    pub fn global_sound_transform(&self) -> &display_object::SoundTransform {
+    pub fn global_sound_transform(&self) -> &crate::display_object::SoundTransform {
         self.audio_manager.global_sound_transform()
     }
 
-    pub fn set_global_sound_transform(&mut self, sound_transform: display_object::SoundTransform) {
+    pub fn set_global_sound_transform(&mut self, sound_transform: crate::display_object::SoundTransform) {
         self.audio_manager
             .set_global_sound_transform(sound_transform);
     }
@@ -349,7 +349,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
     pub fn local_sound_transform(
         &self,
         instance: SoundInstanceHandle,
-    ) -> Option<&display_object::SoundTransform> {
+    ) -> Option<&crate::display_object::SoundTransform> {
         self.audio_manager.local_sound_transform(instance)
     }
 
@@ -357,7 +357,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
     pub fn set_local_sound_transform(
         &mut self,
         instance: SoundInstanceHandle,
-        sound_transform: display_object::SoundTransform,
+        sound_transform: crate::display_object::SoundTransform,
     ) {
         self.audio_manager
             .set_local_sound_transform(instance, sound_transform);
