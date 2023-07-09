@@ -450,7 +450,7 @@ impl<'gc> Avm1<'gc> {
         // In AVM1, we only ever execute the idle phase, and all the work that
         // would ordinarily be phased is instead run all at once in whatever order
         // the SWF requests it.
-        *context.frame_phase = FramePhase::Idle;
+        context.frame_phase = FramePhase::Idle;
 
         // AVM1 execution order is determined by the global execution list, based on instantiation order.
         let mut prev: Option<DisplayObject<'gc>> = None;
@@ -474,9 +474,9 @@ impl<'gc> Avm1<'gc> {
         // Fire "onLoadInit" events.
         context
             .load_manager
-            .movie_clip_on_load(context.action_queue);
+            .movie_clip_on_load(&mut context.action_queue);
 
-        *context.frame_phase = FramePhase::Idle;
+        context.frame_phase = FramePhase::Idle;
     }
 
     /// Adds a movie clip to the execution list.

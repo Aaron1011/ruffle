@@ -2071,12 +2071,12 @@ pub trait TDisplayObject<'gc>:
     /// Assigns a default instance name `instanceN` to this object.
     fn set_default_instance_name(&self, context: &mut UpdateContext<'gc>) {
         if self.name().is_empty() {
-            let name = format!("instance{}", *context.instance_counter);
+            let name = format!("instance{}", context.instance_counter);
             self.set_name(
                 context.gc_context,
                 AvmString::new_utf8(context.gc_context, name),
             );
-            *context.instance_counter = context.instance_counter.wrapping_add(1);
+            context.instance_counter = context.instance_counter.wrapping_add(1);
         }
     }
 

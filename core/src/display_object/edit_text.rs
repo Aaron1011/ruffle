@@ -1913,7 +1913,7 @@ impl<'gc> TInteractiveObject<'gc> for EditText<'gc> {
             tracker.set(Some(self.into()), context);
         }
         if let Some(position) = self
-            .screen_position_to_index(*context.mouse_position)
+            .screen_position_to_index(context.mouse_position)
             .map(TextSelection::for_position)
         {
             self.0.write(context.gc_context).selection = Some(position);

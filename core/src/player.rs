@@ -804,7 +804,7 @@ impl Player {
             };
 
             let ret = menu.info().clone();
-            *context.current_context_menu = Some(menu);
+            context.current_context_menu = Some(menu);
             ret
         })
     }
@@ -1325,13 +1325,13 @@ impl Player {
 
     /// Update dragged object, if any.
     pub fn update_drag(context: &mut UpdateContext<'_>) {
-        let mouse_position = *context.mouse_position;
+        let mouse_position = context.mouse_position;
         let is_action_script_3 = context.is_action_script_3();
         if let Some(drag_object) = context.drag_object {
             let display_object = drag_object.display_object;
             if !is_action_script_3 && display_object.avm1_removed() {
                 // Be sure to clear the drag if the object was removed.
-                *context.drag_object = None;
+                context.drag_object = None;
                 return;
             }
 
@@ -2613,7 +2613,7 @@ fn run_mouse_pick<'gc>(
             if context.is_action_script_3() {
                 let mut res = None;
                 if let Avm2MousePick::Hit(target) =
-                    l.mouse_pick_avm2(context, *context.mouse_position, require_button_mode)
+                    l.mouse_pick_avm2(context, context.mouse_position, require_button_mode)
                 {
                     // Flash Player appears to never target events at the root object
                     if !target.as_displayobject().is_root() {
@@ -2622,7 +2622,7 @@ fn run_mouse_pick<'gc>(
                 }
                 res
             } else {
-                l.mouse_pick_avm1(context, *context.mouse_position, require_button_mode)
+                l.mouse_pick_avm1(context, context.mouse_position, require_button_mode)
             }
         })
     })

@@ -71,26 +71,26 @@ pub enum FramePhase {
 pub fn run_all_phases_avm2(context: &mut UpdateContext<'_>) {
     let stage = context.stage;
 
-    *context.frame_phase = FramePhase::Enter;
+    context.frame_phase = FramePhase::Enter;
     Avm2::each_orphan_obj(context, |orphan, context| {
         orphan.enter_frame(context);
     });
     stage.enter_frame(context);
 
-    *context.frame_phase = FramePhase::Construct;
+    context.frame_phase = FramePhase::Construct;
     Avm2::each_orphan_obj(context, |orphan, context| {
         orphan.construct_frame(context);
     });
     stage.construct_frame(context);
     stage.frame_constructed(context);
 
-    *context.frame_phase = FramePhase::FrameScripts;
+    context.frame_phase = FramePhase::FrameScripts;
     Avm2::each_orphan_obj(context, |orphan, context| {
         orphan.run_frame_scripts(context);
     });
     stage.run_frame_scripts(context);
 
-    *context.frame_phase = FramePhase::Exit;
+    context.frame_phase = FramePhase::Exit;
     Avm2::each_orphan_obj(context, |orphan, context| {
         orphan.on_exit_frame(context);
     });
@@ -103,7 +103,7 @@ pub fn run_all_phases_avm2(context: &mut UpdateContext<'_>) {
     // a result of a RemoveObject tag - see `cleanup_dead_orphans` for details.
     Avm2::cleanup_dead_orphans(context);
 
-    *context.frame_phase = FramePhase::Idle;
+    context.frame_phase = FramePhase::Idle;
 }
 
 /// Like `run_all_phases_avm2`, but specialized for the "nested frame" triggered
@@ -119,18 +119,18 @@ pub fn run_inner_goto_frame<'gc>(
     removed_frame_scripts: &[DisplayObject<'gc>],
 ) {
     let stage = context.stage;
-    let old_phase = *context.frame_phase;
+    let old_phase = context.frame_phase;
 
     // Note - we do *not* call `enter_frame` or dispatch an `enterFrame` event
 
-    *context.frame_phase = FramePhase::Construct;
+    context.frame_phase = FramePhase::Construct;
     Avm2::each_orphan_obj(context, |orphan, context| {
         orphan.construct_frame(context);
     });
     stage.construct_frame(context);
     stage.frame_constructed(context);
 
-    *context.frame_phase = FramePhase::FrameScripts;
+    context.frame_phase = FramePhase::FrameScripts;
     stage.run_frame_scripts(context);
     Avm2::each_orphan_obj(context, |orphan, context| {
         orphan.run_frame_scripts(context);
@@ -140,7 +140,7 @@ pub fn run_inner_goto_frame<'gc>(
         child.run_frame_scripts(context);
     }
 
-    *context.frame_phase = FramePhase::Exit;
+    context.frame_phase = FramePhase::Exit;
     Avm2::each_orphan_obj(context, |orphan, context| {
         orphan.on_exit_frame(context);
     });
@@ -153,7 +153,7 @@ pub fn run_inner_goto_frame<'gc>(
     // a result of a RemoveObject tag - see `cleanup_dead_orphans` for details.
     Avm2::cleanup_dead_orphans(context);
 
-    *context.frame_phase = old_phase;
+    context.frame_phase = old_phase;
 }
 
 /// Run all previously-executed frame phases on a newly-constructed display
