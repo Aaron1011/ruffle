@@ -678,7 +678,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
             ),
             LoadBehavior::Blocking => (ExecutionLimit::none(), false),
         };
-        let preload_finished = context.preload(&mut execution_limit);
+        let preload_finished = self.preload(&mut execution_limit);
 
         if !preload_finished && !may_execute_while_streaming {
             return;
@@ -731,6 +731,10 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
         }
 
         did_finish
+    }
+
+    fn update_timers(&mut self, dt: f64) {
+        self.time_til_next_timer = Timers::update_timers(self, dt);
     }
 }
 
@@ -912,7 +916,7 @@ impl Player {
 
                 while frame < max_frames_per_tick && context.frame_accumulator >= frame_time {
                     let timer = Instant::now();
-                    self.run_frame();
+                    context.run_frame();
                     let elapsed = timer.elapsed().as_millis() as f64;
 
                     context.add_frame_timing(elapsed);
@@ -950,10 +954,8 @@ impl Player {
                     .audio_skew_time(context.audio.deref_mut(), cur_frame_offset)
                     * 1000.0;
 
-                self.update_timers(dt);
-                self.update(|context| {
-                    StreamManager::tick(context, dt);
-                });
+                context.update_timers(dt);
+                StreamManager::tick(context, dt);
                 context.audio.tick();
             }
         });
@@ -1979,7 +1981,7 @@ impl Player {
     /// Returns the approximate amount of time until the next timer tick.
     pub fn update_timers(&self, dt: f64) {
         self.mutate_with_update_context(|context| {
-            context.time_til_next_timer = Timers::update_timers(context, dt)
+            context.update_timers(dt);
         });
     }
 
