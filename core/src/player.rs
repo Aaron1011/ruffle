@@ -1779,7 +1779,8 @@ impl Player {
             // Safety - *const Mutation<'gc> and &mut Mutation<'gc> have the same layout,
             // so PlayerContext and UpdateContext do as well.
             // FIXME - do we need #[repr(C)]
-            let update_context: &mut UpdateContext<'_> = unsafe { std::mem::transmute(player_context) };
+            let update_context: &mut UpdateContext<'_> =
+                unsafe { std::mem::transmute(player_context) };
             let res = f(update_context);
 
             let player_context: &mut PlayerContext<'_> = &mut *root_write;
@@ -2378,8 +2379,6 @@ impl PlayerBuilder {
         let frame_rate = self.frame_rate.unwrap_or(12.0);
         let forced_frame_rate = self.frame_rate.is_some();
 
-        let mut interner = AvmStringInterner::new();
-
         let player: Arc<Mutex<Player>> = Arc::new_cyclic(|self_ref| {
             Mutex::new(Player {
                 #[cfg(feature = "egui")]
@@ -2390,6 +2389,7 @@ impl PlayerBuilder {
                     ArenaParameters::default(),
                     |gc_context| {
                         let dynamic_root = DynamicRootSet::new(gc_context);
+                        let mut interner = AvmStringInterner::new();
 
                         let mut init = GcContext {
                             gc_context,
@@ -2421,7 +2421,11 @@ impl PlayerBuilder {
                                     mouse_down_object: None,
                                     avm1_shared_objects: HashMap::new(),
                                     avm2_shared_objects: HashMap::new(),
-                                    stage: Stage::empty(gc_context, self.fullscreen, fake_movie.clone()),
+                                    stage: Stage::empty(
+                                        gc_context,
+                                        self.fullscreen,
+                                        fake_movie.clone(),
+                                    ),
                                     timers: Timers::new(),
                                     unbound_text_fields: Vec::new(),
                                     stream_manager: StreamManager::new(),
