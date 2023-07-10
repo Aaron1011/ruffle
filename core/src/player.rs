@@ -512,7 +512,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
         // Update the cursor if the object was removed from the stage.
         if new_cursor != MouseCursor::Arrow {
             let object_removed =
-            self.mouse_hovered_object.is_none() && self.mouse_down_object.is_none();
+                self.mouse_hovered_object.is_none() && self.mouse_down_object.is_none();
             if !object_removed {
                 mouse_cursor_needs_check = false;
                 if is_mouse_button_changed {
@@ -523,8 +523,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
             } else if mouse_cursor_needs_check {
                 mouse_cursor_needs_check = false;
                 new_cursor = MouseCursor::Arrow;
-            } else if !self.input.is_mouse_down() && (is_mouse_moved || is_mouse_button_changed)
-            {
+            } else if !self.input.is_mouse_down() && (is_mouse_moved || is_mouse_button_changed) {
                 // In every other case, the cursor remains until the user interacts with the mouse again.
                 new_cursor = MouseCursor::Arrow;
             }
@@ -540,8 +539,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
             if self.input.is_mouse_down() {
                 self.mouse_hovered_object = new_over_object;
                 if let Some(down_object) = self.mouse_down_object {
-                    if InteractiveObject::option_ptr_eq(self.mouse_down_object, cur_over_object)
-                    {
+                    if InteractiveObject::option_ptr_eq(self.mouse_down_object, cur_over_object) {
                         // Dragged from outside the clicked object to the inside.
                         events.push((
                             down_object,
@@ -669,7 +667,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
             }
             refresh
         };
-        Self::run_actions(self);
+        Player::run_actions(self);
 
         // Update mouse cursor if it has changed.
         if new_cursor != self.mouse_cursor {
@@ -1980,16 +1978,14 @@ impl Player {
         let rval = self.mutate_with_update_context(|context| {
             let rval = func(context);
 
-            Self::run_actions(context);
+            Player::run_actions(context);
+
+            // Update mouse state (check for new hovered button, etc.)
+            Self::update_drag(context);
+            context.update_mouse_state(false, false);
 
             rval
         });
-
-        // Update mouse state (check for new hovered button, etc.)
-        self.mutate_with_update_context(|context| {
-            Self::update_drag(context);
-        });
-        self.update_mouse_state(false, false);
 
         // GC
         self.gc_arena.borrow_mut().collect_debt();
