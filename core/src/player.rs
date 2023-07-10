@@ -116,6 +116,7 @@ impl StaticCallstack {
 
 #[derive(Collect)]
 #[collect(no_drop)]
+#[repr(C)]
 pub struct GcRootData<'gc, T> {
     pub gc_context: T,
 
