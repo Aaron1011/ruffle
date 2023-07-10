@@ -631,6 +631,39 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
 
         needs_render
     }
+
+    /// Get rough estimate of the max # of times we can update the frame.
+    ///
+    /// In some cases, we might want to update several times in a row.
+    /// For example, if the game runs at 60FPS, but the host runs at 30FPS
+    /// Or if for some reason the we miss a couple of frames.
+    /// However, if the code is simply slow, this is the opposite of what we want;
+    /// If run_frame() consistently takes say 100ms, we don't want `tick` to try to "catch up",
+    /// as this will only make it worse.
+    ///
+    /// This rough heuristic manages this job; for example if average run_frame()
+    /// takes more than 1/3 of frame_time, we shouldn't run it more than twice in a row.
+    /// This logic is far from perfect, as it doesn't take into account
+    /// that things like rendering also take time. But for now it's good enough.
+    fn max_frames_per_tick(&self) -> u32 {
+        const MAX_FRAMES_PER_TICK: u32 = 5;
+
+        if self.recent_run_frame_timings.is_empty() {
+            5
+        } else {
+            let frame_time = 1000.0 / self.frame_rate;
+            let average_run_frame_time = self.recent_run_frame_timings.iter().sum::<f64>()
+                / self.recent_run_frame_timings.len() as f64;
+            ((frame_time / average_run_frame_time) as u32).clamp(1, MAX_FRAMES_PER_TICK)
+        }
+    }
+
+    fn add_frame_timing(&mut self, elapsed: f64) {
+        self.recent_run_frame_timings.push_back(elapsed);
+        if self.recent_run_frame_timings.len() >= 10 {
+            self.recent_run_frame_timings.pop_front();
+        }
+    }
 }
 
 type GcArena = gc_arena::Arena<Rootable![GcRoot<'_>]>;
@@ -793,76 +826,37 @@ impl Player {
         });
     }
 
-    /// Get rough estimate of the max # of times we can update the frame.
-    ///
-    /// In some cases, we might want to update several times in a row.
-    /// For example, if the game runs at 60FPS, but the host runs at 30FPS
-    /// Or if for some reason the we miss a couple of frames.
-    /// However, if the code is simply slow, this is the opposite of what we want;
-    /// If run_frame() consistently takes say 100ms, we don't want `tick` to try to "catch up",
-    /// as this will only make it worse.
-    ///
-    /// This rough heuristic manages this job; for example if average run_frame()
-    /// takes more than 1/3 of frame_time, we shouldn't run it more than twice in a row.
-    /// This logic is far from perfect, as it doesn't take into account
-    /// that things like rendering also take time. But for now it's good enough.
-    fn max_frames_per_tick(&self) -> u32 {
-        const MAX_FRAMES_PER_TICK: u32 = 5;
-
-        self.gc_arena.borrow().mutate(|_, root| {
-            let root = root.data.read();
-            if root.recent_run_frame_timings.is_empty() {
-                5
-            } else {
-                let frame_time = 1000.0 / root.frame_rate;
-                let average_run_frame_time = root.recent_run_frame_timings.iter().sum::<f64>()
-                    / root.recent_run_frame_timings.len() as f64;
-                ((frame_time / average_run_frame_time) as u32).clamp(1, MAX_FRAMES_PER_TICK)
-            }
-        })
-    }
-
-    fn add_frame_timing(&self, elapsed: f64) {
-        self.mutate_with_update_context(|context| {
-            context.recent_run_frame_timings.push_back(elapsed);
-            if context.recent_run_frame_timings.len() >= 10 {
-                context.recent_run_frame_timings.pop_front();
-            }
-        })
-    }
-
     pub fn tick(&mut self, dt: f64) {
-        self.gc_arena.borrow().mutate(|mc, root| {
-            let mut root = &mut *root.data.write(mc);
+        self.mutate_with_update_context(|context| {
             // Don't run until preloading is complete.
             // TODO: Eventually we want to stream content similar to the Flash player.
-            if !root.audio.is_loading_complete() {
+            if !context.audio.is_loading_complete() {
                 return;
             }
 
-            if root.is_playing {
-                root.frame_accumulator += dt;
-                let frame_rate = root.frame_rate;
+            if context.is_playing {
+                context.frame_accumulator += dt;
+                let frame_rate = context.frame_rate;
                 let frame_time = 1000.0 / frame_rate;
 
-                let max_frames_per_tick = self.max_frames_per_tick();
+                let max_frames_per_tick = context.max_frames_per_tick();
                 let mut frame = 0;
 
-                while frame < max_frames_per_tick && root.frame_accumulator >= frame_time {
+                while frame < max_frames_per_tick && context.frame_accumulator >= frame_time {
                     let timer = Instant::now();
                     self.run_frame();
                     let elapsed = timer.elapsed().as_millis() as f64;
 
-                    self.add_frame_timing(elapsed);
+                    context.add_frame_timing(elapsed);
 
-                    root.frame_accumulator -= frame_time;
+                    context.frame_accumulator -= frame_time;
                     frame += 1;
                     // The script probably tried implementing an FPS limiter with a busy loop.
                     // We fooled the busy loop by pretending that more time has passed that actually did.
                     // Then we need to actually pass this time, by decreasing frame_accumulator
                     // to delay the future frame.
-                    if root.time_offset > 0 {
-                        root.frame_accumulator -= root.time_offset as f64;
+                    if context.time_offset > 0 {
+                        context.frame_accumulator -= context.time_offset as f64;
                     }
                 }
 
@@ -873,26 +867,26 @@ impl Player {
                 // Also note that in Flash, a blocking busy loop would delay setTimeout
                 // and cancel some setInterval callbacks, but here busy loops don't block
                 // so timer callbacks won't get cancelled/delayed.
-                root.time_offset = 0;
+                context.time_offset = 0;
 
                 // Sanity: If we had too many frames to tick, just reset the accumulator
                 // to prevent running at turbo speed.
-                if root.frame_accumulator >= frame_time {
-                    root.frame_accumulator = 0.0;
+                if context.frame_accumulator >= frame_time {
+                    context.frame_accumulator = 0.0;
                 }
 
                 // Adjust playback speed for next frame to stay in sync with timeline audio tracks ("stream" sounds).
-                let cur_frame_offset = root.frame_accumulator;
-                root.frame_accumulator += root
+                let cur_frame_offset = context.frame_accumulator;
+                context.frame_accumulator += context
                     .audio_manager
-                    .audio_skew_time(root.audio.deref_mut(), cur_frame_offset)
+                    .audio_skew_time(context.audio.deref_mut(), cur_frame_offset)
                     * 1000.0;
 
                 self.update_timers(dt);
                 self.update(|context| {
                     StreamManager::tick(context, dt);
                 });
-                root.audio.tick();
+                context.audio.tick();
             }
         });
     }
