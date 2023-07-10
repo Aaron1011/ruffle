@@ -233,12 +233,15 @@ pub struct GcRootData<'gc, T> {
     pub input: InputManager,
 
     pub mouse_in_stage: bool,
+    #[collect(require_static)]
     pub mouse_position: Point<Twips>,
 
     /// The current mouse cursor icon.
+    #[collect(require_static)]
     pub mouse_cursor: MouseCursor,
     pub mouse_cursor_needs_check: bool,
 
+    #[collect(require_static)]
     pub system: SystemProperties,
 
     /// The current instance ID. Used to generate default `instanceN` names.
@@ -261,7 +264,7 @@ pub struct GcRootData<'gc, T> {
     /// This is a weak reference that is upgraded and handed out in various
     /// contexts to other parts of the player. It can be used to ensure the
     /// player lives across `await` calls in async code.
-    pub self_reference: Weak<Mutex<Self>>,
+    pub player: Weak<Mutex<Self>>,
 
     /// The current frame of the main timeline, if available.
     /// The first frame is frame 1.
@@ -648,68 +651,69 @@ impl Player {
     }
 
     pub fn tick(&mut self, dt: f64) {
-        // Don't run until preloading is complete.
-        // TODO: Eventually we want to stream content similar to the Flash player.
-        if !self.audio.is_loading_complete() {
-            return;
-        }
+        self.gc_arena.borrow().mutate(|mc, root| {
+            let root = root.data.write(mc);
+            // Don't run until preloading is complete.
+            // TODO: Eventually we want to stream content similar to the Flash player.
+            if !root.audio.is_loading_complete() {
+                return;
+            }
 
-        if self.is_playing() {
-            self.frame_accumulator += dt;
-            let frame_rate = self.frame_rate;
-            let frame_time = 1000.0 / frame_rate;
+            if root.is_playing {
+                root.frame_accumulator += dt;
+                let frame_rate = root.frame_rate;
+                let frame_time = 1000.0 / frame_rate;
 
-            let max_frames_per_tick = self.max_frames_per_tick();
-            let mut frame = 0;
+                let max_frames_per_tick = self.max_frames_per_tick();
+                let mut frame = 0;
 
-            while frame < max_frames_per_tick && self.frame_accumulator >= frame_time {
-                let timer = Instant::now();
-                self.run_frame();
-                let elapsed = timer.elapsed().as_millis() as f64;
+                while frame < max_frames_per_tick && root.frame_accumulator >= frame_time {
+                    let timer = Instant::now();
+                    self.run_frame();
+                    let elapsed = timer.elapsed().as_millis() as f64;
 
-                self.add_frame_timing(elapsed);
+                    self.add_frame_timing(elapsed);
 
-                self.frame_accumulator -= frame_time;
-                frame += 1;
-                // The script probably tried implementing an FPS limiter with a busy loop.
-                // We fooled the busy loop by pretending that more time has passed that actually did.
-                // Then we need to actually pass this time, by decreasing frame_accumulator
-                // to delay the future frame.
-                if self.time_offset > 0 {
-                    self.frame_accumulator -= self.time_offset as f64;
+                    root.frame_accumulator -= frame_time;
+                    frame += 1;
+                    // The script probably tried implementing an FPS limiter with a busy loop.
+                    // We fooled the busy loop by pretending that more time has passed that actually did.
+                    // Then we need to actually pass this time, by decreasing frame_accumulator
+                    // to delay the future frame.
+                    if root.time_offset > 0 {
+                        root.frame_accumulator -= root.time_offset as f64;
+                    }
                 }
-            }
 
-            // Now that we're done running code,
-            // we can stop pretending that more time passed than actually did.
-            // Note: update_timers(dt) doesn't need to see this either.
-            // Timers will run at correct times and see correct time.
-            // Also note that in Flash, a blocking busy loop would delay setTimeout
-            // and cancel some setInterval callbacks, but here busy loops don't block
-            // so timer callbacks won't get cancelled/delayed.
-            self.time_offset = 0;
+                // Now that we're done running code,
+                // we can stop pretending that more time passed than actually did.
+                // Note: update_timers(dt) doesn't need to see this either.
+                // Timers will run at correct times and see correct time.
+                // Also note that in Flash, a blocking busy loop would delay setTimeout
+                // and cancel some setInterval callbacks, but here busy loops don't block
+                // so timer callbacks won't get cancelled/delayed.
+                root.time_offset = 0;
 
-            // Sanity: If we had too many frames to tick, just reset the accumulator
-            // to prevent running at turbo speed.
-            if self.frame_accumulator >= frame_time {
-                self.frame_accumulator = 0.0;
-            }
+                // Sanity: If we had too many frames to tick, just reset the accumulator
+                // to prevent running at turbo speed.
+                if root.frame_accumulator >= frame_time {
+                    root.frame_accumulator = 0.0;
+                }
 
-            // Adjust playback speed for next frame to stay in sync with timeline audio tracks ("stream" sounds).
-            let cur_frame_offset = self.frame_accumulator;
-            self.frame_accumulator += self.mutate_with_update_context(|context| {
-                context
+                // Adjust playback speed for next frame to stay in sync with timeline audio tracks ("stream" sounds).
+                let cur_frame_offset = root.frame_accumulator;
+                root.frame_accumulator += root
                     .audio_manager
-                    .audio_skew_time(context.audio, cur_frame_offset)
-                    * 1000.0
-            });
+                    .audio_skew_time(root.audio.deref_mut(), cur_frame_offset)
+                    * 1000.0;
 
-            self.update_timers(dt);
-            self.update(|context| {
-                StreamManager::tick(context, dt);
-            });
-            self.audio.tick();
-        }
+                self.update_timers(dt);
+                self.update(|context| {
+                    StreamManager::tick(context, dt);
+                });
+                self.audio.tick();
+            }
+        });
     }
     pub fn time_til_next_timer(&self) -> Option<f64> {
         self.time_til_next_timer
@@ -737,25 +741,35 @@ impl Player {
     }
 
     pub fn is_playing(&self) -> bool {
-        self.is_playing
+        self.gc_arena
+            .borrow()
+            .mutate(|_, root| root.data.read().is_playing)
     }
 
     pub fn mouse_in_stage(&self) -> bool {
-        self.mouse_in_stage
+        self.gc_arena
+            .borrow()
+            .mutate(|_, root| root.data.read().mouse_in_stage)
     }
 
     pub fn set_mouse_in_stage(&mut self, is_in: bool) {
-        self.mouse_in_stage = is_in;
+        self.gc_arena
+            .borrow()
+            .mutate(|mc, root| root.data.write(mc).mouse_in_stage = is_in);
     }
 
     /// Returns the master volume of the player. 1.0 is 100% volume.
     pub fn volume(&self) -> f32 {
-        self.audio.volume()
+        self.gc_arena
+            .borrow()
+            .mutate(|_, root| root.data.read().audio.volume())
     }
 
     /// Sets the master volume of the player. 1.0 is 100% volume.
     pub fn set_volume(&mut self, volume: f32) {
-        self.audio.set_volume(volume)
+        self.gc_arena
+            .borrow()
+            .mutate(|mc, root| root.data.write(mc).audio.set_volume(volume));
     }
 
     pub fn prepare_context_menu(&mut self) -> Vec<ContextMenuItem> {
@@ -1762,7 +1776,7 @@ impl Player {
 
     // The frame rate of the current movie in FPS.
     pub fn frame_rate(&self) -> f64 {
-        self.frame_rate
+        self.gc_arena.borrow().frame_rate
     }
 
     pub fn renderer(&self) -> &Renderer {
@@ -1890,7 +1904,7 @@ impl Player {
 
     /// Runs the closure `f` with an `UpdateContext`.
     /// This takes cares of populating the `UpdateContext` struct, avoiding borrow issues.
-    pub(crate) fn mutate_with_update_context<F, R>(&mut self, f: F) -> R
+    pub(crate) fn mutate_with_update_context<F, R>(&self, f: F) -> R
     where
         F: for<'a, 'gc> FnOnce(&mut UpdateContext<'gc>) -> R,
     {
@@ -2015,7 +2029,7 @@ impl Player {
 
     /// Update all AVM-based timers (such as created via setInterval).
     /// Returns the approximate amount of time until the next timer tick.
-    pub fn update_timers(&mut self, dt: f64) {
+    pub fn update_timers(&self, dt: f64) {
         self.time_til_next_timer =
             self.mutate_with_update_context(|context| Timers::update_timers(context, dt));
     }
@@ -2367,7 +2381,7 @@ impl PlayerBuilder {
         };
         let dynamic_root = DynamicRootSet::new(gc_context);
 
-        let player = Arc::new_cyclic(|self_ref| {
+        let player: Arc<Mutex<Player>> = Arc::new_cyclic(|self_ref| {
             Mutex::new(Player {
                 #[cfg(feature = "egui")]
                 debug_ui: Default::default(),
@@ -2451,7 +2465,7 @@ impl PlayerBuilder {
                                     is_playing: self.autoplay,
                                     needs_render: true,
                                     warn_on_unsupported_content: self.warn_on_unsupported_content,
-                                    self_reference: self_ref.clone(),
+                                    player: self_ref.clone(),
                                     load_behavior: self.load_behavior,
                                     spoofed_url: self.spoofed_url.clone(),
                                     compatibility_rules: self.compatibility_rules.clone(),
