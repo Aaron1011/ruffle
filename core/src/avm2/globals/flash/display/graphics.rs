@@ -14,6 +14,7 @@ use crate::drawing::Drawing;
 use crate::string::{AvmString, WStr};
 use ruffle_render::shape_utils::{DrawCommand, GradientType};
 use std::f64::consts::FRAC_1_SQRT_2;
+use std::ops::DerefMut;
 use swf::{
     Color, FillStyle, Fixed16, Fixed8, Gradient, GradientInterpolation, GradientRecord,
     GradientSpread, LineCapStyle, LineJoinStyle, LineStyle, Matrix, Point, Twips,
