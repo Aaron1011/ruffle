@@ -401,7 +401,7 @@ impl<'gc> Context3DObject<'gc> {
 
         let context: &mut dyn Context3D = write.render_context.as_deref_mut().unwrap();
 
-        activation.context.renderer.context3d_present(context)?;
+        activation.context.renderer.deref_mut().context3d_present(context)?;
         Ok(())
     }
 

@@ -13,7 +13,7 @@ pub fn request_context3d_internal<'gc>(
 ) -> Result<Value<'gc>, Error<'gc>> {
     let this_stage3d = this.as_stage_3d().unwrap();
     if this_stage3d.context3d().is_none() {
-        let context = activation.context.renderer.create_context3d()?;
+        let context = activation.context.renderer.deref_mut().create_context3d()?;
         let context3d_obj = Context3DObject::from_context(activation, context)?;
         this_stage3d.set_context3d(context3d_obj, activation.context.gc_context);
 

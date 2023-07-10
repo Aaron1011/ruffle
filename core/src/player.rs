@@ -1042,19 +1042,19 @@ impl Player {
     /// 8. Mouse state is updated. This triggers button rollovers, which are a
     ///    second wave of event processing.
     pub fn handle_event(&mut self, event: PlayerEvent) {
-        let prev_is_mouse_down = self.input.is_mouse_down();
-        self.input.handle_event(&event);
-        let is_mouse_button_changed = self.input.is_mouse_down() != prev_is_mouse_down;
+        self.mutate_with_update_context(|context| {
+            let prev_is_mouse_down = context.input.is_mouse_down();
+            context.input.handle_event(&event);
+            let is_mouse_button_changed = context.input.is_mouse_down() != prev_is_mouse_down;
 
-        if cfg!(feature = "avm_debug") {
-            match event {
-                PlayerEvent::KeyDown {
-                    key_code: KeyCode::V,
-                    ..
-                } if self.input.is_key_down(KeyCode::Control)
-                    && self.input.is_key_down(KeyCode::Alt) =>
-                {
-                    self.mutate_with_update_context(|context| {
+            if cfg!(feature = "avm_debug") {
+                match event {
+                    PlayerEvent::KeyDown {
+                        key_code: KeyCode::V,
+                        ..
+                    } if context.input.is_key_down(KeyCode::Control)
+                        && context.input.is_key_down(KeyCode::Alt) =>
+                    {
                         let mut dumper = VariableDumper::new("  ");
 
                         let mut activation = Activation::from_stub(
@@ -1080,15 +1080,13 @@ impl Player {
                             );
                         }
                         tracing::info!("Variable dump:\n{}", dumper.output());
-                    });
-                }
-                PlayerEvent::KeyDown {
-                    key_code: KeyCode::D,
-                    ..
-                } if self.input.is_key_down(KeyCode::Control)
-                    && self.input.is_key_down(KeyCode::Alt) =>
-                {
-                    self.mutate_with_update_context(|context| {
+                    }
+                    PlayerEvent::KeyDown {
+                        key_code: KeyCode::D,
+                        ..
+                    } if context.input.is_key_down(KeyCode::Control)
+                        && context.input.is_key_down(KeyCode::Alt) =>
+                    {
                         if context.avm1.show_debug_output() {
                             tracing::info!(
                                 "AVM Debugging turned off! Press CTRL+ALT+D to turn on again."
@@ -1102,23 +1100,19 @@ impl Player {
                             context.avm1.set_show_debug_output(true);
                             context.avm2.set_show_debug_output(true);
                         }
-                    });
-                }
-                PlayerEvent::KeyDown {
-                    key_code: KeyCode::F,
-                    ..
-                } if self.input.is_key_down(KeyCode::Control)
-                    && self.input.is_key_down(KeyCode::Alt) =>
-                {
-                    self.mutate_with_update_context(|context| {
+                    }
+                    PlayerEvent::KeyDown {
+                        key_code: KeyCode::F,
+                        ..
+                    } if context.input.is_key_down(KeyCode::Control)
+                        && context.input.is_key_down(KeyCode::Alt) =>
+                    {
                         context.stage.display_render_tree(0);
-                    });
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
-        }
 
-        self.mutate_with_update_context(|context| {
             // Propagate button events.
             let button_event = match event {
                 // ASCII characters convert directly to keyPress button events.
@@ -1283,41 +1277,37 @@ impl Player {
             }
 
             Self::run_actions(context);
-        });
 
-        // Update mouse state.
-        if let PlayerEvent::MouseMove { x, y }
-        | PlayerEvent::MouseDown {
-            x,
-            y,
-            button: MouseButton::Left,
-        }
-        | PlayerEvent::MouseUp {
-            x,
-            y,
-            button: MouseButton::Left,
-        } = event
-        {
-            let inverse_view_matrix =
-                self.mutate_with_update_context(|context| context.stage.inverse_view_matrix());
-            let prev_mouse_position = self.mouse_position;
-            self.mouse_position = inverse_view_matrix * Point::from_pixels(x, y);
-
-            // Update the dragged object here to keep it constantly in sync with the mouse position.
-            self.mutate_with_update_context(|context| {
-                Self::update_drag(context);
-            });
-
-            let is_mouse_moved = prev_mouse_position != self.mouse_position;
-
-            // This fires button rollover/press events, which should run after the above mouseMove events.
-            if self.update_mouse_state(is_mouse_button_changed, is_mouse_moved) {
-                self.needs_render = true;
+            // Update mouse state.
+            if let PlayerEvent::MouseMove { x, y }
+            | PlayerEvent::MouseDown {
+                x,
+                y,
+                button: MouseButton::Left,
             }
-        }
+            | PlayerEvent::MouseUp {
+                x,
+                y,
+                button: MouseButton::Left,
+            } = event
+            {
+                let inverse_view_matrix = context.stage.inverse_view_matrix();
+                let prev_mouse_position = context.mouse_position;
+                context.mouse_position = inverse_view_matrix * Point::from_pixels(x, y);
 
-        if let PlayerEvent::MouseWheel { delta } = event {
-            self.mutate_with_update_context(|context: &mut GcRootData<'_, &Mutation<'_>>| {
+                // Update the dragged object here to keep it constantly in sync with the mouse position.
+
+                Self::update_drag(context);
+
+                let is_mouse_moved = prev_mouse_position != context.mouse_position;
+
+                // This fires button rollover/press events, which should run after the above mouseMove events.
+                if self.update_mouse_state(is_mouse_button_changed, is_mouse_moved) {
+                    context.needs_render = true;
+                }
+            }
+
+            if let PlayerEvent::MouseWheel { delta } = event {
                 if let Some(over_object) = context.mouse_hovered_object {
                     if context.is_action_script_3()
                         || !over_object.as_displayobject().avm1_removed()
@@ -1329,21 +1319,21 @@ impl Player {
                         .stage
                         .handle_clip_event(context, ClipEvent::MouseWheel { delta });
                 }
-            });
-        }
-
-        if let PlayerEvent::MouseLeave = event {
-            if self.update_mouse_state(is_mouse_button_changed, true) {
-                self.needs_render = true;
             }
-        }
+
+            if let PlayerEvent::MouseLeave = event {
+                if self.update_mouse_state(is_mouse_button_changed, true) {
+                    context.needs_render = true;
+                }
+            }
+        });
     }
 
     /// Update dragged object, if any.
     pub fn update_drag(context: &mut UpdateContext<'_>) {
         let mouse_position = context.mouse_position;
         let is_action_script_3 = context.is_action_script_3();
-        if let Some(drag_object) = context.drag_object {
+        if let Some(drag_object) = &mut context.drag_object {
             let display_object = drag_object.display_object;
             if !is_action_script_3 && display_object.avm1_removed() {
                 // Be sure to clear the drag if the object was removed.

@@ -113,7 +113,7 @@ pub fn get_shader_args<'gc>(
 
                         Some(bitmap.bitmap_handle(
                             activation.context.gc_context,
-                            activation.context.renderer,
+                            activation.context.renderer.deref_mut(),
                         ))
                     };
 
@@ -163,10 +163,10 @@ pub fn start<'gc>(
     // Perform both a GPU->CPU and CPU->GPU sync before writing to it.
     // FIXME - are both necessary?
     let mut target_bitmap_data = target_bitmap.write(activation.context.gc_context);
-    target_bitmap_data.update_dirty_texture(activation.context.renderer);
+    target_bitmap_data.update_dirty_texture(activation.context.renderer.deref_mut());
 
     let target_handle = target_bitmap_data
-        .bitmap_handle(activation.context.renderer)
+        .bitmap_handle(activation.context.renderer.deref_mut())
         .expect("Missing handle");
 
     let sync_handle = activation

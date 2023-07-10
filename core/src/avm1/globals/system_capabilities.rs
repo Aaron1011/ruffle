@@ -143,7 +143,7 @@ pub fn get_screen_resolution_x<'gc>(
     _this: Object<'gc>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
-    let viewport_dimensions = activation.context.renderer.viewport_dimensions();
+    let viewport_dimensions = activation.context.renderer.deref_mut().viewport_dimensions();
     // Viewport size is adjusted for HiDPI.
     let adjusted_width = f64::from(viewport_dimensions.width) / viewport_dimensions.scale_factor;
     Ok(adjusted_width.round().into())
@@ -154,7 +154,7 @@ pub fn get_screen_resolution_y<'gc>(
     _this: Object<'gc>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
-    let viewport_dimensions = activation.context.renderer.viewport_dimensions();
+    let viewport_dimensions = activation.context.renderer.deref_mut().viewport_dimensions();
     // Viewport size is adjusted for HiDPI.
     let adjusted_height = f64::from(viewport_dimensions.height) / viewport_dimensions.scale_factor;
     Ok(adjusted_height.round().into())

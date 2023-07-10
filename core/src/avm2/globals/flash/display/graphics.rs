@@ -64,7 +64,7 @@ pub fn begin_bitmap_fill<'gc>(
         let is_smoothed = args.get_bool(3);
 
         let handle =
-            bitmap.bitmap_handle(activation.context.gc_context, activation.context.renderer);
+            bitmap.bitmap_handle(activation.context.gc_context, activation.context.renderer.deref_mut());
 
         let bitmap = ruffle_render::bitmap::BitmapInfo {
             handle,
@@ -997,7 +997,7 @@ pub fn line_bitmap_style<'gc>(
         let is_smoothed = args.get_bool(3);
 
         let handle =
-            bitmap.bitmap_handle(activation.context.gc_context, activation.context.renderer);
+            bitmap.bitmap_handle(activation.context.gc_context, activation.context.renderer.deref_mut());
 
         let bitmap = ruffle_render::bitmap::BitmapInfo {
             handle,
