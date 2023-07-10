@@ -612,7 +612,7 @@ impl<'gc> MovieClip<'gc> {
                 TagCode::ScriptLimits => self
                     .0
                     .write(context.gc_context)
-                    .script_limits(reader, context.avm1),
+                    .script_limits(reader, &mut context.avm1),
                 TagCode::SoundStreamHead => {
                     self.0
                         .write(context.gc_context)

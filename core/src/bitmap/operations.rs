@@ -17,6 +17,7 @@ use ruffle_render::matrix::Matrix;
 use ruffle_render::quality::StageQuality;
 use ruffle_render::transform::Transform;
 use std::cell::{Ref, RefMut};
+use std::ops::DerefMut;
 use swf::{BlendMode, ColorTransform, Fixed8, Rectangle, Twips};
 
 /// AVM1 and AVM2 have a shared set of operations they can perform on BitmapDatas.
@@ -1194,10 +1195,10 @@ pub fn apply_filter<'gc>(
         return;
     }
 
-    let source_handle = source.bitmap_handle(context.gc_context, context.renderer);
+    let source_handle = source.bitmap_handle(context.gc_context, context.renderer.deref_mut());
     let (target, _) = target.overwrite_cpu_pixels_from_gpu(context.gc_context);
     let mut write = target.write(context.gc_context);
-    let dest = write.bitmap_handle(context.renderer).unwrap();
+    let dest = write.bitmap_handle(context.renderer.deref_mut()).unwrap();
 
     let sync_handle = context.renderer.apply_filter(
         source_handle,
@@ -1512,7 +1513,10 @@ pub fn draw<'gc>(
         render_context.commands.pop_mask();
     }
 
-    let handle = target.bitmap_handle(render_context.gc_context, render_context.renderer);
+    let handle = target.bitmap_handle(
+        render_context.gc_context,
+        render_context.renderer.deref_mut(),
+    );
 
     let commands = if blend_mode == BlendMode::Normal {
         render_context.commands

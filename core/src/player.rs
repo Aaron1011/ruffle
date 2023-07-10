@@ -1766,9 +1766,14 @@ impl Player {
     }
 
     fn access_data<R>(&self, f: impl FnOnce(&UpdateContext<'_>) -> R) -> R {
-        self.gc_arena
-            .borrow()
-            .mutate(|_, root| f(&*root.data.read()))
+        self.gc_arena.borrow().mutate(|_, root| {
+            let player_context: &PlayerContext<'_> = &*root.data.read();
+            // Safety - *const Mutation<'gc> and &mut Mutation<'gc> have the same layout,
+            // so PlayerContext and UpdateContext do as well.
+            // FIXME - do we need #[repr(C)]
+            let update_context: &UpdateContext<'_> = unsafe { std::mem::transmute(player_context) };
+            f(update_context)
+        })
     }
 
     /// The current frame of the main timeline, if available.
@@ -1887,22 +1892,26 @@ impl Player {
             let mut root_data = gc_root.data.write(gc_context);
             let focus_tracker = root_data.focus_tracker;
 
-            let update_context = &mut *root_data;
+            let player_context: &mut PlayerContext<'_> = &mut *root_data;
 
-            let prev_frame_rate = update_context.frame_rate;
-            update_context.update_start = Instant::now();
+            let prev_frame_rate = player_context.frame_rate;
+            player_context.update_start = Instant::now();
+
+            // FIXME - explain safety
+            let update_context: &mut UpdateContext<'_> =
+                unsafe { std::mem::transmute(player_context) };
 
             let ret = f(update_context);
 
             // If we changed the framerate, let the audio handler now.
             #[allow(clippy::float_cmp)]
-            if update_context.frame_rate != prev_frame_rate {
-                update_context
+            if player_context.frame_rate != prev_frame_rate {
+                player_context
                     .audio
-                    .set_frame_rate(update_context.frame_rate);
+                    .set_frame_rate(player_context.frame_rate);
             }
 
-            update_context.current_frame = update_context
+            player_context.current_frame = player_context
                 .stage
                 .root_clip()
                 .and_then(|root| root.as_movie_clip())
@@ -2360,7 +2369,7 @@ impl PlayerBuilder {
                     ArenaParameters::default(),
                     |gc_context| {
                         let dynamic_root = DynamicRootSet::new(gc_context);
-                        
+
                         let mut init = GcContext {
                             gc_context,
                             interner: &mut interner,
@@ -2371,6 +2380,8 @@ impl PlayerBuilder {
                             data: GcCell::new(
                                 gc_context,
                                 GcRootData {
+                                    // FIXME - when do we reset this
+                                    times_get_time_called: 0,
                                     update_start: Instant::now(),
                                     audio_manager: AudioManager::new(),
                                     action_queue: ActionQueue::new(),

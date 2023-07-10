@@ -606,7 +606,7 @@ impl<'a, 'gc> Activation<'a, 'gc> {
     }
 
     pub fn avm2(&mut self) -> &mut Avm2<'gc> {
-        self.context.avm2
+        &mut self.context.avm2
     }
 
     #[inline]

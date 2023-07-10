@@ -675,8 +675,9 @@ impl<'gc> Loader<'gc> {
                 player
                     .lock()
                     .unwrap()
-                    .ui()
-                    .display_root_movie_download_failed_message();
+                    .mutate_with_update_context(|context| {
+                        context.ui.display_root_movie_download_failed_message()
+                    });
                 error
             })?;
 

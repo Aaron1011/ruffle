@@ -3,6 +3,7 @@ use ruffle_render::filters::{
     DisplacementMapFilter, DisplacementMapFilterMode, Filter, ShaderFilter, ShaderObject,
 };
 use std::fmt::Debug;
+use std::ops::DerefMut;
 use swf::{
     BevelFilter, BevelFilterFlags, BlurFilter, BlurFilterFlags, Color, ColorMatrixFilter,
     ConvolutionFilter, ConvolutionFilterFlags, DropShadowFilter, DropShadowFilterFlags, Fixed16,
@@ -828,7 +829,7 @@ fn shader_filter_to_avm2<'gc>(
         .downcast_ref::<ObjectWrapper>()
         .expect("ShaderObject was not an ObjectWrapper");
 
-    let obj = activation.context.dynamic_root.fetch(&object_wrapper.root);
+    let obj = *activation.context.dynamic_root.fetch(&object_wrapper.root);
     activation
         .avm2()
         .classes()

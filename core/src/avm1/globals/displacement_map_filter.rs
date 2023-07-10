@@ -12,6 +12,7 @@ use gc_arena::{Collect, GcCell, MutationContext};
 use ruffle_render::filters::DisplacementMapFilterMode;
 use std::convert::Infallible;
 use std::fmt::Debug;
+use std::ops::DerefMut;
 use swf::{Color, Point};
 
 #[derive(Copy, Clone, Collect, Debug, Default)]
@@ -311,7 +312,7 @@ impl<'gc> DisplacementMapFilter<'gc> {
             component_y: filter.component_y as u8,
             map_bitmap: filter
                 .map_bitmap
-                .map(|b| b.bitmap_handle(context.gc_context, context.renderer)),
+                .map(|b| b.bitmap_handle(context.gc_context, context.renderer.deref_mut())),
             map_point: (filter.map_point.x, filter.map_point.y),
             mode: filter.mode.into(),
             scale_x: filter.scale_x,

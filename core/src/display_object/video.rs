@@ -12,6 +12,7 @@ use crate::streams::NetStream;
 use crate::tag_utils::{SwfMovie, SwfSlice};
 use crate::vminterface::{AvmObject, Instantiator};
 use core::fmt;
+use std::ops::DerefMut;
 use gc_arena::{Collect, GcCell, MutationContext};
 use ruffle_render::bitmap::BitmapInfo;
 use ruffle_render::commands::CommandHandler;
