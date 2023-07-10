@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use crate::avm2::object::Context3DObject;
 use crate::avm2::object::TObject;
 

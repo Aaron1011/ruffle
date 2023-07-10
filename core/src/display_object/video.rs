@@ -323,9 +323,11 @@ impl<'gc> Video<'gc> {
                         data: &read.movie.data()[*slice_start..*slice_end],
                         frame_id,
                     };
-                    context
-                        .video
-                        .decode_video_stream_frame(*stream, encframe, context.renderer)
+                    context.video.decode_video_stream_frame(
+                        *stream,
+                        encframe,
+                        context.renderer.deref_mut(),
+                    )
                 }
                 None => {
                     if let Some((_old_id, old_frame)) = read.decoded_frame.clone() {

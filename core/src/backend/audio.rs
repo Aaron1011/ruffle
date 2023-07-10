@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use crate::{
     avm1::SoundObject,
     avm2::{Avm2, EventObject as Avm2EventObject, SoundChannelObject},

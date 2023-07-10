@@ -113,6 +113,9 @@ impl StaticCallstack {
 pub struct GcRootData<'gc, T> {
     pub gc_context: T,
 
+    /// How many times getTimer() was called so far. Used to detect busy-loops.
+    pub times_get_time_called: u32,
+
     pub library: Library<'gc>,
 
     /// The root of the display object hierarchy.
@@ -2346,7 +2349,6 @@ impl PlayerBuilder {
         let forced_frame_rate = self.frame_rate.is_some();
 
         let mut interner = AvmStringInterner::new();
-        let dynamic_root = DynamicRootSet::new(gc_context);
 
         let player: Arc<Mutex<Player>> = Arc::new_cyclic(|self_ref| {
             Mutex::new(Player {
@@ -2357,6 +2359,8 @@ impl PlayerBuilder {
                 gc_arena: Rc::new(RefCell::new(GcArena::new(
                     ArenaParameters::default(),
                     |gc_context| {
+                        let dynamic_root = DynamicRootSet::new(gc_context);
+                        
                         let mut init = GcContext {
                             gc_context,
                             interner: &mut interner,

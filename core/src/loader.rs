@@ -666,7 +666,10 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().navigator().fetch(request);
+            let fetch = player
+                .lock()
+                .unwrap()
+                .mutate_with_update_context(|context| context.navigator.fetch(request));
 
             let response = fetch.await.map_err(|error| {
                 player
@@ -862,9 +865,10 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
-                context.navigator.fetch(request)
-            });
+            let fetch = player
+                .lock()
+                .unwrap()
+                .mutate_with_update_context(|context| context.navigator.fetch(request));
 
             let response = fetch.await?;
 
@@ -877,10 +881,8 @@ impl<'gc> Loader<'gc> {
                     _ => return Err(Error::NotFormLoader),
                 };
 
-                let mut activation = Activation::from_stub(
-                    uc,
-                    ActivationIdentifier::root("[Form Loader]"),
-                );
+                let mut activation =
+                    Activation::from_stub(uc, ActivationIdentifier::root("[Form Loader]"));
 
                 for (k, v) in form_urlencoded::parse(&response.body) {
                     let k = AvmString::new_utf8(activation.context.gc_context, k);
@@ -927,9 +929,10 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
-                context.navigator.fetch(request)
-            });
+            let fetch = player
+                .lock()
+                .unwrap()
+                .mutate_with_update_context(|context| context.navigator.fetch(request));
 
             let data = fetch.await;
 
@@ -1030,9 +1033,10 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
-                context.navigator.fetch(request)
-            });
+            let fetch = player
+                .lock()
+                .unwrap()
+                .mutate_with_update_context(|context| context.navigator.fetch(request));
             let response = fetch.await;
 
             player.lock().unwrap().update(|uc| {
@@ -1211,9 +1215,10 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
-                context.navigator.fetch(request)
-            });
+            let fetch = player
+                .lock()
+                .unwrap()
+                .mutate_with_update_context(|context| context.navigator.fetch(request));
             let data = fetch.await;
 
             // Fire the load handler.
@@ -1275,9 +1280,10 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
-                context.navigator.fetch(request)
-            });
+            let fetch = player
+                .lock()
+                .unwrap()
+                .mutate_with_update_context(|context| context.navigator.fetch(request));
             let response = fetch.await;
 
             player.lock().unwrap().update(|uc| {
@@ -1354,9 +1360,10 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
-                context.navigator.fetch(request)
-            });
+            let fetch = player
+                .lock()
+                .unwrap()
+                .mutate_with_update_context(|context| context.navigator.fetch(request));
             let response = fetch.await;
 
             player.lock().unwrap().update(|uc| {
