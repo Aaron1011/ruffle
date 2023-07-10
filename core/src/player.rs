@@ -59,6 +59,7 @@ use ruffle_render::commands::CommandList;
 use ruffle_render::quality::StageQuality;
 use ruffle_render::transform::TransformStack;
 use ruffle_video::backend::VideoBackend;
+use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::ops::DerefMut;
@@ -378,7 +379,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
         avm1_object: Option<crate::avm1::SoundObject<'gc>>,
     ) -> Option<SoundInstanceHandle> {
         self.audio_manager
-            .start_sound(&mut self.audio, sound, settings, owner, avm1_object)
+            .start_sound(self.audio.deref_mut(), sound, settings, owner, avm1_object)
     }
 
     pub fn attach_avm2_sound_channel(
@@ -391,21 +392,21 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
     }
 
     pub fn stop_sound(&mut self, instance: SoundInstanceHandle) {
-        self.audio_manager.stop_sound(&mut self.audio, instance)
+        self.audio_manager.stop_sound(self.audio.deref_mut(), instance)
     }
 
     pub fn stop_sounds_with_handle(&mut self, sound: SoundHandle) {
         self.audio_manager
-            .stop_sounds_with_handle(&mut self.audio, sound)
+            .stop_sounds_with_handle(self.audio.deref_mut(), sound)
     }
 
     pub fn stop_sounds_with_display_object(&mut self, display_object: DisplayObject<'gc>) {
         self.audio_manager
-            .stop_sounds_with_display_object(&mut self.audio, display_object)
+            .stop_sounds_with_display_object(self.audio.deref_mut(), display_object)
     }
 
     pub fn stop_all_sounds(&mut self) {
-        self.audio_manager.stop_all_sounds(&mut self.audio)
+        self.audio_manager.stop_all_sounds(self.audio.deref_mut())
     }
 
     pub fn is_sound_playing(&mut self, sound: SoundInstanceHandle) -> bool {
@@ -1750,10 +1751,16 @@ impl Player {
         self.needs_render = false;
     }
 
+    fn access_data<R>(&self, f: impl FnOnce(&UpdateContext<'_>) -> R) -> R{
+        self.gc_arena.borrow().mutate(|_, root| {
+            f(&*root.data.read())
+        })
+    }
+
     /// The current frame of the main timeline, if available.
     /// The first frame is frame 1.
     pub fn current_frame(&self) -> Option<u16> {
-        self.current_frame
+        self.access_data(|context| context.current_frame)
     }
 
     pub fn audio(&self) -> &Audio {
@@ -1770,7 +1777,7 @@ impl Player {
 
     // The frame rate of the current movie in FPS.
     pub fn frame_rate(&self) -> f64 {
-        self.gc_arena.borrow().frame_rate
+        self.access_data(|context| context.frame_rate)
     }
 
     pub fn renderer(&self) -> &Renderer {
