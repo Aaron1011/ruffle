@@ -634,7 +634,7 @@ impl Player {
     fn max_frames_per_tick(&self) -> u32 {
         const MAX_FRAMES_PER_TICK: u32 = 5;
 
-        let data = self.gc_arena.borrow().mutate(|_, root| {
+        self.gc_arena.borrow().mutate(|_, root| {
             let root = root.data.read();
             if root.recent_run_frame_timings.is_empty() {
                 5
@@ -644,7 +644,8 @@ impl Player {
                     / root.recent_run_frame_timings.len() as f64;
                 ((frame_time / average_run_frame_time) as u32).clamp(1, MAX_FRAMES_PER_TICK)
             }
-        });
+        })
+    }
 
     fn add_frame_timing(&mut self, elapsed: f64) {
         self.recent_run_frame_timings.push_back(elapsed);
