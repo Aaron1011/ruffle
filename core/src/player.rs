@@ -1532,7 +1532,7 @@ impl Player {
                 let is_mouse_moved = prev_mouse_position != context.mouse_position;
 
                 // This fires button rollover/press events, which should run after the above mouseMove events.
-                if self.update_mouse_state(is_mouse_button_changed, is_mouse_moved) {
+                if context.update_mouse_state(is_mouse_button_changed, is_mouse_moved) {
                     context.needs_render = true;
                 }
             }
@@ -1552,7 +1552,7 @@ impl Player {
             }
 
             if let PlayerEvent::MouseLeave = event {
-                if self.update_mouse_state(is_mouse_button_changed, true) {
+                if context.update_mouse_state(is_mouse_button_changed, true) {
                     context.needs_render = true;
                 }
             }
