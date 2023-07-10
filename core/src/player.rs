@@ -59,7 +59,6 @@ use ruffle_render::commands::CommandList;
 use ruffle_render::quality::StageQuality;
 use ruffle_render::transform::TransformStack;
 use ruffle_video::backend::VideoBackend;
-use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::ops::DerefMut;
@@ -392,7 +391,8 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
     }
 
     pub fn stop_sound(&mut self, instance: SoundInstanceHandle) {
-        self.audio_manager.stop_sound(self.audio.deref_mut(), instance)
+        self.audio_manager
+            .stop_sound(self.audio.deref_mut(), instance)
     }
 
     pub fn stop_sounds_with_handle(&mut self, sound: SoundHandle) {
@@ -426,7 +426,7 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
         stream_info: &swf::SoundStreamHead,
     ) -> Option<SoundInstanceHandle> {
         self.audio_manager.start_stream(
-            &mut self.audio,
+            self.audio.deref_mut(),
             stream_handle,
             movie_clip,
             frame,
@@ -514,22 +514,22 @@ impl Player {
     /// previous stage contents. If you need to load a new root movie, you
     /// should destroy and recreate the player instance.
     pub fn set_root_movie(&mut self, movie: SwfMovie) {
-        if !self.forced_frame_rate {
-            self.frame_rate = movie.frame_rate().into();
-        }
-
-        info!(
-            "Loaded SWF version {}, resolution {}x{} @ {} FPS",
-            movie.version(),
-            movie.width(),
-            movie.height(),
-            self.frame_rate(),
-        );
-
-        self.swf = Arc::new(movie);
-        self.instance_counter = 0;
-
         self.mutate_with_update_context(|context| {
+            if !context.forced_frame_rate {
+                context.frame_rate = movie.frame_rate().into();
+            }
+
+            info!(
+                "Loaded SWF version {}, resolution {}x{} @ {} FPS",
+                movie.version(),
+                movie.width(),
+                movie.height(),
+                context.frame_rate
+            );
+
+            context.swf = Arc::new(movie);
+            context.instance_counter = 0;
+
             context.stage.set_movie_size(
                 context.gc_context,
                 context.swf.width().to_pixels() as u32,
@@ -589,7 +589,8 @@ impl Player {
 
             // Load and parse the device font.
             if context.library.device_font().is_none() {
-                let device_font = Self::load_device_font(context.gc_context, context.renderer);
+                let device_font =
+                    Self::load_device_font(context.gc_context, context.renderer.deref_mut());
                 context.library.set_device_font(device_font);
             }
 
@@ -600,7 +601,7 @@ impl Player {
             let version_string = activation
                 .context
                 .system
-                .get_version_string(activation.context.avm1);
+                .get_version_string(&mut activation.context.avm1);
             object.define_value(
                 activation.context.gc_context,
                 "$version",
@@ -610,13 +611,18 @@ impl Player {
 
             let stage = activation.context.stage;
             stage.build_matrices(&mut activation.context);
+
+            if activation.context.swf.is_action_script_3()
+                && activation.context.warn_on_unsupported_content
+            {
+                activation.context.ui.display_unsupported_message();
+            }
+
+            activation
+                .context
+                .audio
+                .set_frame_rate(activation.context.frame_rate);
         });
-
-        if self.swf.is_action_script_3() && self.warn_on_unsupported_content {
-            self.ui.display_unsupported_message();
-        }
-
-        self.audio.set_frame_rate(self.frame_rate);
     }
 
     /// Get rough estimate of the max # of times we can update the frame.
@@ -649,15 +655,17 @@ impl Player {
     }
 
     fn add_frame_timing(&mut self, elapsed: f64) {
-        self.recent_run_frame_timings.push_back(elapsed);
-        if self.recent_run_frame_timings.len() >= 10 {
-            self.recent_run_frame_timings.pop_front();
-        }
+        self.mutate_with_update_context(|context| {
+            context.recent_run_frame_timings.push_back(elapsed);
+            if context.recent_run_frame_timings.len() >= 10 {
+                context.recent_run_frame_timings.pop_front();
+            }
+        })
     }
 
     pub fn tick(&mut self, dt: f64) {
         self.gc_arena.borrow().mutate(|mc, root| {
-            let root = root.data.write(mc);
+            let mut root = root.data.write(mc);
             // Don't run until preloading is complete.
             // TODO: Eventually we want to stream content similar to the Flash player.
             if !root.audio.is_loading_complete() {
@@ -716,33 +724,35 @@ impl Player {
                 self.update(|context| {
                     StreamManager::tick(context, dt);
                 });
-                self.audio.tick();
+                root.audio.tick();
             }
         });
     }
     pub fn time_til_next_timer(&self) -> Option<f64> {
-        self.time_til_next_timer
+        self.access_data(|context| context.time_til_next_timer)
     }
 
     /// Returns the approximate duration of time until the next frame is due to run.
     /// This is only an approximation to be used for sleep durations.
     pub fn time_til_next_frame(&self) -> std::time::Duration {
-        let frame_time = 1000.0 / self.frame_rate;
-        let mut dt = if self.frame_accumulator <= 0.0 {
-            frame_time
-        } else if self.frame_accumulator >= frame_time {
-            0.0
-        } else {
-            frame_time - self.frame_accumulator
-        };
+        self.access_data(|context| {
+            let frame_time = 1000.0 / context.frame_rate;
+            let mut dt = if context.frame_accumulator <= 0.0 {
+                frame_time
+            } else if context.frame_accumulator >= frame_time {
+                0.0
+            } else {
+                frame_time - context.frame_accumulator
+            };
 
-        if let Some(time_til_next_timer) = self.time_til_next_timer {
-            dt = dt.min(time_til_next_timer)
-        }
+            if let Some(time_til_next_timer) = context.time_til_next_timer {
+                dt = dt.min(time_til_next_timer)
+            }
 
-        dt = dt.max(0.0);
+            dt = dt.max(0.0);
 
-        std::time::Duration::from_micros(dt as u64 * 1000)
+            std::time::Duration::from_micros(dt as u64 * 1000)
+        })
     }
 
     pub fn is_playing(&self) -> bool {
@@ -946,17 +956,19 @@ impl Player {
     }
 
     pub fn set_is_playing(&mut self, v: bool) {
-        if v {
-            // Allow auto-play after user gesture for web backends.
-            self.audio.play();
-        } else {
-            self.audio.pause();
-        }
-        self.is_playing = v;
+        self.mutate_with_update_context(|context| {
+            if v {
+                // Allow auto-play after user gesture for web backends.
+                context.audio.play();
+            } else {
+                context.audio.pause();
+            }
+            context.is_playing = v;
+        })
     }
 
     pub fn needs_render(&self) -> bool {
-        self.needs_render
+        self.access_data(|root| root.needs_render)
     }
 
     pub fn background_color(&mut self) -> Option<Color> {
@@ -1590,15 +1602,16 @@ impl Player {
                 refresh
             };
             Self::run_actions(context);
+
+            // Update mouse cursor if it has changed.
+            if new_cursor != context.mouse_cursor {
+                context.mouse_cursor = new_cursor;
+                context.ui.set_mouse_cursor(new_cursor)
+            }
+            context.mouse_cursor_needs_check = mouse_cursor_needs_check;
+
             needs_render
         });
-
-        // Update mouse cursor if it has changed.
-        if new_cursor != self.mouse_cursor {
-            self.mouse_cursor = new_cursor;
-            self.ui.set_mouse_cursor(new_cursor)
-        }
-        self.mouse_cursor_needs_check = mouse_cursor_needs_check;
 
         needs_render
     }
@@ -1707,18 +1720,17 @@ impl Player {
 
         let mut background_color = Color::WHITE;
 
-        let (cache_draws, commands) = self.gc_arena.borrow().mutate(|gc_context, gc_root| {
-            let root_data = gc_root.data.read();
-            let stage = root_data.stage;
+        let (cache_draws, commands) = self.mutate_with_update_context(|context| {
+            let stage = context.stage;
 
             let mut cache_draws = vec![];
             let mut render_context = RenderContext {
-                renderer: self.renderer.deref_mut(),
+                renderer: context.renderer.deref_mut(),
                 commands: CommandList::new(),
                 cache_draws: &mut cache_draws,
-                gc_context,
-                library: &root_data.library,
-                transform_stack: &mut self.transform_stack,
+                gc_context: context.gc_context,
+                library: &context.library,
+                transform_stack: &mut context.transform_stack,
                 is_offscreen: false,
                 use_bitmap_cache: true,
                 stage,
@@ -1731,7 +1743,7 @@ impl Player {
                 let debug_ui = self.debug_ui.clone();
                 debug_ui
                     .borrow_mut()
-                    .draw_debug_rects(&mut render_context, root_data.dynamic_root);
+                    .draw_debug_rects(&mut render_context, context.dynamic_root);
             }
 
             background_color =
@@ -1751,10 +1763,10 @@ impl Player {
         self.needs_render = false;
     }
 
-    fn access_data<R>(&self, f: impl FnOnce(&UpdateContext<'_>) -> R) -> R{
-        self.gc_arena.borrow().mutate(|_, root| {
-            f(&*root.data.read())
-        })
+    fn access_data<R>(&self, f: impl FnOnce(&UpdateContext<'_>) -> R) -> R {
+        self.gc_arena
+            .borrow()
+            .mutate(|_, root| f(&*root.data.read()))
     }
 
     /// The current frame of the main timeline, if available.
@@ -2031,8 +2043,9 @@ impl Player {
     /// Update all AVM-based timers (such as created via setInterval).
     /// Returns the approximate amount of time until the next timer tick.
     pub fn update_timers(&self, dt: f64) {
-        self.time_til_next_timer =
-            self.mutate_with_update_context(|context| Timers::update_timers(context, dt));
+        self.mutate_with_update_context(|context| {
+            context.time_til_next_timer = Timers::update_timers(context, dt)
+        });
     }
 
     /// Returns whether this player consumes mouse wheel events.
@@ -2376,10 +2389,6 @@ impl PlayerBuilder {
         let forced_frame_rate = self.frame_rate.is_some();
 
         let mut interner = AvmStringInterner::new();
-        let mut init = GcContext {
-            gc_context,
-            interner: &mut interner,
-        };
         let dynamic_root = DynamicRootSet::new(gc_context);
 
         let player: Arc<Mutex<Player>> = Arc::new_cyclic(|self_ref| {
@@ -2391,6 +2400,11 @@ impl PlayerBuilder {
                 gc_arena: Rc::new(RefCell::new(GcArena::new(
                     ArenaParameters::default(),
                     |gc_context| {
+                        let mut init = GcContext {
+                            gc_context,
+                            interner: &mut interner,
+                        };
+
                         GcRoot {
                             callstack: GcCell::new(gc_context, GcCallstack::default()),
                             data: GcCell::new(
@@ -2462,7 +2476,6 @@ impl PlayerBuilder {
                                     system: SystemProperties::new(self.sandbox_type),
                                     transform_stack: TransformStack::new(),
                                     instance_counter: 0,
-                                    player_version,
                                     is_playing: self.autoplay,
                                     needs_render: true,
                                     warn_on_unsupported_content: self.warn_on_unsupported_content,
