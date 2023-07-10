@@ -36,6 +36,7 @@ use crate::string::{AvmString, SwfStrExt as _, WStr, WString};
 use crate::tag_utils::{self, ControlFlow, DecodeResult, Error, SwfMovie, SwfSlice, SwfStream};
 use crate::vminterface::{AvmObject, Instantiator};
 use core::fmt;
+use std::ops::DerefMut;
 use gc_arena::{Collect, Gc, GcCell, GcWeakCell, MutationContext};
 use smallvec::SmallVec;
 use std::cell::{Ref, RefMut};

@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use crate::avm1::activation::Activation;
 use crate::avm1::error::Error;
 use crate::avm1::globals::system::SystemCapabilities;

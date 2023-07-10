@@ -1700,9 +1700,8 @@ impl Player {
                 Avm1::run_frame(context);
             }
             AudioManager::update_sounds(context);
+            context.needs_render = true;
         });
-
-        self.needs_render = true;
     }
 
     #[instrument(level = "debug", skip_all)]
@@ -1775,49 +1774,9 @@ impl Player {
         self.access_data(|context| context.current_frame)
     }
 
-    pub fn audio(&self) -> &Audio {
-        &self.audio
-    }
-
-    pub fn audio_mut(&mut self) -> &mut Audio {
-        &mut self.audio
-    }
-
-    pub fn navigator(&self) -> &Navigator {
-        &self.navigator
-    }
-
     // The frame rate of the current movie in FPS.
     pub fn frame_rate(&self) -> f64 {
         self.access_data(|context| context.frame_rate)
-    }
-
-    pub fn renderer(&self) -> &Renderer {
-        &self.renderer
-    }
-
-    pub fn renderer_mut(&mut self) -> &mut Renderer {
-        &mut self.renderer
-    }
-
-    pub fn storage(&self) -> &Storage {
-        &self.storage
-    }
-
-    pub fn storage_mut(&mut self) -> &mut Storage {
-        &mut self.storage
-    }
-
-    pub fn destroy(self) -> Renderer {
-        self.renderer
-    }
-
-    pub fn ui(&self) -> &Ui {
-        &self.ui
-    }
-
-    pub fn ui_mut(&mut self) -> &mut Ui {
-        &mut self.ui
     }
 
     pub fn run_actions(context: &mut UpdateContext<'_>) {
@@ -2074,12 +2033,12 @@ impl Player {
         })
     }
 
-    pub fn spoofed_url(&self) -> Option<&str> {
-        self.spoofed_url.as_deref()
+    pub fn spoofed_url(&self) -> Option<String> {
+        self.access_data(|data| data.spoofed_url.clone())
     }
 
-    pub fn compatibility_rules(&self) -> &CompatibilityRules {
-        &self.compatibility_rules
+    pub fn compatibility_rules(&self) -> CompatibilityRules {
+        self.access_data(|data| data.compatibility_rules.clone())
     }
 
     pub fn log_backend(&self) -> &Log {
@@ -2087,11 +2046,13 @@ impl Player {
     }
 
     pub fn max_execution_duration(&self) -> Duration {
-        self.max_execution_duration
+        self.access_data(|data| data.max_execution_duration)
     }
 
     pub fn set_max_execution_duration(&mut self, max_execution_duration: Duration) {
-        self.max_execution_duration = max_execution_duration
+        self.mutate_with_update_context(|data| {
+            data.max_execution_duration = max_execution_duration
+        });
     }
 
     pub fn callstack(&self) -> StaticCallstack {
@@ -2503,12 +2464,13 @@ impl PlayerBuilder {
             stage.set_forced_scale_mode(context, self.forced_scale_mode);
             stage.post_instantiation(context, None, Instantiator::Movie, false);
             stage.build_matrices(context);
+
+            context.audio.set_frame_rate(frame_rate);
         });
         player_lock.gc_arena.borrow().mutate(|context, root| {
             let call_stack = root.data.read().avm2.call_stack();
             root.callstack.write(context).avm2 = Some(call_stack);
         });
-        player_lock.audio.set_frame_rate(frame_rate);
         player_lock.set_letterbox(self.letterbox);
         player_lock.set_quality(self.quality);
         player_lock.set_viewport_dimensions(ViewportDimensions {

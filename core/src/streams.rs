@@ -23,6 +23,7 @@ use ruffle_video::VideoStreamHandle;
 use ruffle_wstr::WStr;
 use std::cmp::max;
 use std::io::Seek;
+use std::ops::DerefMut;
 use std::sync::{Arc, Mutex};
 use swf::{VideoCodec, VideoDeblocking};
 
