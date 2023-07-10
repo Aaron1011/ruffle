@@ -810,11 +810,7 @@ impl Player {
                 let menu_object = if let Ok(Value::Object(menu)) = obj.get("menu", &mut activation)
                 {
                     if let Ok(Value::Object(on_select)) = menu.get("onSelect", &mut activation) {
-                        Self::run_context_menu_custom_callback(
-                            menu,
-                            on_select,
-                            activation.context,
-                        );
+                        Self::run_context_menu_custom_callback(menu, on_select, activation.context);
                     }
                     Some(menu)
                 } else {
@@ -2006,6 +2002,14 @@ impl Player {
         self.gc_arena.borrow_mut().collect_debt();
 
         rval
+    }
+
+    pub fn with_renderer<R>(&self, f: impl FnOnce(&mut dyn RenderBackend) -> R) -> R {
+        self.mutate_with_update_context(|context| f(context.renderer.deref_mut()))
+    }
+
+    pub fn with_ui<R>(&self, f: impl FnOnce(&mut dyn UiBackend) -> R) -> R {
+        self.mutate_with_update_context(|context| f(context.ui.deref_mut()))
     }
 
     pub fn flush_shared_objects(&mut self) {
