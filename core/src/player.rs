@@ -1675,25 +1675,25 @@ impl Player {
 
     #[instrument(level = "debug", skip_all)]
     pub fn run_frame(&mut self) {
-        let frame_time = Duration::from_nanos((750_000_000.0 / self.frame_rate) as u64);
-        let (mut execution_limit, may_execute_while_streaming) = match self.load_behavior {
-            LoadBehavior::Streaming => (
-                ExecutionLimit::with_max_ops_and_time(10000, frame_time),
-                true,
-            ),
-            LoadBehavior::Delayed => (
-                ExecutionLimit::with_max_ops_and_time(10000, frame_time),
-                false,
-            ),
-            LoadBehavior::Blocking => (ExecutionLimit::none(), false),
-        };
-        let preload_finished = self.preload(&mut execution_limit);
-
-        if !preload_finished && !may_execute_while_streaming {
-            return;
-        }
-
         self.update(|context| {
+            let frame_time = Duration::from_nanos((750_000_000.0 / context.frame_rate) as u64);
+            let (mut execution_limit, may_execute_while_streaming) = match context.load_behavior {
+                LoadBehavior::Streaming => (
+                    ExecutionLimit::with_max_ops_and_time(10000, frame_time),
+                    true,
+                ),
+                LoadBehavior::Delayed => (
+                    ExecutionLimit::with_max_ops_and_time(10000, frame_time),
+                    false,
+                ),
+                LoadBehavior::Blocking => (ExecutionLimit::none(), false),
+            };
+            let preload_finished = self.preload(&mut execution_limit);
+
+            if !preload_finished && !may_execute_while_streaming {
+                return;
+            }
+
             if context.is_action_script_3() {
                 run_all_phases_avm2(context);
             } else {
@@ -1719,7 +1719,7 @@ impl Player {
 
         let mut background_color = Color::WHITE;
 
-        let (cache_draws, commands) = self.mutate_with_update_context(|context| {
+        self.mutate_with_update_context(|context| {
             let stage = context.stage;
 
             let mut cache_draws = vec![];
@@ -1753,13 +1753,13 @@ impl Player {
                 };
 
             let commands = render_context.commands;
-            (cache_draws, commands)
+
+            context
+                .renderer
+                .submit_frame(background_color, commands, cache_draws);
+
+            context.needs_render = false;
         });
-
-        self.renderer
-            .submit_frame(background_color, commands, cache_draws);
-
-        self.needs_render = false;
     }
 
     fn access_data<R>(&self, f: impl FnOnce(&UpdateContext<'_>) -> R) -> R {
@@ -1896,7 +1896,7 @@ impl Player {
             if update_context.frame_rate != prev_frame_rate {
                 update_context
                     .audio
-                    .set_frame_rate(*update_context.frame_rate);
+                    .set_frame_rate(update_context.frame_rate);
             }
 
             update_context.current_frame = update_context
