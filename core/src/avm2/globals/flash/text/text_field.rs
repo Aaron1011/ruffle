@@ -24,7 +24,7 @@ pub fn text_field_allocator<'gc>(
         if class == textfield_cls {
             let movie = activation.context.swf.clone();
             let display_object =
-                EditText::new(&mut activation.context, movie, 0.0, 0.0, 100.0, 100.0).into();
+                EditText::new(activation.context, movie, 0.0, 0.0, 100.0, 100.0).into();
             return initialize_for_allocator(activation, display_object, orig_class);
         }
 
@@ -105,7 +105,7 @@ pub fn set_auto_size<'gc>(
             } else {
                 AutoSizeMode::None
             },
-            &mut activation.context,
+            activation.context,
         );
     }
 
@@ -350,7 +350,7 @@ pub fn set_embed_fonts<'gc>(
     {
         let is_embed_fonts = args.get_bool(0);
 
-        this.set_is_device_font(&mut activation.context, !is_embed_fonts);
+        this.set_is_device_font(activation.context, !is_embed_fonts);
     }
 
     Ok(Value::Undefined)
@@ -382,7 +382,7 @@ pub fn set_html_text<'gc>(
     {
         let html_text = args.get_string(activation, 0)?;
 
-        this.set_is_html(&mut activation.context, true);
+        this.set_is_html(activation.context, true);
         this.set_html_text(&html_text, &mut activation.context);
     }
 
@@ -494,7 +494,7 @@ pub fn set_text<'gc>(
     {
         let text = args.get_string(activation, 0)?;
 
-        this.set_is_html(&mut activation.context, false);
+        this.set_is_html(activation.context, false);
         this.set_text(&text, &mut activation.context);
     }
 
@@ -543,7 +543,7 @@ pub fn set_text_color<'gc>(
             0,
             this.text_length(),
             desired_format.clone(),
-            &mut activation.context,
+            activation.context,
         );
         this.set_new_text_format(desired_format, &mut activation.context);
     }
@@ -672,7 +672,7 @@ pub fn append_text<'gc>(
             existing_length,
             existing_length,
             &new_text,
-            &mut activation.context,
+            activation.context,
         );
     }
 
@@ -732,7 +732,7 @@ pub fn replace_selected_text<'gc>(
             selection.start(),
             selection.end(),
             &value,
-            &mut activation.context,
+            activation.context,
         );
     }
 
@@ -764,7 +764,7 @@ pub fn replace_text<'gc>(
             begin_index as usize,
             end_index as usize,
             &value,
-            &mut activation.context,
+            activation.context,
         );
     }
 
@@ -844,7 +844,7 @@ pub fn set_text_format<'gc>(
                     begin_index as usize,
                     end_index as usize,
                     tf.clone(),
-                    &mut activation.context,
+                    activation.context,
                 );
             }
         }

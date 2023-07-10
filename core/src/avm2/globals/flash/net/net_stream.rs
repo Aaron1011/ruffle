@@ -39,7 +39,7 @@ pub fn play<'gc>(
             .map(|v| v.coerce_to_string(activation))
             .transpose()?;
 
-        ns.play(&mut activation.context, name);
+        ns.play(activation.context, name);
     }
 
     Ok(Value::Undefined)

@@ -26,7 +26,7 @@ pub fn bitmap_allocator<'gc>(
         if class == bitmap_cls {
             let bitmap_data = BitmapDataWrapper::dummy(activation.context.gc_context);
             let display_object =
-                Bitmap::new_with_bitmap_data(&mut activation.context, 0, bitmap_data, false).into();
+                Bitmap::new_with_bitmap_data(activation.context, 0, bitmap_data, false).into();
             return initialize_for_allocator(activation, display_object, orig_class);
         }
 
@@ -53,7 +53,7 @@ pub fn bitmap_allocator<'gc>(
                 new_bitmap_data.init_object2(activation.context.gc_context, bitmap_data_obj);
 
                 let child = Bitmap::new_with_bitmap_data(
-                    &mut activation.context,
+                    activation.context,
                     0,
                     new_bitmap_data,
                     false,
@@ -85,7 +85,7 @@ pub fn init<'gc>(
 
     if let Some(bitmap) = this.as_display_object().and_then(|dobj| dobj.as_bitmap()) {
         if let Some(bitmap_data) = bitmap_data {
-            bitmap.set_bitmap_data(&mut activation.context, bitmap_data);
+            bitmap.set_bitmap_data(activation.context, bitmap_data);
         }
         bitmap.set_smoothing(activation.context.gc_context, smoothing);
     } else {
@@ -130,7 +130,7 @@ pub fn set_bitmap_data<'gc>(
                 .as_bitmap_data()
                 .ok_or_else(|| Error::RustError("Argument was not a BitmapData".into()))?
         };
-        bitmap.set_bitmap_data(&mut activation.context, bitmap_data);
+        bitmap.set_bitmap_data(activation.context, bitmap_data);
     }
 
     Ok(Value::Undefined)

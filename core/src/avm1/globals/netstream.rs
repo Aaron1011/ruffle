@@ -62,7 +62,7 @@ fn play<'gc>(
             .unwrap_or(Value::Undefined)
             .coerce_to_string(activation)?;
 
-        ns.play(&mut activation.context, Some(name));
+        ns.play(activation.context, Some(name));
     }
 
     Ok(Value::Undefined)

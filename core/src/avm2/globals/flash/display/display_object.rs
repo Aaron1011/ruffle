@@ -44,10 +44,10 @@ pub fn initialize_for_allocator<'gc>(
 ) -> Result<Object<'gc>, Error<'gc>> {
     let obj: StageObject = StageObject::for_display_object(activation, dobj, class)?;
     dobj.set_placed_by_script(activation.context.gc_context, true);
-    dobj.set_object2(&mut activation.context, obj.into());
+    dobj.set_object2(activation.context, obj.into());
 
     // [NA] Should these run for everything?
-    dobj.post_instantiation(&mut activation.context, None, Instantiator::Avm2, false);
+    dobj.post_instantiation(activation.context, None, Instantiator::Avm2, false);
     dobj.enter_frame(&mut activation.context);
     dobj.construct_frame(&mut activation.context);
 
@@ -630,7 +630,7 @@ pub fn hit_test_point<'gc>(
 
             return Ok(dobj
                 .hit_test_shape(
-                    &mut activation.context,
+                    activation.context,
                     global,
                     HitTestOptions::AVM_HIT_TEST,
                 )

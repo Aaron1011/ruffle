@@ -487,7 +487,7 @@ fn get_text_extent<'gc>(
         .transpose()?;
 
     let temp_edittext = EditText::new(
-        &mut activation.context,
+        activation.context,
         movie,
         0.0,
         0.0,

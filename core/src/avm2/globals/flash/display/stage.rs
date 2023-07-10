@@ -62,7 +62,7 @@ pub fn set_align<'gc>(
     activation
         .context
         .stage
-        .set_align(&mut activation.context, align);
+        .set_align(activation.context, align);
     Ok(Value::Undefined)
 }
 
@@ -166,7 +166,7 @@ pub fn set_display_state<'gc>(
         activation
             .context
             .stage
-            .set_display_state(&mut activation.context, display_state);
+            .set_display_state(activation.context, display_state);
     } else {
         return Err(make_error_2008(activation, "displayState"));
     }
@@ -249,7 +249,7 @@ pub fn set_show_default_context_menu<'gc>(
     activation
         .context
         .stage
-        .set_show_menu(&mut activation.context, show_default_context_menu);
+        .set_show_menu(activation.context, show_default_context_menu);
     Ok(Value::Undefined)
 }
 
@@ -276,7 +276,7 @@ pub fn set_scale_mode<'gc>(
         activation
             .context
             .stage
-            .set_scale_mode(&mut activation.context, scale_mode);
+            .set_scale_mode(activation.context, scale_mode);
     } else {
         return Err(make_error_2008(activation, "scaleMode"));
     }
@@ -405,7 +405,7 @@ pub fn set_quality<'gc>(
         activation
             .context
             .stage
-            .set_quality(&mut activation.context, quality);
+            .set_quality(activation.context, quality);
     }
     Ok(Value::Undefined)
 }

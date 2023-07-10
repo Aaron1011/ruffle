@@ -813,7 +813,7 @@ impl Player {
                         Self::run_context_menu_custom_callback(
                             menu,
                             on_select,
-                            &mut activation.context,
+                            activation.context,
                         );
                     }
                     Some(menu)
@@ -1226,7 +1226,7 @@ impl Player {
                         .coerce_to_object(&mut activation)
                         .expect("DisplayObject is not an object!");
 
-                    Avm2::dispatch_event(&mut activation.context, keyboard_event, target);
+                    Avm2::dispatch_event(activation.context, keyboard_event, target);
                 }
             }
 

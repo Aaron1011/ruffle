@@ -509,7 +509,7 @@ pub fn set_texture_at<'gc>(
                     .classes()
                     .cubetexture
                     .inner_class_definition(),
-                &mut activation.context,
+                activation.context,
             );
             Some(obj.as_texture().unwrap().handle())
         };

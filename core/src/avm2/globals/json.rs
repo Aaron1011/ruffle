@@ -237,7 +237,7 @@ impl<'gc> AvmSerializer<'gc> {
                 self.obj_stack.push(obj);
                 let value = if obj.is_of_type(
                     activation.avm2().classes().array.inner_class_definition(),
-                    &mut activation.context,
+                    activation.context,
                 ) {
                     // TODO: Vectors
                     self.serialize_iterable(activation, obj)?

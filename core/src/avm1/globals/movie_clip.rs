@@ -211,7 +211,7 @@ pub fn hit_test<'gc>(
             let point = movie_clip.avm1_root().local_to_global(local);
             let ret = if shape {
                 movie_clip.hit_test_shape(
-                    &mut activation.context,
+                    activation.context,
                     point,
                     HitTestOptions::AVM_HIT_TEST,
                 )
@@ -269,14 +269,14 @@ fn attach_bitmap<'gc>(
 
                 //TODO: do attached BitmapDatas have character ids?
                 let display_object = Bitmap::new_with_bitmap_data(
-                    &mut activation.context,
+                    activation.context,
                     0,
                     bitmap_data,
                     smoothing,
                 );
-                movie_clip.replace_at_depth(&mut activation.context, display_object.into(), depth);
+                movie_clip.replace_at_depth(activation.context, display_object.into(), depth);
                 display_object.post_instantiation(
-                    &mut activation.context,
+                    activation.context,
                     None,
                     Instantiator::Avm1,
                     true,
@@ -786,14 +786,14 @@ fn attach_movie<'gc>(
     {
         // Set name and attach to parent.
         new_clip.set_name(activation.context.gc_context, new_instance_name);
-        movie_clip.replace_at_depth(&mut activation.context, new_clip, depth);
+        movie_clip.replace_at_depth(activation.context, new_clip, depth);
         let init_object = if let Some(Value::Object(init_object)) = init_object {
             Some(init_object.to_owned())
         } else {
             None
         };
         new_clip.post_instantiation(
-            &mut activation.context,
+            activation.context,
             init_object,
             Instantiator::Avm1,
             true,
@@ -833,8 +833,8 @@ fn create_empty_movie_clip<'gc>(
 
     // Set name and attach to parent.
     new_clip.set_name(activation.context.gc_context, new_instance_name);
-    movie_clip.replace_at_depth(&mut activation.context, new_clip.into(), depth);
-    new_clip.post_instantiation(&mut activation.context, None, Instantiator::Avm1, true);
+    movie_clip.replace_at_depth(activation.context, new_clip.into(), depth);
+    new_clip.post_instantiation(activation.context, None, Instantiator::Avm1, true);
 
     Ok(new_clip.object())
 }
@@ -873,17 +873,17 @@ fn create_text_field<'gc>(
         .coerce_to_f64(activation)?;
 
     let text_field: DisplayObject<'gc> =
-        EditText::new(&mut activation.context, movie, x, y, width, height).into();
+        EditText::new(activation.context, movie, x, y, width, height).into();
     text_field.set_name(
         activation.context.gc_context,
         instance_name.coerce_to_string(activation)?,
     );
     movie_clip.replace_at_depth(
-        &mut activation.context,
+        activation.context,
         text_field,
         (depth as Depth).wrapping_add(AVM_DEPTH_BIAS),
     );
-    text_field.post_instantiation(&mut activation.context, None, Instantiator::Avm1, false);
+    text_field.post_instantiation(activation.context, None, Instantiator::Avm1, false);
 
     if activation.swf_version() >= 8 {
         //SWF8+ returns the `TextField` instance here
@@ -921,7 +921,7 @@ fn duplicate_movie_clip<'gc>(
 
     let new_clip = clone_sprite(
         movie_clip,
-        &mut activation.context,
+        activation.context,
         name,
         depth,
         init_object,
@@ -1117,7 +1117,7 @@ pub fn goto_frame<'gc>(
         let frame = frame.wrapping_add(i32::from(scene_offset));
         let frame = frame.saturating_add(1);
         if frame > 0 {
-            clip.goto_frame(&mut activation.context, frame as u16, stop);
+            clip.goto_frame(activation.context, frame as u16, stop);
         }
     }
     Ok(Value::Undefined)
@@ -1355,7 +1355,7 @@ fn swap_depths<'gc>(
         }
 
         if depth != movie_clip.depth() {
-            parent.swap_at_depth(&mut activation.context, movie_clip.into(), depth);
+            parent.swap_at_depth(activation.context, movie_clip.into(), depth);
             movie_clip.set_transformed_by_script(activation.context.gc_context, true);
         }
     }
@@ -1585,7 +1585,7 @@ fn unload_movie<'gc>(
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
     target.avm1_unload(&mut activation.context);
-    target.replace_with_movie(&mut activation.context, None, None);
+    target.replace_with_movie(activation.context, None, None);
 
     Ok(Value::Undefined)
 }

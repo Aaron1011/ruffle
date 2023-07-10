@@ -256,7 +256,7 @@ impl<'gc> TObject<'gc> for StageObject<'gc> {
         }) {
             binding.text_field.set_html_text(
                 &value.coerce_to_string(activation)?,
-                &mut activation.context,
+                activation.context,
             );
         }
 
@@ -730,7 +730,7 @@ fn set_high_quality<'gc>(
         activation
             .context
             .stage
-            .set_quality(&mut activation.context, quality);
+            .set_quality(activation.context, quality);
     }
     Ok(())
 }
@@ -787,7 +787,7 @@ fn set_quality<'gc>(
         activation
             .context
             .stage
-            .set_quality(&mut activation.context, quality);
+            .set_quality(activation.context, quality);
     }
     Ok(())
 }

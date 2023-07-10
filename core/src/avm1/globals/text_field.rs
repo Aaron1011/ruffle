@@ -122,7 +122,7 @@ pub fn set_password<'gc>(
 ) -> Result<(), Error<'gc>> {
     this.set_password(
         value.as_bool(activation.swf_version()),
-        &mut activation.context,
+        activation.context,
     );
     Ok(())
 }
@@ -220,7 +220,7 @@ fn set_text_format<'gc>(
                 begin_index,
                 end_index,
                 text_format.read().clone(),
-                &mut activation.context,
+                activation.context,
             );
         }
     }
@@ -248,7 +248,7 @@ fn replace_sel<'gc>(
         selection.start(),
         selection.end(),
         &text,
-        &mut activation.context,
+        activation.context,
     );
     text_field.set_selection(
         Some(TextSelection::for_position(selection.start() + text.len())),
@@ -309,7 +309,7 @@ pub fn set_text<'gc>(
 ) -> Result<(), Error<'gc>> {
     this.set_text(
         &value.coerce_to_string(activation)?,
-        &mut activation.context,
+        activation.context,
     );
     this.propagate_text_binding(activation);
 
@@ -329,7 +329,7 @@ pub fn set_html<'gc>(
     value: Value<'gc>,
 ) -> Result<(), Error<'gc>> {
     let value = value.as_bool(activation.swf_version());
-    this.set_is_html(&mut activation.context, value);
+    this.set_is_html(activation.context, value);
     Ok(())
 }
 
@@ -357,7 +357,7 @@ pub fn set_text_color<'gc>(
         0,
         this.text_length(),
         text_format.clone(),
-        &mut activation.context,
+        activation.context,
     );
     this.set_new_text_format(text_format, &mut activation.context);
     Ok(())
@@ -464,7 +464,7 @@ pub fn set_embed_fonts<'gc>(
     value: Value<'gc>,
 ) -> Result<(), Error<'gc>> {
     let embed_fonts = value.as_bool(activation.swf_version());
-    this.set_is_device_font(&mut activation.context, !embed_fonts);
+    this.set_is_device_font(activation.context, !embed_fonts);
     Ok(())
 }
 

@@ -251,7 +251,7 @@ pub trait TInteractiveObject<'gc>:
                     true,
                 );
 
-                Avm2::dispatch_event(&mut activation.context, avm2_event, target);
+                Avm2::dispatch_event(activation.context, avm2_event, target);
 
                 ClipEventResult::Handled
             }
@@ -265,7 +265,7 @@ pub trait TInteractiveObject<'gc>:
                     true,
                 );
 
-                Avm2::dispatch_event(&mut activation.context, avm2_event, target);
+                Avm2::dispatch_event(activation.context, avm2_event, target);
 
                 ClipEventResult::Handled
             }
@@ -293,7 +293,7 @@ pub trait TInteractiveObject<'gc>:
                         true,
                     );
 
-                    Avm2::dispatch_event(&mut activation.context, avm2_event, target);
+                    Avm2::dispatch_event(activation.context, avm2_event, target);
 
                     self.raw_interactive_mut(context.gc_context).last_click = None;
                 } else {
@@ -306,7 +306,7 @@ pub trait TInteractiveObject<'gc>:
                         true,
                     );
 
-                    Avm2::dispatch_event(&mut activation.context, avm2_event, target);
+                    Avm2::dispatch_event(activation.context, avm2_event, target);
 
                     self.raw_interactive_mut(context.gc_context).last_click = Some(this_click);
                 }
@@ -323,7 +323,7 @@ pub trait TInteractiveObject<'gc>:
                     true,
                 );
 
-                Avm2::dispatch_event(&mut activation.context, avm2_event, target);
+                Avm2::dispatch_event(activation.context, avm2_event, target);
 
                 self.raw_interactive_mut(context.gc_context).last_click = None;
 
@@ -339,7 +339,7 @@ pub trait TInteractiveObject<'gc>:
                     true,
                 );
 
-                Avm2::dispatch_event(&mut activation.context, avm2_event, target);
+                Avm2::dispatch_event(activation.context, avm2_event, target);
 
                 let lca = lowest_common_ancestor(
                     self.as_displayobject(),
@@ -357,7 +357,7 @@ pub trait TInteractiveObject<'gc>:
                         Avm2EventObject::mouse_event(&mut activation, "rollOut", tgt, to, 0, false);
 
                     if let Avm2Value::Object(avm2_target) = tgt.object2() {
-                        Avm2::dispatch_event(&mut activation.context, avm2_event, avm2_target);
+                        Avm2::dispatch_event(activation.context, avm2_event, avm2_target);
                     }
 
                     rollout_target = tgt.parent();
@@ -390,7 +390,7 @@ pub trait TInteractiveObject<'gc>:
                     );
 
                     if let Avm2Value::Object(avm2_target) = tgt.object2() {
-                        Avm2::dispatch_event(&mut activation.context, avm2_event, avm2_target);
+                        Avm2::dispatch_event(activation.context, avm2_event, avm2_target);
                     }
 
                     rollover_target = tgt.parent();
@@ -405,7 +405,7 @@ pub trait TInteractiveObject<'gc>:
                     true,
                 );
 
-                Avm2::dispatch_event(&mut activation.context, avm2_event, target);
+                Avm2::dispatch_event(activation.context, avm2_event, target);
 
                 ClipEventResult::Handled
             }
@@ -419,7 +419,7 @@ pub trait TInteractiveObject<'gc>:
                     true,
                 );
 
-                Avm2::dispatch_event(&mut activation.context, avm2_event, target);
+                Avm2::dispatch_event(activation.context, avm2_event, target);
 
                 ClipEventResult::Handled
             }
@@ -433,7 +433,7 @@ pub trait TInteractiveObject<'gc>:
                     true,
                 );
 
-                Avm2::dispatch_event(&mut activation.context, avm2_event, target);
+                Avm2::dispatch_event(activation.context, avm2_event, target);
 
                 ClipEventResult::Handled
             }

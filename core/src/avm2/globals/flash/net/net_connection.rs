@@ -17,7 +17,7 @@ pub fn connect<'gc>(
                 ("level", "status"),
             ],
         );
-        Avm2::dispatch_event(&mut activation.context, event, this);
+        Avm2::dispatch_event(activation.context, event, this);
         return Ok(Value::Undefined);
     }
     avm2_stub_method!(

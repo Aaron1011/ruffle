@@ -986,7 +986,7 @@ impl<'gc> EditText<'gc> {
                                 let value = object.get(property, activation).unwrap();
                                 self.set_html_text(
                                     &value.coerce_to_string(activation).unwrap_or_default(),
-                                    &mut activation.context,
+                                    activation.context,
                                 );
                             } else {
                                 // Otherwise, we initialize the property with the text field's text, if it's non-empty.
@@ -1438,12 +1438,12 @@ impl<'gc> EditText<'gc> {
             );
         } else if let Avm2Value::Object(object) = self.object2() {
             let change_evt = Avm2EventObject::bare_event(
-                &mut activation.context,
+                activation.context,
                 "change",
                 true,  /* bubbles */
                 false, /* cancelable */
             );
-            Avm2::dispatch_event(&mut activation.context, change_evt, object);
+            Avm2::dispatch_event(activation.context, change_evt, object);
         }
     }
 

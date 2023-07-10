@@ -217,7 +217,7 @@ pub fn set_enabled<'gc>(
     {
         let enabled = args.get_bool(0);
 
-        mc.set_avm2_enabled(&mut activation.context, enabled);
+        mc.set_avm2_enabled(activation.context, enabled);
     }
 
     Ok(Value::Undefined)
@@ -408,7 +408,7 @@ pub fn goto_frame<'gc>(
         }
     };
 
-    mc.goto_frame(&mut activation.context, frame.max(1) as u16, stop);
+    mc.goto_frame(activation.context, frame.max(1) as u16, stop);
 
     Ok(())
 }
@@ -494,7 +494,7 @@ pub fn prev_scene<'gc>(
             length: _,
         }) = mc.previous_scene()
         {
-            mc.goto_frame(&mut activation.context, start, false);
+            mc.goto_frame(activation.context, start, false);
         }
     }
 
@@ -517,7 +517,7 @@ pub fn next_scene<'gc>(
             length: _,
         }) = mc.next_scene()
         {
-            mc.goto_frame(&mut activation.context, start, false);
+            mc.goto_frame(activation.context, start, false);
         }
     }
 

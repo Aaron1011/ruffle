@@ -181,7 +181,7 @@ pub fn add_child<'gc>(
             let target_index = ctr.num_children();
 
             validate_add_operation(activation, parent, child, target_index)?;
-            add_child_to_displaylist(&mut activation.context, parent, child, target_index);
+            add_child_to_displaylist(activation.context, parent, child, target_index);
 
             return Ok(child.object2());
         }
@@ -204,7 +204,7 @@ pub fn add_child_at<'gc>(
         let target_index = args.get_u32(activation, 1)? as usize;
 
         validate_add_operation(activation, parent, child, target_index)?;
-        add_child_to_displaylist(&mut activation.context, parent, child, target_index);
+        add_child_to_displaylist(activation.context, parent, child, target_index);
 
         return Ok(child.object2());
     }
@@ -225,7 +225,7 @@ pub fn remove_child<'gc>(
             .ok_or("ArgumentError: Child not a valid display object")?;
 
         validate_remove_operation(activation, parent, child)?;
-        remove_child_from_displaylist(&mut activation.context, child);
+        remove_child_from_displaylist(activation.context, child);
 
         return Ok(child.object2());
     }
@@ -322,7 +322,7 @@ pub fn remove_child_at<'gc>(
             let child = ctr.child_by_index(target_child as usize).unwrap();
             child.set_placed_by_script(activation.context.gc_context, true);
 
-            ctr.remove_child(&mut activation.context, child);
+            ctr.remove_child(activation.context, child);
 
             return Ok(child.object2());
         }
@@ -384,7 +384,7 @@ pub fn remove_children<'gc>(
             }
 
             ctr.remove_range(
-                &mut activation.context,
+                activation.context,
                 from as usize..min(ctr.num_children(), to as usize + 1),
             );
         }
@@ -412,7 +412,7 @@ pub fn set_child_index<'gc>(
         }
 
         validate_add_operation(activation, parent, child, target_index)?;
-        add_child_to_displaylist(&mut activation.context, parent, child, target_index);
+        add_child_to_displaylist(activation.context, parent, child, target_index);
 
         return Ok(child.object2());
     }
@@ -456,7 +456,7 @@ pub fn swap_children_at<'gc>(
             child0.set_placed_by_script(activation.context.gc_context, true);
             child1.set_placed_by_script(activation.context.gc_context, true);
 
-            ctr.swap_at_index(&mut activation.context, index0 as usize, index1 as usize);
+            ctr.swap_at_index(activation.context, index0 as usize, index1 as usize);
         }
     }
 
@@ -492,7 +492,7 @@ pub fn swap_children<'gc>(
             child0.set_placed_by_script(activation.context.gc_context, true);
             child1.set_placed_by_script(activation.context.gc_context, true);
 
-            ctr.swap_at_index(&mut activation.context, index0, index1);
+            ctr.swap_at_index(activation.context, index0, index1);
         }
     }
 
