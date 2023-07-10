@@ -2041,10 +2041,6 @@ impl Player {
         self.access_data(|data| data.compatibility_rules.clone())
     }
 
-    pub fn log_backend(&self) -> &Log {
-        &self.log
-    }
-
     pub fn max_execution_duration(&self) -> Duration {
         self.access_data(|data| data.max_execution_duration)
     }

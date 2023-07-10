@@ -722,10 +722,9 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().navigator().fetch(request);
-
             let mut replacing_root_movie = false;
-            player.lock().unwrap().update(|uc| -> Result<(), Error> {
+            let fetch = player.lock().unwrap().update(|uc| -> Result<_, Error> {
+                let fetch = uc.navigator.fetch(request);
                 let clip = match uc.load_manager.get_loader(handle) {
                     Some(Loader::Movie { target_clip, .. }) => *target_clip,
                     None => return Err(Error::Cancelled),
@@ -746,7 +745,8 @@ impl<'gc> Loader<'gc> {
                     mc.replace_with_movie(uc, None, None);
                 }
 
-                Loader::movie_loader_start(handle, uc)
+                Loader::movie_loader_start(handle, uc)?;
+                Ok(fetch)
             })?;
 
             match fetch.await {
@@ -862,7 +862,9 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().navigator().fetch(request);
+            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
+                context.navigator.fetch(request)
+            });
 
             let response = fetch.await?;
 
@@ -925,7 +927,9 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().navigator().fetch(request);
+            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
+                context.navigator.fetch(request)
+            });
 
             let data = fetch.await;
 
@@ -1026,7 +1030,9 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().navigator().fetch(request);
+            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
+                context.navigator.fetch(request)
+            });
             let response = fetch.await;
 
             player.lock().unwrap().update(|uc| {
@@ -1205,7 +1211,9 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().navigator().fetch(request);
+            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
+                context.navigator.fetch(request)
+            });
             let data = fetch.await;
 
             // Fire the load handler.
@@ -1267,7 +1275,9 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().navigator().fetch(request);
+            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
+                context.navigator.fetch(request)
+            });
             let response = fetch.await;
 
             player.lock().unwrap().update(|uc| {
@@ -1344,7 +1354,9 @@ impl<'gc> Loader<'gc> {
             .expect("Could not upgrade weak reference to player");
 
         Box::pin(async move {
-            let fetch = player.lock().unwrap().navigator().fetch(request);
+            let fetch = player.lock().unwrap().mutate_with_update_context(|context| {
+                context.navigator.fetch(request)
+            });
             let response = fetch.await;
 
             player.lock().unwrap().update(|uc| {
