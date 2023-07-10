@@ -2421,7 +2421,7 @@ impl PlayerBuilder {
                                     mouse_down_object: None,
                                     avm1_shared_objects: HashMap::new(),
                                     avm2_shared_objects: HashMap::new(),
-                                    stage: Stage::empty(gc_context, self.fullscreen, fake_movie),
+                                    stage: Stage::empty(gc_context, self.fullscreen, fake_movie.clone()),
                                     timers: Timers::new(),
                                     unbound_text_fields: Vec::new(),
                                     stream_manager: StreamManager::new(),
