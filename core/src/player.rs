@@ -348,7 +348,6 @@ impl<'gc, T> GcRootData<'gc, T> {
     }
 }
 
-/// Convenience methods for controlling audio.
 impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
     pub fn global_sound_transform(&self) -> &crate::display_object::SoundTransform {
         self.audio_manager.global_sound_transform()
@@ -472,6 +471,214 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
 
     pub fn avm_trace(&self, message: &str) {
         self.log.avm_trace(&message.replace('\r', "\n"));
+    }
+
+    /// Updates the hover state of buttons.
+    fn update_mouse_state(&mut self, is_mouse_button_changed: bool, is_mouse_moved: bool) -> bool {
+        let mouse_in_stage = self.mouse_in_stage;
+
+        // Determine the display object the mouse is hovering over.
+        // Search through levels from top-to-bottom, returning the first display object that is under the mouse.
+        let mut new_cursor = self.mouse_cursor;
+        let mut mouse_cursor_needs_check = self.mouse_cursor_needs_check;
+
+        let new_over_object = if mouse_in_stage {
+            run_mouse_pick(self, true)
+        } else {
+            None
+        };
+        let mut events: smallvec::SmallVec<[(InteractiveObject<'_>, ClipEvent); 2]> =
+            Default::default();
+
+        if is_mouse_moved {
+            events.push((
+                new_over_object.unwrap_or_else(|| self.stage.into()),
+                ClipEvent::MouseMoveInside,
+            ));
+        }
+
+        // Cancel hover if an object is removed from the stage.
+        if let Some(hovered) = self.mouse_hovered_object {
+            if !self.is_action_script_3() && hovered.as_displayobject().avm1_removed() {
+                self.mouse_hovered_object = None;
+            }
+        }
+        if let Some(pressed) = self.mouse_down_object {
+            if !self.is_action_script_3() && pressed.as_displayobject().avm1_removed() {
+                self.mouse_down_object = None;
+            }
+        }
+
+        // Update the cursor if the object was removed from the stage.
+        if new_cursor != MouseCursor::Arrow {
+            let object_removed =
+            self.mouse_hovered_object.is_none() && self.mouse_down_object.is_none();
+            if !object_removed {
+                mouse_cursor_needs_check = false;
+                if is_mouse_button_changed {
+                    // The object is pressed/released and may be removed immediately, we need to check
+                    // in the next frame if it still exists. If it doesn't, we'll update the cursor.
+                    mouse_cursor_needs_check = true;
+                }
+            } else if mouse_cursor_needs_check {
+                mouse_cursor_needs_check = false;
+                new_cursor = MouseCursor::Arrow;
+            } else if !self.input.is_mouse_down() && (is_mouse_moved || is_mouse_button_changed)
+            {
+                // In every other case, the cursor remains until the user interacts with the mouse again.
+                new_cursor = MouseCursor::Arrow;
+            }
+        } else {
+            mouse_cursor_needs_check = false;
+        }
+
+        let cur_over_object = self.mouse_hovered_object;
+        // Check if a new object has been hovered over.
+        if !InteractiveObject::option_ptr_eq(cur_over_object, new_over_object) {
+            // If the mouse button is down, the object the user clicked on grabs the focus
+            // and fires "drag" events. Other objects are ignored.
+            if self.input.is_mouse_down() {
+                self.mouse_hovered_object = new_over_object;
+                if let Some(down_object) = self.mouse_down_object {
+                    if InteractiveObject::option_ptr_eq(self.mouse_down_object, cur_over_object)
+                    {
+                        // Dragged from outside the clicked object to the inside.
+                        events.push((
+                            down_object,
+                            ClipEvent::DragOut {
+                                to: new_over_object,
+                            },
+                        ));
+                    } else if InteractiveObject::option_ptr_eq(
+                        self.mouse_down_object,
+                        new_over_object,
+                    ) {
+                        // Dragged from inside the clicked object to the outside.
+                        events.push((
+                            down_object,
+                            ClipEvent::DragOver {
+                                from: cur_over_object,
+                            },
+                        ));
+                    }
+                }
+            } else {
+                // The mouse button is up, so fire rollover states for the object we are hovering over.
+                // Rolled out of the previous object.
+                if let Some(cur_over_object) = cur_over_object {
+                    events.push((
+                        cur_over_object,
+                        ClipEvent::RollOut {
+                            to: new_over_object,
+                        },
+                    ));
+                }
+                // Rolled over the new object.
+                if let Some(new_over_object) = new_over_object {
+                    new_cursor = new_over_object.mouse_cursor(self);
+                    events.push((
+                        new_over_object,
+                        ClipEvent::RollOver {
+                            from: cur_over_object,
+                        },
+                    ));
+                } else {
+                    new_cursor = MouseCursor::Arrow;
+                }
+            }
+        }
+        self.mouse_hovered_object = new_over_object;
+
+        // Handle presses and releases.
+        if is_mouse_button_changed {
+            if self.input.is_mouse_down() {
+                // Pressed on a hovered object.
+                if let Some(over_object) = self.mouse_hovered_object {
+                    events.push((over_object, ClipEvent::Press));
+                    self.mouse_down_object = self.mouse_hovered_object;
+                } else {
+                    events.push((self.stage.into(), ClipEvent::Press));
+                }
+            } else {
+                if let Some(over_object) = self.mouse_hovered_object {
+                    events.push((over_object, ClipEvent::MouseUpInside));
+                } else {
+                    events.push((self.stage.into(), ClipEvent::MouseUpInside));
+                }
+
+                let released_inside = InteractiveObject::option_ptr_eq(
+                    self.mouse_down_object,
+                    self.mouse_hovered_object,
+                );
+                if released_inside {
+                    // Released inside the clicked object.
+                    if let Some(down_object) = self.mouse_down_object {
+                        new_cursor = down_object.mouse_cursor(self);
+                        events.push((down_object, ClipEvent::Release));
+                    } else {
+                        events.push((self.stage.into(), ClipEvent::Release));
+                    }
+                } else {
+                    // Released outside the clicked object.
+                    if let Some(down_object) = self.mouse_down_object {
+                        events.push((down_object, ClipEvent::ReleaseOutside));
+                    } else {
+                        events.push((self.stage.into(), ClipEvent::ReleaseOutside));
+                    }
+                    // The new object is rolled over immediately.
+                    if let Some(over_object) = self.mouse_hovered_object {
+                        new_cursor = over_object.mouse_cursor(self);
+                        events.push((
+                            over_object,
+                            ClipEvent::RollOver {
+                                from: cur_over_object,
+                            },
+                        ));
+                    } else {
+                        new_cursor = MouseCursor::Arrow;
+                    }
+                }
+                self.mouse_down_object = None;
+            }
+        }
+
+        // Fire any pending mouse events.
+        let needs_render = if events.is_empty() {
+            false
+        } else {
+            let mut refresh = false;
+            for (object, event) in events {
+                let display_object = object.as_displayobject();
+                if !display_object.avm1_removed() {
+                    object.handle_clip_event(self, event);
+                    if self.is_action_script_3() {
+                        object.event_dispatch_to_avm2(self, event);
+                    }
+                }
+                if !refresh && event.is_button_event() {
+                    let is_button_mode = display_object.as_avm1_button().is_some()
+                        || display_object.as_avm2_button().is_some()
+                        || display_object
+                            .as_movie_clip()
+                            .map(|mc| mc.is_button_mode(self))
+                            .unwrap_or_default();
+                    if is_button_mode {
+                        refresh = true;
+                    }
+                }
+            }
+            refresh
+        };
+        Self::run_actions(self);
+
+        // Update mouse cursor if it has changed.
+        if new_cursor != self.mouse_cursor {
+            self.mouse_cursor = new_cursor;
+            self.ui.set_mouse_cursor(new_cursor)
+        }
+        self.mouse_cursor_needs_check = mouse_cursor_needs_check;
+
+        needs_render
     }
 }
 
@@ -1406,222 +1613,6 @@ impl Player {
             }
         }
     }
-
-    /// Updates the hover state of buttons.
-    fn update_mouse_state(&self, is_mouse_button_changed: bool, is_mouse_moved: bool) -> bool {
-        let mouse_in_stage = self.mouse_in_stage();
-
-        // Determine the display object the mouse is hovering over.
-        // Search through levels from top-to-bottom, returning the first display object that is under the mouse.
-        let needs_render = self.mutate_with_update_context(|context| {
-            let mut new_cursor = context.mouse_cursor;
-            let mut mouse_cursor_needs_check = context.mouse_cursor_needs_check;
-
-            let new_over_object = if mouse_in_stage {
-                run_mouse_pick(context, true)
-            } else {
-                None
-            };
-            let mut events: smallvec::SmallVec<[(InteractiveObject<'_>, ClipEvent); 2]> =
-                Default::default();
-
-            if is_mouse_moved {
-                events.push((
-                    new_over_object.unwrap_or_else(|| context.stage.into()),
-                    ClipEvent::MouseMoveInside,
-                ));
-            }
-
-            // Cancel hover if an object is removed from the stage.
-            if let Some(hovered) = context.mouse_hovered_object {
-                if !context.is_action_script_3() && hovered.as_displayobject().avm1_removed() {
-                    context.mouse_hovered_object = None;
-                }
-            }
-            if let Some(pressed) = context.mouse_down_object {
-                if !context.is_action_script_3() && pressed.as_displayobject().avm1_removed() {
-                    context.mouse_down_object = None;
-                }
-            }
-
-            // Update the cursor if the object was removed from the stage.
-            if new_cursor != MouseCursor::Arrow {
-                let object_removed =
-                    context.mouse_hovered_object.is_none() && context.mouse_down_object.is_none();
-                if !object_removed {
-                    mouse_cursor_needs_check = false;
-                    if is_mouse_button_changed {
-                        // The object is pressed/released and may be removed immediately, we need to check
-                        // in the next frame if it still exists. If it doesn't, we'll update the cursor.
-                        mouse_cursor_needs_check = true;
-                    }
-                } else if mouse_cursor_needs_check {
-                    mouse_cursor_needs_check = false;
-                    new_cursor = MouseCursor::Arrow;
-                } else if !context.input.is_mouse_down()
-                    && (is_mouse_moved || is_mouse_button_changed)
-                {
-                    // In every other case, the cursor remains until the user interacts with the mouse again.
-                    new_cursor = MouseCursor::Arrow;
-                }
-            } else {
-                mouse_cursor_needs_check = false;
-            }
-
-            let cur_over_object = context.mouse_hovered_object;
-            // Check if a new object has been hovered over.
-            if !InteractiveObject::option_ptr_eq(cur_over_object, new_over_object) {
-                // If the mouse button is down, the object the user clicked on grabs the focus
-                // and fires "drag" events. Other objects are ignored.
-                if context.input.is_mouse_down() {
-                    context.mouse_hovered_object = new_over_object;
-                    if let Some(down_object) = context.mouse_down_object {
-                        if InteractiveObject::option_ptr_eq(
-                            context.mouse_down_object,
-                            cur_over_object,
-                        ) {
-                            // Dragged from outside the clicked object to the inside.
-                            events.push((
-                                down_object,
-                                ClipEvent::DragOut {
-                                    to: new_over_object,
-                                },
-                            ));
-                        } else if InteractiveObject::option_ptr_eq(
-                            context.mouse_down_object,
-                            new_over_object,
-                        ) {
-                            // Dragged from inside the clicked object to the outside.
-                            events.push((
-                                down_object,
-                                ClipEvent::DragOver {
-                                    from: cur_over_object,
-                                },
-                            ));
-                        }
-                    }
-                } else {
-                    // The mouse button is up, so fire rollover states for the object we are hovering over.
-                    // Rolled out of the previous object.
-                    if let Some(cur_over_object) = cur_over_object {
-                        events.push((
-                            cur_over_object,
-                            ClipEvent::RollOut {
-                                to: new_over_object,
-                            },
-                        ));
-                    }
-                    // Rolled over the new object.
-                    if let Some(new_over_object) = new_over_object {
-                        new_cursor = new_over_object.mouse_cursor(context);
-                        events.push((
-                            new_over_object,
-                            ClipEvent::RollOver {
-                                from: cur_over_object,
-                            },
-                        ));
-                    } else {
-                        new_cursor = MouseCursor::Arrow;
-                    }
-                }
-            }
-            context.mouse_hovered_object = new_over_object;
-
-            // Handle presses and releases.
-            if is_mouse_button_changed {
-                if context.input.is_mouse_down() {
-                    // Pressed on a hovered object.
-                    if let Some(over_object) = context.mouse_hovered_object {
-                        events.push((over_object, ClipEvent::Press));
-                        context.mouse_down_object = context.mouse_hovered_object;
-                    } else {
-                        events.push((context.stage.into(), ClipEvent::Press));
-                    }
-                } else {
-                    if let Some(over_object) = context.mouse_hovered_object {
-                        events.push((over_object, ClipEvent::MouseUpInside));
-                    } else {
-                        events.push((context.stage.into(), ClipEvent::MouseUpInside));
-                    }
-
-                    let released_inside = InteractiveObject::option_ptr_eq(
-                        context.mouse_down_object,
-                        context.mouse_hovered_object,
-                    );
-                    if released_inside {
-                        // Released inside the clicked object.
-                        if let Some(down_object) = context.mouse_down_object {
-                            new_cursor = down_object.mouse_cursor(context);
-                            events.push((down_object, ClipEvent::Release));
-                        } else {
-                            events.push((context.stage.into(), ClipEvent::Release));
-                        }
-                    } else {
-                        // Released outside the clicked object.
-                        if let Some(down_object) = context.mouse_down_object {
-                            events.push((down_object, ClipEvent::ReleaseOutside));
-                        } else {
-                            events.push((context.stage.into(), ClipEvent::ReleaseOutside));
-                        }
-                        // The new object is rolled over immediately.
-                        if let Some(over_object) = context.mouse_hovered_object {
-                            new_cursor = over_object.mouse_cursor(context);
-                            events.push((
-                                over_object,
-                                ClipEvent::RollOver {
-                                    from: cur_over_object,
-                                },
-                            ));
-                        } else {
-                            new_cursor = MouseCursor::Arrow;
-                        }
-                    }
-                    context.mouse_down_object = None;
-                }
-            }
-
-            // Fire any pending mouse events.
-            let needs_render = if events.is_empty() {
-                false
-            } else {
-                let mut refresh = false;
-                for (object, event) in events {
-                    let display_object = object.as_displayobject();
-                    if !display_object.avm1_removed() {
-                        object.handle_clip_event(context, event);
-                        if context.is_action_script_3() {
-                            object.event_dispatch_to_avm2(context, event);
-                        }
-                    }
-                    if !refresh && event.is_button_event() {
-                        let is_button_mode = display_object.as_avm1_button().is_some()
-                            || display_object.as_avm2_button().is_some()
-                            || display_object
-                                .as_movie_clip()
-                                .map(|mc| mc.is_button_mode(context))
-                                .unwrap_or_default();
-                        if is_button_mode {
-                            refresh = true;
-                        }
-                    }
-                }
-                refresh
-            };
-            Self::run_actions(context);
-
-            // Update mouse cursor if it has changed.
-            if new_cursor != context.mouse_cursor {
-                context.mouse_cursor = new_cursor;
-                context.ui.set_mouse_cursor(new_cursor)
-            }
-            context.mouse_cursor_needs_check = mouse_cursor_needs_check;
-
-            needs_render
-        });
-
-        needs_render
-    }
-
     /// Preload all pending movies in the player, including the root movie.
     ///
     /// This should be called periodically with a reasonable execution limit.
