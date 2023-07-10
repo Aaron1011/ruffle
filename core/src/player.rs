@@ -60,6 +60,7 @@ use ruffle_render::quality::StageQuality;
 use ruffle_render::transform::TransformStack;
 use ruffle_video::backend::VideoBackend;
 use std::cell::RefCell;
+use std::cell::RefMut;
 use std::collections::{HashMap, VecDeque};
 use std::ops::DerefMut;
 use std::rc::{Rc, Weak as RcWeak};

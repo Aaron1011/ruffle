@@ -8,6 +8,7 @@ use anyhow::anyhow;
 use egui::Context;
 use fontdb::{Database, Family, Query, Source};
 use ruffle_core::Player;
+use ruffle_render::backend::RenderBackend;
 use ruffle_render_wgpu::backend::{request_adapter_and_device, WgpuRenderBackend};
 use ruffle_render_wgpu::descriptors::Descriptors;
 use ruffle_render_wgpu::utils::{format_list, get_backend_names};
@@ -256,22 +257,9 @@ impl GuiController {
             &screen_descriptor,
         );
 
-        let movie_view = if let Some(player) = player.as_deref_mut() {
-            player.with_renderer(|renderer| {
-                Some(
-                    renderer
-                        .downcast_mut::<WgpuRenderBackend<MovieView>>()
-                        .expect("Renderer must be correct type")
-                        .target()
-                )
-            })
-        } else {
-            None
-        };
+        let surface_view = surface_texture.texture.create_view(&Default::default());
 
-        {
-            let surface_view = surface_texture.texture.create_view(&Default::default());
-
+        let do_render = |renderer: Option<&mut dyn RenderBackend>| {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &surface_view,
@@ -285,21 +273,33 @@ impl GuiController {
                 label: Some("egui_render"),
             });
 
-            if let Some(movie_view) = movie_view {
-                movie_view.render(&self.movie_view_renderer, &mut render_pass);
+            if let Some(renderer) = renderer {
+                renderer
+                    .downcast_mut::<WgpuRenderBackend<MovieView>>()
+                    .expect("Renderer must be correct type")
+                    .target()
+                    .render(&self.movie_view_renderer, &mut render_pass);
             }
 
             self.egui_renderer
                 .render(&mut render_pass, &clipped_primitives, &screen_descriptor);
-        }
 
-        for id in &full_output.textures_delta.free {
-            self.egui_renderer.free_texture(id);
-        }
+            drop(render_pass);
 
-        command_buffers.push(encoder.finish());
-        self.descriptors.queue.submit(command_buffers);
-        surface_texture.present();
+            for id in &full_output.textures_delta.free {
+                self.egui_renderer.free_texture(id);
+            }
+
+            command_buffers.push(encoder.finish());
+            self.descriptors.queue.submit(command_buffers);
+            surface_texture.present();
+        };
+
+        if let Some(player) = player.as_deref_mut() {
+            player.with_renderer(|renderer| do_render(Some(renderer)));
+        } else {
+            do_render(None);
+        }
     }
 
     pub fn show_context_menu(&mut self, menu: Vec<ruffle_core::ContextMenuItem>) {
