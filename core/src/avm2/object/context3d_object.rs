@@ -23,6 +23,7 @@ use swf::{Rectangle, Twips};
 use super::program_3d_object::Program3DObject;
 use super::texture_object::TextureObject;
 use super::{ClassObject, IndexBuffer3DObject, VertexBuffer3DObject};
+use std::ops::DerefMut;
 
 #[derive(Clone, Collect, Copy)]
 #[collect(no_drop)]

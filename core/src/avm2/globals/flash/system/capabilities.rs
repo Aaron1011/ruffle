@@ -1,6 +1,7 @@
 //! `flash.display.Capabilities` native methods
 
 use crate::avm2::{Activation, AvmString, Error, Object, Value};
+use std::ops::DerefMut;
 
 /// Implements `flash.system.Capabilities.version`
 pub fn get_version<'gc>(

@@ -264,7 +264,8 @@ pub struct GcRootData<'gc, T> {
     /// This is a weak reference that is upgraded and handed out in various
     /// contexts to other parts of the player. It can be used to ensure the
     /// player lives across `await` calls in async code.
-    pub player: Weak<Mutex<Self>>,
+    #[collect(require_static)]
+    pub player: Weak<Mutex<Player>>,
 
     /// The current frame of the main timeline, if available.
     /// The first frame is frame 1.
@@ -633,15 +634,17 @@ impl Player {
     fn max_frames_per_tick(&self) -> u32 {
         const MAX_FRAMES_PER_TICK: u32 = 5;
 
-        if self.recent_run_frame_timings.is_empty() {
-            5
-        } else {
-            let frame_time = 1000.0 / self.frame_rate;
-            let average_run_frame_time = self.recent_run_frame_timings.iter().sum::<f64>()
-                / self.recent_run_frame_timings.len() as f64;
-            ((frame_time / average_run_frame_time) as u32).clamp(1, MAX_FRAMES_PER_TICK)
-        }
-    }
+        let data = self.gc_arena.borrow().mutate(|_, root| {
+            let root = root.data.read();
+            if root.recent_run_frame_timings.is_empty() {
+                5
+            } else {
+                let frame_time = 1000.0 / root.frame_rate;
+                let average_run_frame_time = root.recent_run_frame_timings.iter().sum::<f64>()
+                    / root.recent_run_frame_timings.len() as f64;
+                ((frame_time / average_run_frame_time) as u32).clamp(1, MAX_FRAMES_PER_TICK)
+            }
+        });
 
     fn add_frame_timing(&mut self, elapsed: f64) {
         self.recent_run_frame_timings.push_back(elapsed);
