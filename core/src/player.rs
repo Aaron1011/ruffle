@@ -93,7 +93,7 @@ pub struct StaticCallstack {
 #[derive(Collect)]
 #[collect(require_static)]
 #[repr(transparent)]
-struct DummyMutation(*const Mutation<'static>);
+pub struct DummyMutation(*const Mutation<'static>);
 
 impl StaticCallstack {
     pub fn avm2(&self, f: impl for<'gc> FnOnce(&CallStack<'gc>)) {
