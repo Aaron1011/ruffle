@@ -664,6 +664,74 @@ impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
             self.recent_run_frame_timings.pop_front();
         }
     }
+
+    fn run_frame(&mut self) {
+        let frame_time = Duration::from_nanos((750_000_000.0 / self.frame_rate) as u64);
+        let (mut execution_limit, may_execute_while_streaming) = match self.load_behavior {
+            LoadBehavior::Streaming => (
+                ExecutionLimit::with_max_ops_and_time(10000, frame_time),
+                true,
+            ),
+            LoadBehavior::Delayed => (
+                ExecutionLimit::with_max_ops_and_time(10000, frame_time),
+                false,
+            ),
+            LoadBehavior::Blocking => (ExecutionLimit::none(), false),
+        };
+        let preload_finished = context.preload(&mut execution_limit);
+
+        if !preload_finished && !may_execute_while_streaming {
+            return;
+        }
+
+        if self.is_action_script_3() {
+            run_all_phases_avm2(self);
+        } else {
+            Avm1::run_frame(self);
+        }
+        AudioManager::update_sounds(self);
+        self.needs_render = true;
+    }
+
+    fn preload(&mut self, limit: &mut ExecutionLimit) -> bool {
+        let mut did_finish = true;
+
+        if let Some(root) = self.stage.root_clip().and_then(|root| root.as_movie_clip()) {
+            let was_root_movie_loaded = root.loaded_bytes() == root.total_bytes();
+            did_finish = root.preload(self, limit);
+
+            if let Some(loader_info) = root.loader_info().filter(|_| !was_root_movie_loaded) {
+                let mut activation = Avm2Activation::from_nothing(self);
+
+                let progress_evt = activation.avm2().classes().progressevent.construct(
+                    &mut activation,
+                    &[
+                        "progress".into(),
+                        false.into(),
+                        false.into(),
+                        root.compressed_loaded_bytes().into(),
+                        root.compressed_total_bytes().into(),
+                    ],
+                );
+
+                match progress_evt {
+                    Err(e) => tracing::error!(
+                        "Encountered AVM2 error when constructing `progress` event: {}",
+                        e,
+                    ),
+                    Ok(progress_evt) => {
+                        Avm2::dispatch_event(self, progress_evt, loader_info);
+                    }
+                }
+            }
+        }
+
+        if did_finish {
+            did_finish = LoadManager::preload_tick(self, limit);
+        }
+
+        did_finish
+    }
 }
 
 type GcArena = gc_arena::Arena<Rootable![GcRoot<'_>]>;
@@ -1570,80 +1638,14 @@ impl Player {
     /// simulate a particular load condition or stress chunked loading may use
     /// this in lieu of an unlimited execution limit.
     pub fn preload(&self, limit: &mut ExecutionLimit) -> bool {
-        self.mutate_with_update_context(|context| {
-            let mut did_finish = true;
-
-            if let Some(root) = context
-                .stage
-                .root_clip()
-                .and_then(|root| root.as_movie_clip())
-            {
-                let was_root_movie_loaded = root.loaded_bytes() == root.total_bytes();
-                did_finish = root.preload(context, limit);
-
-                if let Some(loader_info) = root.loader_info().filter(|_| !was_root_movie_loaded) {
-                    let mut activation = Avm2Activation::from_nothing(context);
-
-                    let progress_evt = activation.avm2().classes().progressevent.construct(
-                        &mut activation,
-                        &[
-                            "progress".into(),
-                            false.into(),
-                            false.into(),
-                            root.compressed_loaded_bytes().into(),
-                            root.compressed_total_bytes().into(),
-                        ],
-                    );
-
-                    match progress_evt {
-                        Err(e) => tracing::error!(
-                            "Encountered AVM2 error when constructing `progress` event: {}",
-                            e,
-                        ),
-                        Ok(progress_evt) => {
-                            Avm2::dispatch_event(context, progress_evt, loader_info);
-                        }
-                    }
-                }
-            }
-
-            if did_finish {
-                did_finish = LoadManager::preload_tick(context, limit);
-            }
-
-            did_finish
-        })
+        self.mutate_with_update_context(|context| context.preload(limit))
     }
 
     #[instrument(level = "debug", skip_all)]
     pub fn run_frame(&self) {
         self.update(|context| {
-            let frame_time = Duration::from_nanos((750_000_000.0 / context.frame_rate) as u64);
-            let (mut execution_limit, may_execute_while_streaming) = match context.load_behavior {
-                LoadBehavior::Streaming => (
-                    ExecutionLimit::with_max_ops_and_time(10000, frame_time),
-                    true,
-                ),
-                LoadBehavior::Delayed => (
-                    ExecutionLimit::with_max_ops_and_time(10000, frame_time),
-                    false,
-                ),
-                LoadBehavior::Blocking => (ExecutionLimit::none(), false),
-            };
-            let preload_finished = self.preload(&mut execution_limit);
-
-            if !preload_finished && !may_execute_while_streaming {
-                return;
-            }
-
-            if context.is_action_script_3() {
-                run_all_phases_avm2(context);
-            } else {
-                Avm1::run_frame(context);
-            }
-            AudioManager::update_sounds(context);
-            context.needs_render = true;
-        });
+            context.run_frame();
+        })
     }
 
     #[instrument(level = "debug", skip_all)]
