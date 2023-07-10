@@ -1772,7 +1772,8 @@ impl Player {
 
     fn access_data<R>(&self, f: impl FnOnce(&UpdateContext<'_>) -> R) -> R {
         self.gc_arena.borrow_mut().mutate(|mc, root| {
-            let player_context: &mut PlayerContext<'_> = &mut *root.data.write(mc);
+            let root_write = root.data.write(mc);
+            let player_context: &mut PlayerContext<'_> = &mut *root_write;
             player_context.gc_context = unsafe { std::mem::transmute(mc) };
 
             // Safety - *const Mutation<'gc> and &mut Mutation<'gc> have the same layout,
@@ -1781,8 +1782,10 @@ impl Player {
             let update_context: &mut UpdateContext<'_> = unsafe { std::mem::transmute(player_context) };
             let res = f(update_context);
 
+            let player_context: &mut PlayerContext<'_> = &mut *root_write;
+
             // FIXME - we need to run this on panic as well
-            update_context.gc_context = DummyMutation(std::ptr::null());
+            player_context.gc_context = DummyMutation(std::ptr::null());
             res
         })
     }
@@ -1900,7 +1903,8 @@ impl Player {
         F: for<'a, 'gc> FnOnce(&mut UpdateContext<'gc>) -> R,
     {
         self.gc_arena.borrow().mutate(|gc_context, gc_root| {
-            let mut root_data = gc_root.data.write(gc_context);
+            let root_write = gc_root.data.write(gc_context);
+            let mut root_data = &mut *root_write;
             let focus_tracker = root_data.focus_tracker;
 
             let player_context: &mut PlayerContext<'_> = &mut *root_data;
@@ -1916,12 +1920,14 @@ impl Player {
 
             let ret = f(update_context);
 
-            update_context.gc_context = DummyMutation(std::ptr::null());
+            let player_context: &mut PlayerContext<'_> = &mut *root_write;
+
+            player_context.gc_context = DummyMutation(std::ptr::null());
 
             // If we changed the framerate, let the audio handler now.
             #[allow(clippy::float_cmp)]
-            if update_context.frame_rate != prev_frame_rate {
-                update_context
+            if player_context.frame_rate != prev_frame_rate {
+                player_context
                     .audio
                     .set_frame_rate(player_context.frame_rate);
             }
