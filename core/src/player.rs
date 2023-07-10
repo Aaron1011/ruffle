@@ -301,53 +301,6 @@ pub struct GcRootData<'gc, T> {
 
 pub type PlayerContext<'gc> = GcRootData<'gc, DummyMutation>;
 
-impl<'gc, T> GcRootData<'gc, T> {
-    /// Splits out parameters for creating an `UpdateContext`
-    /// (because we can borrow fields of `self` independently)
-    #[allow(clippy::type_complexity)]
-    fn update_context_params(
-        &mut self,
-    ) -> (
-        Stage<'gc>,
-        &mut Library<'gc>,
-        &mut ActionQueue<'gc>,
-        &mut AvmStringInterner<'gc>,
-        &mut Avm1<'gc>,
-        &mut Avm2<'gc>,
-        &mut Option<DragObject<'gc>>,
-        &mut LoadManager<'gc>,
-        &mut HashMap<String, Object<'gc>>,
-        &mut HashMap<String, Avm2Object<'gc>>,
-        &mut Vec<EditText<'gc>>,
-        &mut Timers<'gc>,
-        &mut Option<ContextMenuState<'gc>>,
-        &mut ExternalInterface<'gc>,
-        &mut AudioManager<'gc>,
-        &mut StreamManager<'gc>,
-        DynamicRootSet<'gc>,
-    ) {
-        (
-            self.stage,
-            &mut self.library,
-            &mut self.action_queue,
-            &mut self.interner,
-            &mut self.avm1,
-            &mut self.avm2,
-            &mut self.drag_object,
-            &mut self.load_manager,
-            &mut self.avm1_shared_objects,
-            &mut self.avm2_shared_objects,
-            &mut self.unbound_text_fields,
-            &mut self.timers,
-            &mut self.current_context_menu,
-            &mut self.external_interface,
-            &mut self.audio_manager,
-            &mut self.stream_manager,
-            self.dynamic_root,
-        )
-    }
-}
-
 impl<'gc> GcRootData<'gc, &'gc Mutation<'gc>> {
     pub fn global_sound_transform(&self) -> &crate::display_object::SoundTransform {
         self.audio_manager.global_sound_transform()
