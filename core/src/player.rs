@@ -662,7 +662,7 @@ impl Player {
         })
     }
 
-    fn add_frame_timing(&mut self, elapsed: f64) {
+    fn add_frame_timing(&self, elapsed: f64) {
         self.mutate_with_update_context(|context| {
             context.recent_run_frame_timings.push_back(elapsed);
             if context.recent_run_frame_timings.len() >= 10 {
@@ -673,7 +673,7 @@ impl Player {
 
     pub fn tick(&mut self, dt: f64) {
         self.gc_arena.borrow().mutate(|mc, root| {
-            let mut root = root.data.write(mc);
+            let mut root = &mut *root.data.write(mc);
             // Don't run until preloading is complete.
             // TODO: Eventually we want to stream content similar to the Flash player.
             if !root.audio.is_loading_complete() {
@@ -1410,7 +1410,7 @@ impl Player {
     }
 
     /// Updates the hover state of buttons.
-    fn update_mouse_state(&mut self, is_mouse_button_changed: bool, is_mouse_moved: bool) -> bool {
+    fn update_mouse_state(&self, is_mouse_button_changed: bool, is_mouse_moved: bool) -> bool {
         let mouse_in_stage = self.mouse_in_stage();
 
         // Determine the display object the mouse is hovering over.
@@ -1635,7 +1635,7 @@ impl Player {
     /// Returns true if all preloading work has completed. Clients that want to
     /// simulate a particular load condition or stress chunked loading may use
     /// this in lieu of an unlimited execution limit.
-    pub fn preload(&mut self, limit: &mut ExecutionLimit) -> bool {
+    pub fn preload(&self, limit: &mut ExecutionLimit) -> bool {
         self.mutate_with_update_context(|context| {
             let mut did_finish = true;
 
@@ -1682,7 +1682,7 @@ impl Player {
     }
 
     #[instrument(level = "debug", skip_all)]
-    pub fn run_frame(&mut self) {
+    pub fn run_frame(&self) {
         self.update(|context| {
             let frame_time = Duration::from_nanos((750_000_000.0 / context.frame_rate) as u64);
             let (mut execution_limit, may_execute_while_streaming) = match context.load_behavior {
@@ -1772,7 +1772,7 @@ impl Player {
 
     fn access_data<R>(&self, f: impl FnOnce(&UpdateContext<'_>) -> R) -> R {
         self.gc_arena.borrow_mut().mutate(|mc, root| {
-            let root_write = root.data.write(mc);
+            let mut root_write = root.data.write(mc);
             let player_context: &mut PlayerContext<'_> = &mut *root_write;
             player_context.gc_context = unsafe { std::mem::transmute(mc) };
 
@@ -1903,7 +1903,7 @@ impl Player {
         F: for<'a, 'gc> FnOnce(&mut UpdateContext<'gc>) -> R,
     {
         self.gc_arena.borrow().mutate(|gc_context, gc_root| {
-            let root_write = gc_root.data.write(gc_context);
+            let mut root_write = gc_root.data.write(gc_context);
             let mut root_data = &mut *root_write;
             let focus_tracker = root_data.focus_tracker;
 
@@ -1983,7 +1983,7 @@ impl Player {
     /// This particular function runs necessary post-update bookkeeping, such
     /// as executing any actions queued on the update context, keeping the
     /// hover state up to date, and running garbage collection.
-    pub fn update<F, R>(&mut self, func: F) -> R
+    pub fn update<F, R>(&self, func: F) -> R
     where
         F: for<'a, 'gc> FnOnce(&mut UpdateContext<'gc>) -> R,
     {
