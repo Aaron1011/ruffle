@@ -90,6 +90,11 @@ pub struct StaticCallstack {
     arena: RcWeak<RefCell<GcArena>>,
 }
 
+#[derive(Collect)]
+#[collect(require_static)]
+#[repr(transparent)]
+struct DummyMutation(*const Mutation<'static>);
+
 impl StaticCallstack {
     pub fn avm2(&self, f: impl for<'gc> FnOnce(&CallStack<'gc>)) {
         if let Some(arena) = self.arena.upgrade() {
@@ -292,7 +297,7 @@ pub struct GcRootData<'gc, T> {
     pub needs_render: bool,
 }
 
-pub type PlayerContext<'gc> = GcRootData<'gc, *const Mutation<'gc>>;
+pub type PlayerContext<'gc> = GcRootData<'gc, DummyMutation>;
 
 impl<'gc, T> GcRootData<'gc, T> {
     /// Splits out parameters for creating an `UpdateContext`
@@ -1766,13 +1771,19 @@ impl Player {
     }
 
     fn access_data<R>(&self, f: impl FnOnce(&UpdateContext<'_>) -> R) -> R {
-        self.gc_arena.borrow().mutate(|_, root| {
-            let player_context: &PlayerContext<'_> = &*root.data.read();
+        self.gc_arena.borrow_mut().mutate(|mc, root| {
+            let player_context: &mut PlayerContext<'_> = &mut *root.data.write(mc);
+            player_context.gc_context = unsafe { std::mem::transmute(mc) };
+
             // Safety - *const Mutation<'gc> and &mut Mutation<'gc> have the same layout,
             // so PlayerContext and UpdateContext do as well.
             // FIXME - do we need #[repr(C)]
-            let update_context: &UpdateContext<'_> = unsafe { std::mem::transmute(player_context) };
-            f(update_context)
+            let update_context: &mut UpdateContext<'_> = unsafe { std::mem::transmute(player_context) };
+            let res = f(update_context);
+
+            // FIXME - we need to run this on panic as well
+            update_context.gc_context = DummyMutation(std::ptr::null());
+            res
         })
     }
 
@@ -1897,21 +1908,25 @@ impl Player {
             let prev_frame_rate = player_context.frame_rate;
             player_context.update_start = Instant::now();
 
+            player_context.gc_context = unsafe { std::mem::transmute(gc_context) };
+
             // FIXME - explain safety
             let update_context: &mut UpdateContext<'_> =
                 unsafe { std::mem::transmute(player_context) };
 
             let ret = f(update_context);
 
+            update_context.gc_context = DummyMutation(std::ptr::null());
+
             // If we changed the framerate, let the audio handler now.
             #[allow(clippy::float_cmp)]
-            if player_context.frame_rate != prev_frame_rate {
-                player_context
+            if update_context.frame_rate != prev_frame_rate {
+                update_context
                     .audio
                     .set_frame_rate(player_context.frame_rate);
             }
 
-            player_context.current_frame = player_context
+            update_context.current_frame = update_context
                 .stage
                 .root_clip()
                 .and_then(|root| root.as_movie_clip())
@@ -2406,7 +2421,7 @@ impl PlayerBuilder {
                                     stream_manager: StreamManager::new(),
                                     dynamic_root,
 
-                                    gc_context,
+                                    gc_context: DummyMutation(std::ptr::null()),
                                     player_version,
 
                                     // Backends
