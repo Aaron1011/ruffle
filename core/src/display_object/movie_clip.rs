@@ -3617,7 +3617,7 @@ impl<'gc, 'a> MovieClipData<'gc> {
         };
         let font_object = Font::from_swf_tag(
             context.gc_context,
-            context.renderer,
+            context.renderer.deref_mut(),
             font,
             reader.encoding(),
         );
@@ -3638,7 +3638,7 @@ impl<'gc, 'a> MovieClipData<'gc> {
         let font_id = font.id;
         let font_object = Font::from_swf_tag(
             context.gc_context,
-            context.renderer,
+            context.renderer.deref_mut(),
             font,
             reader.encoding(),
         );
@@ -3659,7 +3659,7 @@ impl<'gc, 'a> MovieClipData<'gc> {
         let font_id = font.id;
         let font_object = Font::from_swf_tag(
             context.gc_context,
-            context.renderer,
+            context.renderer.deref_mut(),
             font,
             reader.encoding(),
         );

@@ -711,7 +711,7 @@ pub fn render_base<'gc>(this: DisplayObject<'gc>, context: &mut RenderContext<'_
                 let width = width as u16;
                 let height = height as u16;
                 if cache.is_dirty(&base_transform.matrix, width, height) {
-                    cache.update(context.renderer, base_transform.matrix, width, height);
+                    cache.update(context.renderer.deref_mut(), base_transform.matrix, width, height);
                     cache_info = cache
                         .handle()
                         .map(|handle| (handle, true, base_transform, bounds));
@@ -753,7 +753,7 @@ pub fn render_base<'gc>(this: DisplayObject<'gc>, context: &mut RenderContext<'_
                 },
             });
             let mut offscreen_context = RenderContext {
-                renderer: context.renderer,
+                renderer: context.renderer.deref_mut(),
                 commands: CommandList::new(),
                 cache_draws: context.cache_draws,
                 gc_context: context.gc_context,

@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use ruffle_render::{
     bitmap::PixelRegion,
     pixel_bender::{

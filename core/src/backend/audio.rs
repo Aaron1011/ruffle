@@ -363,7 +363,7 @@ impl<'gc> AudioManager<'gc> {
         }
 
         // Update sound transforms, if dirty.
-        context.audio_manager.update_sound_transforms(context.audio);
+        context.audio_manager.update_sound_transforms(context.audio.deref_mut());
     }
 
     pub fn start_sound(

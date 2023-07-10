@@ -454,7 +454,7 @@ impl<'gc> NetStream<'gc> {
                                 match context.video.decode_video_stream_frame(
                                     video_handle,
                                     encoded_frame,
-                                    context.renderer,
+                                    context.renderer.deref_mut(),
                                 ) {
                                     Ok(bitmap_info) => {
                                         let (_, position) = reader.into_parts();
