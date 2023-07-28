@@ -1,7 +1,7 @@
 use crate::avm1::Object as Avm1Object;
 use crate::avm2::{
-    Activation as Avm2Activation, ClassObject as Avm2ClassObject, Error as Avm2Error,
-    Object as Avm2Object, StageObject as Avm2StageObject, Value as Avm2Value,
+    Activation as Avm2Activation, ClassObject as Avm2ClassObject, Object as Avm2Object,
+    StageObject as Avm2StageObject, Value as Avm2Value,
 };
 use crate::backend::ui::MouseCursor;
 use crate::context::{RenderContext, UpdateContext};
@@ -12,7 +12,7 @@ use crate::display_object::interactive::{
 };
 use crate::display_object::{DisplayObjectBase, DisplayObjectPtr, MovieClip, TDisplayObject};
 use crate::events::{ClipEvent, ClipEventResult};
-use crate::frame_lifecycle::catchup_display_object_to_frame;
+use crate::frame_lifecycle::{catchup_display_object_to_frame, run_inner_goto_frame};
 use crate::prelude::*;
 use crate::tag_utils::{SwfMovie, SwfSlice};
 use crate::vminterface::Instantiator;
@@ -76,11 +76,6 @@ pub struct Avm2ButtonData<'gc> {
     /// This flag is consumed during frame construction.
     needs_frame_construction: bool,
 
-    /// If this button needs to have it's AVM2 side initialized, or not.
-    ///
-    /// All buttons start out not needing AVM2 initialization.
-    needs_avm2_initialization: bool,
-
     has_focus: bool,
     enabled: bool,
     use_hand_cursor: bool,
@@ -91,6 +86,11 @@ pub struct Avm2ButtonData<'gc> {
     /// children for one frame before parents can run. Then they go back to the
     /// normal AVM2 execution order for future frames.
     skip_current_frame: bool,
+
+    /// When we initially construct a button and run a nested frame,
+    /// we run the framescripts for our states in a different order then
+    /// we do for all other framescript runs.
+    weird_framescript_order: bool,
 }
 
 impl<'gc> Avm2Button<'gc> {
@@ -123,7 +123,6 @@ impl<'gc> Avm2Button<'gc> {
                 class: context.avm2.classes().simplebutton,
                 object: None,
                 needs_frame_construction: construct_blank_states,
-                needs_avm2_initialization: false,
                 tracking: if button.is_track_as_menu {
                     ButtonTracking::Menu
                 } else {
@@ -133,6 +132,7 @@ impl<'gc> Avm2Button<'gc> {
                 enabled: true,
                 use_hand_cursor: true,
                 skip_current_frame: false,
+                weird_framescript_order: false,
             },
         ))
     }
@@ -481,15 +481,6 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
 
         let needs_avm2_construction = self.0.read().object.is_none();
         let class = self.0.read().class;
-        if needs_avm2_construction {
-            let mut activation = Avm2Activation::from_nothing(context.reborrow());
-            match Avm2StageObject::for_display_object(&mut activation, (*self).into(), class) {
-                Ok(object) => self.0.write(context.gc_context).object = Some(object.into()),
-                Err(e) => tracing::error!("Got {} when constructing AVM2 side of button", e),
-            };
-
-            self.on_construction_complete(context);
-        }
 
         let needs_frame_construction = self.0.read().needs_frame_construction;
         if needs_frame_construction {
@@ -550,57 +541,75 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
             }
 
             if needs_avm2_construction {
-                self.0.write(context.gc_context).needs_avm2_initialization = true;
-
-                self.frame_constructed(context);
-
                 self.set_state(context, ButtonState::Up);
 
-                up_state.run_frame_scripts(context);
-                over_state.run_frame_scripts(context);
-                down_state.run_frame_scripts(context);
-                hit_area.run_frame_scripts(context);
-
-                self.exit_frame(context);
-            }
-        } else if self.0.read().needs_avm2_initialization {
-            self.0.write(context.gc_context).needs_avm2_initialization = false;
-            let avm2_object = self.0.read().object;
-            if let Some(avm2_object) = avm2_object {
-                let mut constr_thing = || {
-                    let mut activation = Avm2Activation::from_nothing(context.reborrow());
-                    class.call_native_init(avm2_object.into(), &[], &mut activation)?;
-
-                    Ok(())
+                let mut activation = Avm2Activation::from_nothing(context.reborrow());
+                match Avm2StageObject::for_display_object(&mut activation, (*self).into(), class) {
+                    Ok(object) => {
+                        self.0.write(activation.context.gc_context).object = Some(object.into())
+                    }
+                    Err(e) => tracing::error!("Got {} when constructing AVM2 side of button", e),
                 };
-                let result: Result<(), Avm2Error> = constr_thing();
 
-                if let Err(e) = result {
-                    tracing::error!("Got {} when constructing AVM2 side of button", e);
+                // This is run before we actually call the constructor - the un-constructed object
+                // is exposed to ActionScript via `parent.<childName>`.
+                self.on_construction_complete(&mut activation.context);
+
+                self.0
+                    .write(activation.context.gc_context)
+                    .weird_framescript_order = true;
+                run_inner_goto_frame(&mut activation.context, &[]);
+
+                let avm2_object = self.0.read().object;
+                if let Some(avm2_object) = avm2_object {
+                    if let Err(e) = class.call_native_init(avm2_object.into(), &[], &mut activation)
+                    {
+                        tracing::error!("Got {} when constructing AVM2 side of button", e);
+                    }
                 }
             }
         }
     }
 
     fn run_frame_scripts(self, context: &mut UpdateContext<'_, 'gc>) {
-        let hit_area = self.0.read().hit_area;
-        if let Some(hit_area) = hit_area {
-            hit_area.run_frame_scripts(context);
-        }
+        if self.0.read().weird_framescript_order {
+            self.0.write(context.gc_context).weird_framescript_order = false;
+            let up_state = self.0.read().up_state;
+            if let Some(up_state) = up_state {
+                up_state.run_frame_scripts(context);
+            }
+            let over_state = self.0.read().over_state;
+            if let Some(over_state) = over_state {
+                over_state.run_frame_scripts(context);
+            }
+            let down_state = self.0.read().down_state;
+            if let Some(down_state) = down_state {
+                down_state.run_frame_scripts(context);
+            }
+            let hit_area = self.0.read().hit_area;
+            if let Some(hit_area) = hit_area {
+                hit_area.run_frame_scripts(context);
+            }
+        } else {
+            let hit_area = self.0.read().hit_area;
+            if let Some(hit_area) = hit_area {
+                hit_area.run_frame_scripts(context);
+            }
 
-        let up_state = self.0.read().up_state;
-        if let Some(up_state) = up_state {
-            up_state.run_frame_scripts(context);
-        }
+            let up_state = self.0.read().up_state;
+            if let Some(up_state) = up_state {
+                up_state.run_frame_scripts(context);
+            }
 
-        let down_state = self.0.read().down_state;
-        if let Some(down_state) = down_state {
-            down_state.run_frame_scripts(context);
-        }
+            let down_state = self.0.read().down_state;
+            if let Some(down_state) = down_state {
+                down_state.run_frame_scripts(context);
+            }
 
-        let over_state = self.0.read().over_state;
-        if let Some(over_state) = over_state {
-            over_state.run_frame_scripts(context);
+            let over_state = self.0.read().over_state;
+            if let Some(over_state) = over_state {
+                over_state.run_frame_scripts(context);
+            }
         }
     }
 
