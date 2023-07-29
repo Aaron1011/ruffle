@@ -484,6 +484,8 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
 
         let needs_frame_construction = self.0.read().needs_frame_construction;
         if needs_frame_construction {
+            // Prevent re-entrantly constructing this button (since we may run a nested frame here)
+            self.0.write(context.gc_context).needs_frame_construction = false;
             let (up_state, up_should_fire) = self.create_state(context, swf::ButtonState::UP);
             let (over_state, over_should_fire) = self.create_state(context, swf::ButtonState::OVER);
             let (down_state, down_should_fire) = self.create_state(context, swf::ButtonState::DOWN);
@@ -496,7 +498,6 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
             write.down_state = Some(down_state);
             write.hit_area = Some(hit_area);
             write.skip_current_frame = true;
-            write.needs_frame_construction = false;
 
             drop(write);
 
