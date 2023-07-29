@@ -12,7 +12,7 @@ use crate::display_object::interactive::{
 };
 use crate::display_object::{DisplayObjectBase, DisplayObjectPtr, MovieClip, TDisplayObject};
 use crate::events::{ClipEvent, ClipEventResult};
-use crate::frame_lifecycle::{catchup_display_object_to_frame, run_inner_goto_frame};
+use crate::frame_lifecycle::catchup_display_object_to_frame;
 use crate::prelude::*;
 use crate::tag_utils::{SwfMovie, SwfSlice};
 use crate::vminterface::Instantiator;
@@ -556,10 +556,20 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                 // is exposed to ActionScript via `parent.<childName>`.
                 self.on_construction_complete(&mut activation.context);
 
-                self.0
-                    .write(activation.context.gc_context)
-                    .weird_framescript_order = true;
-                run_inner_goto_frame(&mut activation.context, &[]);
+                // Flash player skips this nested frame when the button just uses the `SimpleButton`
+                // class (as opposed to a custom class extending `SimpleButton`)
+                if class != activation.avm2().classes().simplebutton {
+                    self.0
+                        .write(activation.context.gc_context)
+                        .weird_framescript_order = true;
+
+                    let stage = activation.context.stage;
+
+                    stage.frame_constructed(&mut activation.context);
+                    self.set_state(&mut activation.context, ButtonState::Up);
+                    stage.run_frame_scripts(&mut activation.context);
+                    stage.exit_frame(&mut activation.context);
+                }
 
                 let avm2_object = self.0.read().object;
                 if let Some(avm2_object) = avm2_object {

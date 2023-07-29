@@ -7,9 +7,9 @@
 		
 		
 		public function MyButton() {
-			trace("Calling MyButton super(): this.parent[\"myButton\"] = " + this.parent["myButton"]);
+			trace("Calling MyButton " + this.name + " super(): this.parent[\"myButton\"] = " + this.parent["myButton"]);
 			super();
-			trace("Called MyButton super(): this.parent[\"myButton\"] = " + this.parent["myButton"]);
+			trace("Called MyButton " + this.name + " super(): this.parent[\"myButton\"] = " + this.parent["myButton"]);
 		}
 	}
 	
