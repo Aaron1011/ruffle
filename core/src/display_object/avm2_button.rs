@@ -617,6 +617,8 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                         tracing::error!("Got {} when constructing AVM2 side of button", e);
                     }
                 }
+
+                self.on_construction_complete(&mut activation.context);
             }
         }
     }
