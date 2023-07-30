@@ -58,3 +58,24 @@ root1:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2] targ
 target.parent.parent: null
 instance2:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
 target.parent.parent: null
+instance4:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
+instance6:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
+root1:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object Main]
+target.parent.parent: null
+instance2:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
+target.parent.parent: null
+instance4:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
+instance6:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
+//Down Button Shape Frame 2
+//MainTimeline frame 2
+ReferenceError: Error #1065: Variable DisplayObjectContainer is not defined.
+	at Main/stop_display_object_handlers()[Main::frame2:8]
+	at Main/frame2()[Main::frame2:17]
+//Up Button Shape Frame 2
+//Over Button Shape Frame 2
+root1:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object Main]
+target.parent.parent: null
+instance2:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
+target.parent.parent: null
+instance4:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
+instance6:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
