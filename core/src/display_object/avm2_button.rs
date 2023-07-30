@@ -23,6 +23,8 @@ use std::cell::{Ref, RefMut};
 use std::ops::Not;
 use std::sync::Arc;
 
+use super::container::dispatch_added_to_stage_event;
+use super::{dispatch_added_event_only, dispatch_added_to_stage_event_only};
 use super::interactive::Avm2MousePick;
 
 #[derive(Clone, Collect, Copy)]
@@ -525,10 +527,13 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                     let old_parent = up_state.parent();
                     up_state.set_parent(context, None);
                     for child in up_container.iter_render_list() {
-                        dispatch_added_event((*self).into(), child, false, context);
+                        dispatch_added_event_only(child, context);
                     }
                     up_state.set_parent(context, old_parent);
                     dispatch_added_event((*self).into(), up_state, true, context);
+                    for child in up_container.iter_render_list() {
+                        dispatch_added_to_stage_event(child, context);
+                    }
                 }
             }
 
@@ -539,10 +544,13 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                     let old_parent = over_state.parent();
                     over_state.set_parent(context, None);
                     for child in over_container.iter_render_list() {
-                        dispatch_added_event((*self).into(), child, false, context);
+                        dispatch_added_event_only(child, context);
                     }
                     over_state.set_parent(context, old_parent);
                     dispatch_added_event((*self).into(), over_state, true, context);
+                    for child in over_container.iter_render_list() {
+                        dispatch_added_to_stage_event(child, context);
+                    }
                 }
             }
 
@@ -553,10 +561,13 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                     let old_parent = down_state.parent();
                     down_state.set_parent(context, None);
                     for child in down_container.iter_render_list() {
-                        dispatch_added_event((*self).into(), child, false, context);
+                        dispatch_added_event_only(child, context);
                     }
                     down_state.set_parent(context, old_parent);
                     dispatch_added_event((*self).into(), down_state, true, context);
+                    for child in down_container.iter_render_list() {
+                        dispatch_added_to_stage_event(child, context);
+                    }
                 }
             }
 
@@ -567,10 +578,13 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                     let old_parent = hit_area.parent();
                     hit_area.set_parent(context, None);
                     for child in hit_container.iter_render_list() {
-                        dispatch_added_event((*self).into(), child, false, context);
+                        dispatch_added_event_only(child, context);
                     }
                     hit_area.set_parent(context, old_parent);
                     dispatch_added_event((*self).into(), hit_area, true, context);
+                    for child in hit_container.iter_render_list() {
+                        dispatch_added_to_stage_event(child, context);
+                    }
                 }
             }
 
