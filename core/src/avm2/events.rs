@@ -442,10 +442,12 @@ pub fn dispatch_event<'gc>(
         .unwrap_or(this);
 
     let mut ancestor_list = Vec::new();
-    let mut parent = parent_of(target);
-    while let Some(par) = parent {
-        ancestor_list.push(par);
-        parent = parent_of(par);
+    let mut parent = target.as_display_object().and_then(|dobj| dobj.parent());
+    while let Some(parent_dobj) = parent {
+        if let Value::Object(parent_obj) = parent_dobj.object2() {
+            ancestor_list.push(parent_obj);
+        }
+        parent = parent_dobj.parent();
     }
 
     let mut evtmut = event.as_event_mut(activation.context.gc_context).unwrap();

@@ -9,7 +9,10 @@
 		}
 		
 		function trace_event(event: Event) {
-			trace(this.name + ":" + event);
+			trace(this.name + ":" + event + " target: " + event["target"]);
+			if (event["target"] && event["target"].parent) {
+				trace("target.parent.parent: " + event["target"].parent.parent);
+			}
 		}
 		
 		public function setup() {
