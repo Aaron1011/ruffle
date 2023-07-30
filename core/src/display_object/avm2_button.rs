@@ -528,6 +528,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                         dispatch_added_event((*self).into(), child, false, context);
                     }
                     up_state.set_parent(context, old_parent);
+                    dispatch_added_event((*self).into(), up_state, true, context);
                 }
             }
 
@@ -541,6 +542,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                         dispatch_added_event((*self).into(), child, false, context);
                     }
                     over_state.set_parent(context, old_parent);
+                    dispatch_added_event((*self).into(), over_state, true, context);
                 }
             }
 
@@ -554,6 +556,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                         dispatch_added_event((*self).into(), child, false, context);
                     }
                     down_state.set_parent(context, old_parent);
+                    dispatch_added_event((*self).into(), down_state, true, context);
                 }
             }
 
@@ -567,6 +570,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                         dispatch_added_event((*self).into(), child, false, context);
                     }
                     hit_area.set_parent(context, old_parent);
+                    dispatch_added_event((*self).into(), hit_area, true, context);
                 }
             }
 
