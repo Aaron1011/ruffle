@@ -89,3 +89,8 @@ ReferenceError: Error #1065: Variable DisplayObjectContainer is not defined.
 root1:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object Main]
 target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 instance2:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
+target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+instance4:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
+target.stage: null target.name: instance4 target.parent: null target.parent.parent: <missing>
+instance6:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
+target.stage: null target.name: instance6 target.parent: null target.parent.parent: <missing>
