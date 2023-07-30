@@ -80,17 +80,8 @@ target.stage: null target.name: instance4 target.parent: null target.parent.pare
 instance6:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
 target.stage: null target.name: instance6 target.parent: null target.parent.parent: <missing>
 //MainTimeline frame 2
-ReferenceError: Error #1065: Variable DisplayObjectContainer is not defined.
-	at Main/stop_display_object_handlers()[Main::frame2:8]
-	at Main/frame2()[Main::frame2:17]
 //Up Button Shape Frame 2
 //Down Button Shape Frame 2
 //Over Button Shape Frame 2
 root1:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object Main]
 target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
-instance2:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
-instance4:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
-target.stage: null target.name: instance4 target.parent: null target.parent.parent: <missing>
-instance6:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
-target.stage: null target.name: instance6 target.parent: null target.parent.parent: <missing>
