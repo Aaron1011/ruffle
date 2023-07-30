@@ -11,7 +11,7 @@
 		function trace_event(event: Event) {
 			trace(this.name + ":" + event + " target: " + event["target"]);
 			if (event["target"] && event["target"].parent) {
-				trace("target.name: " + event.target.name + " target.parent: " + event.target.parent + " target.parent.parent: " + event.target.parent.parent);
+				trace("target.stage: " + event.target.stage + " target.name: " + event.target.name + " target.parent: " + event.target.parent + " target.parent.parent: " + event.target.parent.parent);
 			}
 		}
 		

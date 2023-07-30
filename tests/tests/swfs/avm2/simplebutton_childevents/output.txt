@@ -1,28 +1,28 @@
 Calling Main super()
 instance2:[Event type="added" bubbles=true cancelable=false eventPhase=3] target: [object Shape]
-target.name: instance3 target.parent: [object UpButtonShape] target.parent.parent: null
+target.stage: [object Stage] target.name: instance3 target.parent: [object UpButtonShape] target.parent.parent: null
 root1:[Event type="added" bubbles=true cancelable=false eventPhase=3] target: [object Shape]
-target.name: instance3 target.parent: [object UpButtonShape] target.parent.parent: null
+target.stage: [object Stage] target.name: instance3 target.parent: [object UpButtonShape] target.parent.parent: null
 //Constructed UpButtonShape ( instance2 ): this.parent = null this.stage [object Stage]
 instance4:[Event type="added" bubbles=true cancelable=false eventPhase=3] target: [object Shape]
-target.name: instance5 target.parent: [object OverButtonShape] target.parent.parent: null
+target.stage: [object Stage] target.name: instance5 target.parent: [object OverButtonShape] target.parent.parent: null
 root1:[Event type="added" bubbles=true cancelable=false eventPhase=3] target: [object Shape]
-target.name: instance5 target.parent: [object OverButtonShape] target.parent.parent: null
+target.stage: [object Stage] target.name: instance5 target.parent: [object OverButtonShape] target.parent.parent: null
 //Constructed OverButtonShape ( instance4 ): this.parent = null this.stage [object Stage]
 instance6:[Event type="added" bubbles=true cancelable=false eventPhase=3] target: [object Shape]
-target.name: instance7 target.parent: [object DownButtonShape] target.parent.parent: null
+target.stage: [object Stage] target.name: instance7 target.parent: [object DownButtonShape] target.parent.parent: null
 root1:[Event type="added" bubbles=true cancelable=false eventPhase=3] target: [object Shape]
-target.name: instance7 target.parent: [object DownButtonShape] target.parent.parent: null
+target.stage: [object Stage] target.name: instance7 target.parent: [object DownButtonShape] target.parent.parent: null
 //Constructed DownButtonShape ( instance6 ): this.parent = null this.stage [object Stage]
 instance2:[Event type="added" bubbles=true cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+target.stage: null target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
 root1:[Event type="added" bubbles=true cancelable=false eventPhase=3] target: [object Sprite]
 instance2:[Event type="addedToStage" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
 root1:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object Main]
-target.name: root1 target.parent: [object Stage] target.parent.parent: null
+target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 instance2:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
 instance4:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
 instance6:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
 //Down Button Shape frame 1
@@ -30,52 +30,49 @@ instance6:[Event type="frameConstructed" bubbles=false cancelable=false eventPha
 //Up Button Shape frame 1
 //Over Button Shape frame 1
 root1:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object Main]
-target.name: root1 target.parent: [object Stage] target.parent.parent: null
+target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 instance2:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
 instance4:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
 instance6:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
 root1:[Event type="added" bubbles=true cancelable=false eventPhase=3] target: [object SimpleButton]
-target.name: my_button target.parent: [object Main] target.parent.parent: [object Stage]
+target.stage: [object Stage] target.name: my_button target.parent: [object Main] target.parent.parent: [object Stage]
 Called Main super()
 root1:[Event type="added" bubbles=true cancelable=false eventPhase=2] target: [object Main]
-target.name: root1 target.parent: [object Stage] target.parent.parent: null
+target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 root1:[Event type="addedToStage" bubbles=false cancelable=false eventPhase=2] target: [object Main]
-target.name: root1 target.parent: [object Stage] target.parent.parent: null
+target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 root1:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object Main]
-target.name: root1 target.parent: [object Stage] target.parent.parent: null
+target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 instance2:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
 instance4:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
 instance6:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
 root1:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object Main]
-target.name: root1 target.parent: [object Stage] target.parent.parent: null
+target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 instance2:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
 instance4:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
 instance6:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
 root1:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2] target: [object Main]
-target.name: root1 target.parent: [object Stage] target.parent.parent: null
+target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 instance2:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
 instance4:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
 instance6:[Event type="enterFrame" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
 root1:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object Main]
-target.name: root1 target.parent: [object Stage] target.parent.parent: null
+target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 instance2:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
 instance4:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
 instance6:[Event type="frameConstructed" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]
 //MainTimeline frame 2
-ReferenceError: Error #1065: Variable DisplayObjectContainer is not defined.
-	at Main/stop_display_object_handlers()[Main::frame2:8]
-	at Main/frame2()[Main::frame2:17]
 //Up Button Shape Frame 2
 //Down Button Shape Frame 2
 //Over Button Shape Frame 2
 root1:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object Main]
-target.name: root1 target.parent: [object Stage] target.parent.parent: null
+target.stage: [object Stage] target.name: root1 target.parent: [object Stage] target.parent.parent: null
 instance2:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object UpButtonShape]
-target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
+target.stage: [object Stage] target.name: instance2 target.parent: [object Sprite] target.parent.parent: null
 instance4:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object OverButtonShape]
 instance6:[Event type="exitFrame" bubbles=false cancelable=false eventPhase=2] target: [object DownButtonShape]

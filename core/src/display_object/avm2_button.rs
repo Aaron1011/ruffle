@@ -17,10 +17,10 @@ use crate::prelude::*;
 use crate::tag_utils::{SwfMovie, SwfSlice};
 use crate::vminterface::Instantiator;
 use core::fmt;
-use std::ops::Not;
 use gc_arena::{Collect, GcCell, MutationContext};
 use ruffle_render::filters::Filter;
 use std::cell::{Ref, RefMut};
+use std::ops::Not;
 use std::sync::Arc;
 
 use super::interactive::Avm2MousePick;
@@ -522,9 +522,12 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                 up_state.post_instantiation(context, None, Instantiator::Movie, false);
 
                 if let Some(up_container) = up_state.as_container() {
+                    let old_parent = up_state.parent();
+                    up_state.set_parent(context, None);
                     for child in up_container.iter_render_list() {
                         dispatch_added_event((*self).into(), child, false, context);
                     }
+                    up_state.set_parent(context, old_parent);
                 }
             }
 
@@ -532,9 +535,12 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                 over_state.post_instantiation(context, None, Instantiator::Movie, false);
 
                 if let Some(over_container) = over_state.as_container() {
+                    let old_parent = over_state.parent();
+                    over_state.set_parent(context, None);
                     for child in over_container.iter_render_list() {
                         dispatch_added_event((*self).into(), child, false, context);
                     }
+                    over_state.set_parent(context, old_parent);
                 }
             }
 
@@ -542,9 +548,12 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                 down_state.post_instantiation(context, None, Instantiator::Movie, false);
 
                 if let Some(down_container) = down_state.as_container() {
+                    let old_parent = down_state.parent();
+                    down_state.set_parent(context, None);
                     for child in down_container.iter_render_list() {
                         dispatch_added_event((*self).into(), child, false, context);
                     }
+                    down_state.set_parent(context, old_parent);
                 }
             }
 
@@ -552,9 +561,12 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                 hit_area.post_instantiation(context, None, Instantiator::Movie, false);
 
                 if let Some(hit_container) = hit_area.as_container() {
+                    let old_parent = hit_area.parent();
+                    hit_area.set_parent(context, None);
                     for child in hit_container.iter_render_list() {
                         dispatch_added_event((*self).into(), child, false, context);
                     }
+                    hit_area.set_parent(context, old_parent);
                 }
             }
 
