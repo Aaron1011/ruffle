@@ -1823,30 +1823,7 @@ pub trait TDisplayObject<'gc>:
                 }
             }
 
-            //TODO: Don't report missing property errors.
-            //TODO: Don't attempt to set properties if object was placed without a name.
-            if self.has_explicit_name() {
-                if let Some(Avm2Value::Object(mut p)) = self.parent().map(|p| p.object2()) {
-                    if let Avm2Value::Object(c) = self.object2() {
-                        let domain = context
-                            .library
-                            .library_for_movie(self.movie())
-                            .unwrap()
-                            .avm2_domain();
-                        let mut activation =
-                            Avm2Activation::from_domain(context.reborrow(), domain);
-                        let name =
-                            Avm2Multiname::new(activation.avm2().public_namespace, self.name());
-                        if let Err(e) = p.init_property(&name, c.into(), &mut activation) {
-                            tracing::error!(
-                                "Got error when setting AVM2 child named \"{}\": {}",
-                                &self.name(),
-                                e
-                            );
-                        }
-                    }
-                }
-            }
+            self.set_on_parent_field(context);
         }
 
         if let Some(movie) = self.as_movie_clip() {
@@ -1860,6 +1837,31 @@ pub trait TDisplayObject<'gc>:
             // When this occurs, Flash Player will run the first frame, and immediately stop.
             if !obj.is_of_type(movieclip_class, context) {
                 movie.stop(context);
+            }
+        }
+    }
+
+    fn set_on_parent_field(&self, context: &mut UpdateContext<'_, 'gc>) {
+        //TODO: Don't report missing property errors.
+        //TODO: Don't attempt to set properties if object was placed without a name.
+        if !self.placed_by_script() && self.has_explicit_name() {
+            if let Some(Avm2Value::Object(mut p)) = self.parent().map(|p| p.object2()) {
+                if let Avm2Value::Object(c) = self.object2() {
+                    let domain = context
+                        .library
+                        .library_for_movie(self.movie())
+                        .unwrap()
+                        .avm2_domain();
+                    let mut activation = Avm2Activation::from_domain(context.reborrow(), domain);
+                    let name = Avm2Multiname::new(activation.avm2().public_namespace, self.name());
+                    if let Err(e) = p.init_property(&name, c.into(), &mut activation) {
+                        tracing::error!(
+                            "Got error when setting AVM2 child named \"{}\": {}",
+                            &self.name(),
+                            e
+                        );
+                    }
+                }
             }
         }
     }

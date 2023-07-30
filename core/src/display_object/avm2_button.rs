@@ -583,7 +583,8 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
 
                 // This is run before we actually call the constructor - the un-constructed object
                 // is exposed to ActionScript via `parent.<childName>`.
-                self.on_construction_complete(&mut activation.context);
+                // FIXME - will we call getters again in `on_construction_complete`?
+                self.set_on_parent_field(&mut activation.context);
 
                 // When a custom class is used, we run a weird nested frame (we do *not* call
                 // `construct_frame`).
@@ -600,7 +601,7 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                     stage.exit_frame(&mut activation.context);
                 } else {
                     /*self.frame_constructed(&mut activation.context);
-                    self.set_state(&mut activation.context, ButtonState::Up);
+                    self.set_state(&mut activation.context, ButtonState::Up);*
 
                     up_state.run_frame_scripts(&mut activation.context);
                     over_state.run_frame_scripts(&mut activation.context);
