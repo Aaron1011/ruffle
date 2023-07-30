@@ -10,8 +10,12 @@
 		
 		function trace_event(event: Event) {
 			trace(this.name + ":" + event + " target: " + event["target"]);
-			if (event["target"] && event["target"].parent) {
-				trace("target.stage: " + event.target.stage + " target.name: " + event.target.name + " target.parent: " + event.target.parent + " target.parent.parent: " + event.target.parent.parent);
+			if (event.target) {
+				var parent_parent = "<missing>";
+				if (event.target.parent) {
+					parent_parent = event.target.parent.parent;
+				}
+				trace("target.stage: " + event.target.stage + " target.name: " + event.target.name + " target.parent: " + event.target.parent + " target.parent.parent: " + parent_parent);
 			}
 		}
 		
