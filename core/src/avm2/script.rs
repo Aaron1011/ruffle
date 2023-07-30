@@ -132,7 +132,7 @@ impl<'gc> TranslationUnit<'gc> {
             return Ok(method.clone());
         }
 
-        let is_global = read.domain.is_playerglobals_domain(activation);
+        let is_global = read.domain.is_playerglobals_domain(&mut activation.context);
         drop(read);
 
         let bc_method =

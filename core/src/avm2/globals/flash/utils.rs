@@ -432,7 +432,7 @@ fn describe_internal_body<'gc>(
                         .class
                         .class_scope()
                         .domain()
-                        .is_playerglobals_domain(activation);
+                        .is_playerglobals_domain(&mut activation.context);
 
                     if !skip_ns.contains(&(ns, is_playerglobals)) {
                         skip_ns.push((ns, is_playerglobals));
@@ -445,7 +445,7 @@ fn describe_internal_body<'gc>(
     let class_is_playerglobals = class_obj
         .class_scope()
         .domain()
-        .is_playerglobals_domain(activation);
+        .is_playerglobals_domain(&mut activation.context);
 
     // FIXME - avmplus iterates over their own hashtable, so the order in the final XML
     // is different

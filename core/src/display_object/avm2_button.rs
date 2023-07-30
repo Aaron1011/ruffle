@@ -1,7 +1,7 @@
 use crate::avm1::Object as Avm1Object;
 use crate::avm2::{
     Activation as Avm2Activation, ClassObject as Avm2ClassObject, Object as Avm2Object,
-    StageObject as Avm2StageObject, Value as Avm2Value,
+    StageObject as Avm2StageObject, TObject, Value as Avm2Value,
 };
 use crate::backend::ui::MouseCursor;
 use crate::context::{RenderContext, UpdateContext};
@@ -17,6 +17,7 @@ use crate::prelude::*;
 use crate::tag_utils::{SwfMovie, SwfSlice};
 use crate::vminterface::Instantiator;
 use core::fmt;
+use std::ops::Not;
 use gc_arena::{Collect, GcCell, MutationContext};
 use ruffle_render::filters::Filter;
 use std::cell::{Ref, RefMut};
@@ -492,6 +493,22 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
             let (hit_area, hit_should_fire) =
                 self.create_state(context, swf::ButtonState::HIT_TEST);
 
+            let movieclip_class = context.avm2.classes().movieclip;
+
+            let has_custom_state = [up_state, over_state, down_state, hit_area]
+                .into_iter()
+                .any(|dobj| {
+                    dobj.object2()
+                        .as_object()
+                        .unwrap()
+                        .instance_of()
+                        .unwrap()
+                        .class_scope()
+                        .domain()
+                        .is_playerglobals_domain(context)
+                        .not()
+                });
+
             let mut write = self.0.write(context.gc_context);
             write.up_state = Some(up_state);
             write.over_state = Some(over_state);
@@ -556,9 +573,9 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                 // is exposed to ActionScript via `parent.<childName>`.
                 self.on_construction_complete(&mut activation.context);
 
-                // Flash player skips this nested frame when the button just uses the `SimpleButton`
-                // class (as opposed to a custom class extending `SimpleButton`)
-                if class != activation.avm2().classes().simplebutton {
+                // When a custom class is used, we run a weird nested frame (we do *not* call
+                // `construct_frame`).
+                if class != activation.avm2().classes().simplebutton || has_custom_state {
                     self.0
                         .write(activation.context.gc_context)
                         .weird_framescript_order = true;
@@ -569,6 +586,15 @@ impl<'gc> TDisplayObject<'gc> for Avm2Button<'gc> {
                     self.set_state(&mut activation.context, ButtonState::Up);
                     stage.run_frame_scripts(&mut activation.context);
                     stage.exit_frame(&mut activation.context);
+                } else {
+                    /*self.frame_constructed(&mut activation.context);
+                    self.set_state(&mut activation.context, ButtonState::Up);
+
+                    up_state.run_frame_scripts(&mut activation.context);
+                    over_state.run_frame_scripts(&mut activation.context);
+                    down_state.run_frame_scripts(&mut activation.context);
+                    hit_area.run_frame_scripts(&mut activation.context);
+                    self.exit_frame(&mut activation.context);*/
                 }
 
                 let avm2_object = self.0.read().object;

@@ -8,6 +8,7 @@ use crate::avm2::value::Value;
 use crate::avm2::Error;
 use crate::avm2::Multiname;
 use crate::avm2::QName;
+use crate::context::UpdateContext;
 use gc_arena::{Collect, GcCell, MutationContext};
 use ruffle_wstr::WStr;
 
@@ -72,8 +73,8 @@ impl<'gc> Domain<'gc> {
         ))
     }
 
-    pub fn is_playerglobals_domain(&self, activation: &mut Activation<'_, 'gc>) -> bool {
-        activation.avm2().playerglobals_domain.0.as_ptr() == self.0.as_ptr()
+    pub fn is_playerglobals_domain(&self, context: &mut UpdateContext<'_, 'gc>) -> bool {
+        context.avm2.playerglobals_domain.0.as_ptr() == self.0.as_ptr()
     }
 
     /// Create a new domain with a given parent.

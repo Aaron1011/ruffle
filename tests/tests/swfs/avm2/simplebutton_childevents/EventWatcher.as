@@ -4,8 +4,8 @@
 	
 	public class EventWatcher extends MovieClip {
 		public function EventWatcher() {
-			super();
 			this.setup();
+			super();
 		}
 		
 		function trace_event(event: Event) {
