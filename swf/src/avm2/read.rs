@@ -101,10 +101,7 @@ impl<'a> Reader<'a> {
 
     fn read_string(&mut self) -> Result<String> {
         let len = self.read_u30()?;
-        // TODO: Avoid allocating a String.
-        let mut s = String::with_capacity(len as usize);
-        self.read_slice(len as usize)?.read_to_string(&mut s)?;
-        Ok(s)
+        Ok(String::from_utf8_lossy(self.read_slice(len as usize)?).to_string())
     }
 
     fn read_index<T>(&mut self) -> Result<Index<T>> {
