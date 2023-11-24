@@ -7,10 +7,8 @@ use async_net::TcpStream;
 use futures::future::select;
 use futures::{AsyncReadExt, AsyncWriteExt};
 use futures_lite::FutureExt;
-use isahc::http::{HeaderName, HeaderValue};
-use isahc::{
-    config::RedirectPolicy, prelude::*, AsyncReadResponseExt, HttpClient, Request as IsahcRequest,
-};
+use http::{HeaderName, HeaderValue};
+use reqwest::Client;
 use rfd::{AsyncMessageDialog, MessageButtons, MessageDialog, MessageDialogResult, MessageLevel};
 use ruffle_core::backend::navigator::{
     async_return, create_fetch_error, create_specific_fetch_error, ErrorResponse, NavigationMethod,
@@ -43,7 +41,7 @@ pub struct ExternalNavigatorBackend {
     base_url: Url,
 
     // Client to use for network requests
-    client: Option<Rc<HttpClient>>,
+    client: Option<Rc<Client>>,
 
     socket_allowed: HashSet<String>,
 
@@ -67,11 +65,10 @@ impl ExternalNavigatorBackend {
         socket_allowed: HashSet<String>,
         socket_mode: SocketMode,
     ) -> Self {
-        let proxy = proxy.and_then(|url| url.as_str().parse().ok());
-        let builder = HttpClient::builder()
-            .proxy(proxy)
-            .cookies()
-            .redirect_policy(RedirectPolicy::Follow);
+        let mut builder = reqwest::ClientBuilder::new().cookie_store(true);
+        if let Some(proxy) = proxy {
+            builder = builder.proxy(reqwest::Proxy::all(proxy).expect("Invalid proxy URL"));
+        }
 
         let client = builder.build().ok().map(Rc::new);
 
@@ -241,82 +238,66 @@ impl NavigatorBackend for ExternalNavigatorBackend {
                     error: Error::FetchError("Network unavailable".to_string()),
                 })?;
 
-                let mut isahc_request = match request.method() {
-                    NavigationMethod::Get => IsahcRequest::get(processed_url.to_string()),
-                    NavigationMethod::Post => IsahcRequest::post(processed_url.to_string()),
+                let mut http_request = match request.method() {
+                    NavigationMethod::Get => client.get(processed_url.to_string()),
+                    NavigationMethod::Post => client.post(processed_url.to_string()),
                 };
                 let (body_data, mime) = request.body().clone().unwrap_or_default();
-                if let Some(headers) = isahc_request.headers_mut() {
-                    for (name, val) in request.headers().iter() {
-                        headers.insert(
-                            HeaderName::from_str(name).map_err(|e| ErrorResponse {
-                                url: processed_url.to_string(),
-                                error: Error::FetchError(e.to_string()),
-                            })?,
-                            HeaderValue::from_str(val).map_err(|e| ErrorResponse {
-                                url: processed_url.to_string(),
-                                error: Error::FetchError(e.to_string()),
-                            })?,
-                        );
-                    }
-                    headers.insert(
-                        "Content-Type",
-                        HeaderValue::from_str(&mime).map_err(|e| ErrorResponse {
+                for (name, val) in request.headers().iter() {
+                    http_request = http_request.header(
+                        HeaderName::from_str(name).map_err(|e| ErrorResponse {
+                            url: processed_url.to_string(),
+                            error: Error::FetchError(e.to_string()),
+                        })?,
+                        HeaderValue::from_str(val).map_err(|e| ErrorResponse {
                             url: processed_url.to_string(),
                             error: Error::FetchError(e.to_string()),
                         })?,
                     );
                 }
+                http_request = http_request
+                    .header(
+                        "Content-Type",
+                        HeaderValue::from_str(&mime).map_err(|e| ErrorResponse {
+                            url: processed_url.to_string(),
+                            error: Error::FetchError(e.to_string()),
+                        })?,
+                    )
+                    .body(body_data);
 
-                let body = isahc_request.body(body_data).map_err(|e| ErrorResponse {
+                let response = http_request.send().await.map_err(|e| ErrorResponse {
                     url: processed_url.to_string(),
                     error: Error::FetchError(e.to_string()),
                 })?;
 
-                let mut response = client.send_async(body).await.map_err(|e| {
-                    let inner = match e.kind() {
-                        isahc::error::ErrorKind::NameResolution => {
-                            Error::InvalidDomain(processed_url.to_string())
-                        }
-                        _ => Error::FetchError(e.to_string()),
-                    };
-                    ErrorResponse {
-                        url: processed_url.to_string(),
-                        error: inner,
-                    }
+                let url = response.url();
+
+                let status = response.status();
+                let redirected = response.url() != &processed_url;
+                let url = url.to_string();
+
+                let bytes = response.bytes().await.map_err(|e| ErrorResponse {
+                    url: processed_url.to_string(),
+                    error: Error::FetchError(e.to_string()),
                 })?;
 
-                let url = if let Some(uri) = response.effective_uri() {
-                    uri.to_string()
-                } else {
-                    processed_url.into()
-                };
-
-                let status = response.status().as_u16();
-                let redirected = response.effective_uri().is_some();
-                if !response.status().is_success() {
+                if !status.is_success() {
                     let error = Error::HttpNotOk(
-                        format!("HTTP status is not ok, got {}", response.status()),
-                        status,
+                        format!("HTTP status is not ok, got {}", status),
+                        status.as_u16(),
                         redirected,
-                        response.body().len().unwrap_or(0),
+                        bytes.len() as u64,
                     );
-                    return Err(ErrorResponse { url, error });
+                    return Err(ErrorResponse {
+                        url: url.to_string(),
+                        error,
+                    });
                 }
 
-                let mut body = vec![];
-                response
-                    .copy_to(&mut body)
-                    .await
-                    .map_err(|e| ErrorResponse {
-                        url: url.clone(),
-                        error: Error::FetchError(e.to_string()),
-                    })?;
-
                 Ok(SuccessResponse {
-                    url,
-                    body,
-                    status,
+                    url: url.to_string(),
+                    body: bytes.to_vec(),
+                    status: status.as_u16(),
                     redirected,
                 })
             }),
