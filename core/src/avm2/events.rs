@@ -458,6 +458,11 @@ pub fn dispatch_event<'gc>(
         }
         parent = parent_dobj.parent();
     }
+    if let Some(dobj) = target.as_display_object() {
+        if dobj.as_stage().is_some() {
+            ancestor_list.push(target);
+        }
+    }
 
     let dispatched = event.as_event().unwrap().dispatched;
 
