@@ -136,7 +136,6 @@ impl<'a> ShaderBuilder<'a> {
                     .make_naga_module(NagaModuleDescriptor {
                         source: ruffle_render::shader_source::SHADER_FILTER_COMMON,
                         file_path: "shaders/filter/common.wgsl",
-                        shader_defs: Default::default(),
                         ..Default::default()
                     })
                     .unwrap_or_else(|e| {
@@ -259,6 +258,7 @@ impl<'a> ShaderBuilder<'a> {
                 location: 0,
                 interpolation: Some(naga::Interpolation::Perspective),
                 sampling: Some(naga::Sampling::Center),
+                second_blend_source: false,
             }),
         });
 
@@ -268,6 +268,7 @@ impl<'a> ShaderBuilder<'a> {
                 location: 0,
                 interpolation: None,
                 sampling: None,
+                second_blend_source: false,
             }),
         });
 
