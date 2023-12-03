@@ -47,7 +47,7 @@ fn main() {
     let root = Path::new("tests/swfs");
     let mut tests = Vec::new();
 
-    const REPEAT: usize = 1;
+    const REPEAT: usize = 10;
 
     for _ in 0..REPEAT {
         tests.extend(
@@ -115,7 +115,7 @@ fn run_test(args: &Arguments, file: DirEntry, name: String) -> Trial {
         std::io::stdout().flush().unwrap();
         let test = AssertUnwindSafe(test);
         let unwind_result = catch_unwind(|| test.run(|_| Ok(()), |_| Ok(()), &NativeEnvironment));
-        if test.options.known_failure {
+        let res = if test.options.known_failure {
             match unwind_result {
                 Ok(Ok(())) => Err(
                     format!("{} was known to be failing, but now passes successfully. Please update it and remove `known_failure = true`!", test.name).into()
@@ -127,7 +127,11 @@ fn run_test(args: &Arguments, file: DirEntry, name: String) -> Trial {
                 Ok(r) => Ok(r?),
                 Err(e) => resume_unwind(e),
             }
-        }
+        };
+        std::io::stdout().flush().unwrap();
+        println!("\nDONE running {}...", name);
+        std::io::stdout().flush().unwrap();
+        res
     });
     if ignore {
         trial = trial.with_ignored_flag(true);
