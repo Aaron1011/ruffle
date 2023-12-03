@@ -16,6 +16,7 @@ use std::sync::{Arc, MutexGuard};
 use std::time::{Duration, Instant};
 use unic_langid::LanguageIdentifier;
 use url::Url;
+use wgpu::InstanceFlags;
 use winit::dpi::PhysicalSize;
 use winit::event_loop::EventLoop;
 use winit::window::{Theme, Window};
@@ -55,6 +56,7 @@ impl GuiController {
         }
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: backend,
+            flags: wgpu::InstanceFlags::debugging(),
             ..Default::default()
         });
         let surface = unsafe { instance.create_surface(window.as_ref()) }?;

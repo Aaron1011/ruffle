@@ -105,7 +105,10 @@ mod renderer {
     */
 
     fn create_wgpu_device() -> Option<(wgpu::Instance, wgpu::Adapter, wgpu::Device, wgpu::Queue)> {
-        let instance = wgpu::Instance::new(Default::default());
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            flags: wgpu::InstanceFlags::debugging(),
+            ..Default::default()
+        });
         futures::executor::block_on(request_adapter_and_device(
             wgpu::Backends::all(),
             &instance,

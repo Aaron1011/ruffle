@@ -62,6 +62,7 @@ impl WgpuRenderBackend<SwapChainTarget> {
     pub async fn for_canvas(canvas: web_sys::HtmlCanvasElement) -> Result<Self, Error> {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::BROWSER_WEBGPU | wgpu::Backends::GL,
+            flags: wgpu::InstanceFlags::debugging(),
             ..Default::default()
         });
         let surface = instance.create_surface_from_canvas(canvas)?;
@@ -97,6 +98,7 @@ impl WgpuRenderBackend<SwapChainTarget> {
         }
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: backend,
+            flags: wgpu::InstanceFlags::debugging(),
             ..Default::default()
         });
         let surface = unsafe { instance.create_surface(window) }?;
@@ -144,6 +146,7 @@ impl WgpuRenderBackend<crate::target::TextureTarget> {
         }
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: backend,
+            flags: wgpu::InstanceFlags::debugging(),
             ..Default::default()
         });
         let (adapter, device, queue) = futures::executor::block_on(request_adapter_and_device(
