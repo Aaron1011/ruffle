@@ -110,6 +110,9 @@ impl Test {
         if self.options.ignore {
             return false;
         }
+        if self.options.image_comparisons.is_empty() {
+            return false;
+        }
         self.options.required_features.can_run()
             && self
                 .options
