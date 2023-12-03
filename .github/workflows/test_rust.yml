@@ -33,7 +33,6 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: "desktop"
-          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Run tests with image tests
         run: cargo test -p tests --locked --no-fail-fast --features imgtests,lzma,jpegxr stage3d
