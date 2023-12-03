@@ -11,6 +11,7 @@ use libtest_mimic::{Arguments, Trial};
 use ruffle_test_framework::options::TestOptions;
 use ruffle_test_framework::test::Test;
 use ruffle_test_framework::vfs::{PhysicalFS, VfsPath};
+use std::io::Write;
 use std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
 use std::path::Path;
 use walkdir::DirEntry;
@@ -40,29 +41,37 @@ fn is_candidate(args: &Arguments, test_name: &str) -> bool {
 }
 
 fn main() {
-    let args = Arguments::from_args();
+    let mut args = Arguments::from_args();
+    args.nocapture = true;
 
     let root = Path::new("tests/swfs");
-    let mut tests: Vec<Trial> = walkdir::WalkDir::new(root)
-        .into_iter()
-        .map(Result::unwrap)
-        .filter(|entry| entry.file_type().is_file() && entry.file_name() == "test.toml")
-        .filter_map(|file| {
-            let name = file
-                .path()
-                .parent()?
-                .strip_prefix(root)
-                .context("Couldn't strip root prefix from test dir")
-                .unwrap()
-                .to_string_lossy()
-                .replace('\\', "/");
-            if is_candidate(&args, &name) {
-                Some(run_test(&args, file, name))
-            } else {
-                None
-            }
-        })
-        .collect();
+    let mut tests = Vec::new();
+
+    const REPEAT: usize = 1;
+
+    for _ in 0..REPEAT {
+        tests.extend(
+            walkdir::WalkDir::new(root)
+                .into_iter()
+                .map(Result::unwrap)
+                .filter(|entry| entry.file_type().is_file() && entry.file_name() == "test.toml")
+                .filter_map(|file| {
+                    let name = file
+                        .path()
+                        .parent()?
+                        .strip_prefix(root)
+                        .context("Couldn't strip root prefix from test dir")
+                        .unwrap()
+                        .to_string_lossy()
+                        .replace('\\', "/");
+                    if is_candidate(&args, &name) {
+                        Some(run_test(&args, file, name))
+                    } else {
+                        None
+                    }
+                }),
+        );
+    }
 
     // Manual tests here, since #[test] doesn't work once we use our own test harness
     tests.push(Trial::test("shared_object_avm1", || {
@@ -101,6 +110,9 @@ fn run_test(args: &Arguments, file: DirEntry, name: String) -> Trial {
     let ignore = !test.should_run(!args.list, &NativeEnvironment);
 
     let mut trial = Trial::test(test.name.to_string(), move || {
+        std::io::stdout().flush().unwrap();
+        println!("\nRunning {}...", name);
+        std::io::stdout().flush().unwrap();
         let test = AssertUnwindSafe(test);
         let unwind_result = catch_unwind(|| test.run(|_| Ok(()), |_| Ok(()), &NativeEnvironment));
         if test.options.known_failure {
