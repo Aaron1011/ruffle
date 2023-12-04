@@ -1054,7 +1054,7 @@ impl<T: RenderTarget + 'static> RenderBackend for WgpuRenderBackend<T> {
 pub async fn request_adapter_and_device(
     backend: wgpu::Backends,
     instance: &wgpu::Instance,
-    surface: Option<&wgpu::Surface>,
+    surface: Option<&wgpu::Surface<'static>>,
     power_preference: wgpu::PowerPreference,
     trace_path: Option<&Path>,
 ) -> Result<(wgpu::Adapter, wgpu::Device, wgpu::Queue), Error> {
@@ -1116,8 +1116,8 @@ async fn request_device(
         .request_device(
             &wgpu::DeviceDescriptor {
                 label: None,
-                features,
-                limits,
+                required_features: features,
+                required_limits: limits,
             },
             trace_path,
         )

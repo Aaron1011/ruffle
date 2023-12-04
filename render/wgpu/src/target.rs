@@ -37,7 +37,7 @@ pub trait RenderTarget: Debug + 'static {
 
 #[derive(Debug)]
 pub struct SwapChainTarget {
-    window_surface: wgpu::Surface,
+    window_surface: wgpu::Surface<'static>,
     surface_config: wgpu::SurfaceConfiguration,
 }
 
@@ -59,7 +59,7 @@ impl RenderTargetFrame for SwapChainTargetFrame {
 
 impl SwapChainTarget {
     pub fn new(
-        surface: wgpu::Surface,
+        surface: wgpu::Surface<'static>,
         adapter: &wgpu::Adapter,
         (width, height): (u32, u32),
         device: &wgpu::Device,
