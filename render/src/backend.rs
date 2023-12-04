@@ -109,12 +109,12 @@ pub trait RenderBackend: Downcast {
 }
 impl_downcast!(RenderBackend);
 
-pub trait IndexBuffer: Downcast {}
+pub trait IndexBuffer: Downcast + Debug {}
 impl_downcast!(IndexBuffer);
-pub trait VertexBuffer: Downcast {}
+pub trait VertexBuffer: Downcast + Debug {}
 impl_downcast!(VertexBuffer);
 
-pub trait ShaderModule: Downcast {}
+pub trait ShaderModule: Downcast + Debug {}
 impl_downcast!(ShaderModule);
 
 pub trait Texture: Downcast + Debug {
@@ -216,6 +216,7 @@ pub enum BufferUsage {
     StaticDraw,
 }
 
+#[derive(Debug)]
 pub enum ProgramType {
     Vertex,
     Fragment,
@@ -371,6 +372,8 @@ impl Context3DTextureFilter {
         }
     }
 }
+
+#[derive(Debug)]
 pub enum Context3DCommand<'a> {
     Clear {
         red: f64,

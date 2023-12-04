@@ -35,7 +35,7 @@ jobs:
           shared-key: "desktop"
 
       - name: Run tests with image tests
-        run: cargo test -p tests --locked --no-fail-fast --features imgtests,lzma,jpegxr stage3d_sampler
+        run: cargo test -p tests --locked --no-fail-fast --features imgtests,lzma,jpegxr stage3d_sampler -- --nocapture
         env:
           RUST_LOG: 'wgpu=trace'
           XDG_RUNTIME_DIR: '' # dummy value, just to silence warnings about it missing

@@ -20,6 +20,7 @@ use super::{
 
 use crate::descriptors::Descriptors;
 
+#[derive(Debug)]
 pub struct ShaderPairAgal {
     vertex_bytecode: Vec<u8>,
     fragment_bytecode: Vec<u8>,
