@@ -4,7 +4,7 @@ use std::num::NonZeroU32;
 use naga::{
     AddressSpace, ArraySize, Block, BuiltIn, Constant, DerivativeControl, EntryPoint,
     FunctionArgument, FunctionResult, GlobalVariable, ImageClass, ImageDimension, Literal,
-    Override, ResourceBinding, ShaderStage, StructMember, SwizzleComponent, UnaryOperator,
+    Override, ResourceBinding, Scalar, ShaderStage, StructMember, SwizzleComponent, UnaryOperator,
 };
 use naga::{BinaryOperator, MathFunction};
 use naga::{
@@ -142,10 +142,10 @@ impl VertexAttributeFormat {
             return module.types.insert(
                 Type {
                     name: None,
-                    inner: TypeInner::Scalar {
+                    inner: TypeInner::Scalar(Scalar {
                         kind: ScalarKind::Float,
                         width: 4,
-                    },
+                    }),
                 },
                 Span::UNDEFINED,
             );
@@ -163,7 +163,10 @@ impl VertexAttributeFormat {
         module.types.insert(
             Type {
                 name: None,
-                inner: TypeInner::Vector { size, kind, width },
+                inner: TypeInner::Vector {
+                    size,
+                    scalar: Scalar { kind, width },
+                },
             },
             Span::UNDEFINED,
         )
@@ -372,7 +375,7 @@ impl<'a> NagaBuilder<'a> {
                 inner: TypeInner::Matrix {
                     columns: VectorSize::Tri,
                     rows: VectorSize::Tri,
-                    width: 4,
+                    scalar: Scalar { kind: ScalarKind::Float, width: 4 },
                 },
             },
             Span::UNDEFINED,
@@ -384,7 +387,7 @@ impl<'a> NagaBuilder<'a> {
                 inner: TypeInner::Matrix {
                     columns: VectorSize::Tri,
                     rows: VectorSize::Quad,
-                    width: 4,
+                    scalar: Scalar { kind: ScalarKind::Float, width: 4 },
                 },
             },
             Span::UNDEFINED,
@@ -396,7 +399,7 @@ impl<'a> NagaBuilder<'a> {
                 inner: TypeInner::Matrix {
                     columns: VectorSize::Quad,
                     rows: VectorSize::Quad,
-                    width: 4,
+                    scalar: Scalar { kind: ScalarKind::Float, width: 4 },
                 },
             },
             Span::UNDEFINED,
@@ -435,10 +438,10 @@ impl<'a> NagaBuilder<'a> {
         let f32_type = module.types.insert(
             Type {
                 name: None,
-                inner: TypeInner::Scalar {
+                inner: TypeInner::Scalar(Scalar {
                     kind: ScalarKind::Float,
                     width: 4,
-                },
+                }),
             },
             Span::UNDEFINED,
         );
@@ -446,10 +449,10 @@ impl<'a> NagaBuilder<'a> {
         let u32_type = module.types.insert(
             Type {
                 name: None,
-                inner: TypeInner::Scalar {
+                inner: TypeInner::Scalar(Scalar{
                     kind: ScalarKind::Uint,
                     width: 4,
-                },
+                }),
             },
             Span::UNDEFINED,
         );
@@ -1680,10 +1683,10 @@ impl<'a> NagaBuilder<'a> {
             &mut self.return_type,
             Type {
                 name: None,
-                inner: TypeInner::Scalar {
+                inner: TypeInner::Scalar(Scalar {
                     kind: ScalarKind::Float,
                     width: 0,
-                },
+                }),
             },
         );
 
