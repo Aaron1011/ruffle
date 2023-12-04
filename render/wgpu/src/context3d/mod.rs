@@ -589,17 +589,24 @@ impl WgpuContext3D {
 
                 render_pass
                     .set_index_buffer(index_buffer.buffer.slice(..), wgpu::IndexFormat::Uint16);
+                eprintln!("Running draw_indexed: {indices:?}");
                 render_pass.draw_indexed(indices, 0, 0..1);
+
+                eprintln!("Dropping render_pass");
 
                 // A `RenderPass` needs to hold references to several fields in `self`, so we can't
                 // easily re-use it across multiple `DrawTriangles` calls.
                 drop(render_pass);
 
+                eprintln!("Submitting buffers");
+
                 self.descriptors.queue.submit([
                     finished_buffer_command_encoder.finish(),
                     render_command_encoder.finish(),
                 ]);
+                eprintln!("Recalling staging belt");
                 self.buffer_staging_belt.recall();
+                eprintln!("Done recalling");
             }
 
             Context3DCommand::SetVertexBufferAt {
