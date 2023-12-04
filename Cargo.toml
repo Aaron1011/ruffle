@@ -89,4 +89,4 @@ inherits = "release"
 # is not yet in the latest wgpu release. TODO: Remove when it is.
 wgpu = { git = "https://github.com/gfx-rs/wgpu", branch = "trunk" }
 naga = { git = "https://github.com/gfx-rs/wgpu", branch = "trunk" }
-naga_oil = { path = "/home/aaron/repos/naga_oil" }
+naga_oil = { git = "https://github.com/Aaron1011/naga_oil", branch = "naga-trunk" }

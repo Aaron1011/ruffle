@@ -3289,6 +3289,7 @@ dependencies = [
 [[package]]
 name = "naga_oil"
 version = "0.11.0"
+source = "git+https://github.com/Aaron1011/naga_oil?branch=naga-trunk#a6ccf555c82cb8db564e39370e3f0ea3e261a673"
 dependencies = [
  "bit-set",
  "codespan-reporting",
