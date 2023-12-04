@@ -80,9 +80,9 @@ impl WgpuRenderBackend<SwapChainTarget> {
         Self::new(Arc::new(descriptors), target)
     }
 
-    #[cfg(not(target_family = "wasm"))]
+    /*#[cfg(not(target_family = "wasm"))]
     pub fn for_window<
-        W: raw_window_handle::HasRawWindowHandle + raw_window_handle::HasRawDisplayHandle,
+        W: raw_window_handle::HasWindowHandle + raw_window_handle::HasDisplayHandle + Sync,
     >(
         window: &W,
         size: (u32, u32),
@@ -116,7 +116,7 @@ impl WgpuRenderBackend<SwapChainTarget> {
 
     #[cfg(not(target_family = "wasm"))]
     pub fn recreate_surface<
-        W: raw_window_handle::HasRawWindowHandle + raw_window_handle::HasRawDisplayHandle,
+        W: raw_window_handle::HasWindowHandle + raw_window_handle::HasDisplayHandle + Sync,
     >(
         &mut self,
         window: &W,
@@ -127,7 +127,7 @@ impl WgpuRenderBackend<SwapChainTarget> {
         self.target =
             SwapChainTarget::new(surface, &descriptors.adapter, size, &descriptors.device);
         Ok(())
-    }
+    }*/
 }
 
 #[cfg(not(target_family = "wasm"))]
