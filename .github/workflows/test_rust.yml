@@ -94,13 +94,13 @@ jobs:
 
       - name: Run tests with image tests
         if: runner.os != 'macOS'
-        run: cargo nextest run --workspace --locked --no-fail-fast --retries 2 --features imgtests,lzma,jpegxr
+        run: cargo nextest run --workspace --locked --no-fail-fast --retries 2 -j 4 --features imgtests,lzma,jpegxr
         env:
           XDG_RUNTIME_DIR: '' # dummy value, just to silence warnings about it missing
 
       - name: Run tests without image tests
         if: runner.os == 'macOS'
-        run: cargo nextest run --workspace --locked --no-fail-fast --retries 2 --features lzma,jpegxr
+        run: cargo nextest run --workspace --locked --no-fail-fast --retries 2 -j 4 --features lzma,jpegxr
         env:
           XDG_RUNTIME_DIR: '' # dummy value, just to silence warnings about it missing
 
