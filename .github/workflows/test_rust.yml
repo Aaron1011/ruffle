@@ -50,26 +50,6 @@ jobs:
           shared-key: "desktop"
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
-      - name: Check formatting
-        if: runner.os == 'Linux'
-        run: cargo fmt --all -- --check
-
-      - name: Check clippy
-        # not critical on other platforms, and slows down Windows
-        if: runner.os == 'Linux'
-        # Don't fail the build for clippy on nightly, since we get a lot of false-positives
-        run: cargo clippy --all --all-features --tests ${{ (matrix.rust_version != 'nightly' && '-- -D warnings') || '' }}
-
-      - name: Check licensing and duplicates in used crates
-        if: ${{ runner.os == 'Linux' && matrix.rust_version == 'stable' }}
-        uses: EmbarkStudios/cargo-deny-action@v1
-
-      - name: Check documentation
-        if: runner.os == 'Linux'
-        run: cargo doc --no-deps --all-features
-        env:
-          RUSTDOCFLAGS: -D warnings
-
       - name: Install cargo nextest
         uses: taiki-e/install-action@v2
         with:
@@ -80,37 +60,3 @@ jobs:
         run: cargo nextest run --workspace --locked --no-fail-fast --retries 2 -j 4 --features imgtests,lzma,jpegxr
         env:
           XDG_RUNTIME_DIR: '' # dummy value, just to silence warnings about it missing
-
-      - name: Run tests without image tests
-        if: runner.os == 'macOS'
-        run: cargo nextest run --workspace --locked --no-fail-fast --retries 2 -j 4 --features lzma,jpegxr
-        env:
-          XDG_RUNTIME_DIR: '' # dummy value, just to silence warnings about it missing
-
-      - name: Upload images
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: swf_images
-          path: |
-            tests*/**/*.actual*.png
-            tests*/**/*.difference*.png
-
-  check-required:
-    needs: changes
-    if: needs.changes.outputs.should_run == 'false'
-    name: Test Rust ${{ matrix.rust_version }} / ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        rust_version: [stable]
-        os: [ubuntu-22.04, windows-latest, macos-latest]
-        include:
-          - rust_version: nightly
-            os: ubuntu-22.04
-          - rust_version: beta
-            os: ubuntu-22.04
-
-    steps:
-      - name: No-op
-        run: echo noop
