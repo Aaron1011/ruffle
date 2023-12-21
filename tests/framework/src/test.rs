@@ -107,7 +107,15 @@ impl Test {
     }
 
     pub fn should_run(&self, check_renderer: bool, environment: &impl Environment) -> bool {
-        self.options.player_options.with_renderer.is_some()
+        if self.options.ignore {
+            return false;
+        }
+        self.options.required_features.can_run()
+            && self
+                .options
+                .player_options
+                .can_run(check_renderer, environment)
+            && self.options.player_options.with_renderer.is_some()
     }
 
     pub fn compare_output(&self, actual_output: &str) -> Result<()> {
