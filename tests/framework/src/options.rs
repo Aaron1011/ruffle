@@ -132,7 +132,7 @@ impl RequiredFeatures {
 pub struct PlayerOptions {
     max_execution_duration: Option<Duration>,
     viewport_dimensions: Option<ViewportDimensions>,
-    with_renderer: Option<RenderOptions>,
+    pub with_renderer: Option<RenderOptions>,
     with_audio: bool,
     with_video: bool,
     runtime: PlayerRuntime,
