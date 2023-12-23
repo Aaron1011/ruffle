@@ -95,6 +95,7 @@ pub struct WgpuContext3D {
     seen_clear_command: bool,
 
     scissor_rectangle: Option<Rectangle<Twips>>,
+    stencil_reference_value: u8,
 }
 
 impl WgpuContext3D {
@@ -168,6 +169,7 @@ impl WgpuContext3D {
             clear_color: None,
             seen_clear_command: false,
             scissor_rectangle: None,
+            stencil_reference_value: 0,
         }
     }
 
@@ -295,6 +297,7 @@ impl WgpuContext3D {
                 .as_ref()
                 .expect("Missing compiled pipeline"),
         );
+        pass.set_stencil_reference(self.stencil_reference_value as u32);
         if let Some(rect) = &self.scissor_rectangle {
             let current_size = self.current_texture_size.unwrap();
             if rect.x_min.to_pixels() < 0.0
@@ -1199,6 +1202,30 @@ impl Context3D for WgpuContext3D {
             }
             Context3DCommand::SetScissorRectangle { rect } => {
                 self.scissor_rectangle = rect;
+            }
+            Context3DCommand::SetStencilReferenceValue {
+                reference_val,
+                read_mask,
+                write_mask,
+            } => {
+                self.stencil_reference_value = reference_val;
+                self.current_pipeline
+                    .update_stencil_masks(read_mask, write_mask);
+            }
+            Context3DCommand::SetStencilActions {
+                triangle_face,
+                compare_mode,
+                both_pass,
+                depth_fail,
+                depth_pass_stencil_fail,
+            } => {
+                self.current_pipeline.update_stencil_actions(
+                    triangle_face,
+                    compare_mode,
+                    both_pass,
+                    depth_fail,
+                    depth_pass_stencil_fail,
+                );
             }
         }
     }

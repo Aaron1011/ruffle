@@ -5,12 +5,12 @@ use crate::avm2::TObject;
 use crate::avm2::Value;
 use crate::avm2::{Error, Object};
 use crate::avm2_stub_method;
-use ruffle_render::backend::Context3DTextureFilter;
 use ruffle_render::backend::Context3DWrapMode;
 use ruffle_render::backend::{
     BufferUsage, Context3DBlendFactor, Context3DCompareMode, Context3DTextureFormat,
     Context3DTriangleFace, Context3DVertexBufferFormat, ProgramType,
 };
+use ruffle_render::backend::{Context3DStencilAction, Context3DTextureFilter};
 use swf::{Rectangle, Twips};
 
 pub fn create_index_buffer<'gc>(
@@ -236,18 +236,8 @@ pub fn set_culling<'gc>(
 ) -> Result<Value<'gc>, Error<'gc>> {
     if let Some(context) = this.as_context_3d() {
         let culling = args.get_string(activation, 0)?;
-
-        let culling = if &*culling == b"none" {
-            Context3DTriangleFace::None
-        } else if &*culling == b"back" {
-            Context3DTriangleFace::Back
-        } else if &*culling == b"front" {
-            Context3DTriangleFace::Front
-        } else if &*culling == b"frontAndBack" {
-            Context3DTriangleFace::FrontAndBack
-        } else {
-            tracing::error!("Unknown culling {:?}", culling);
-            Context3DTriangleFace::None
+        let Some(culling) = Context3DTriangleFace::from_wstr(&culling) else {
+            return Err(format!("Unknown culling mode {:?}", culling).into());
         };
 
         context.set_culling(culling);
@@ -709,5 +699,62 @@ pub fn set_scissor_rectangle<'gc>(
     };
 
     context3d.set_scissor_rectangle(rectangle);
+    Ok(Value::Undefined)
+}
+
+pub fn set_stencil_reference_value<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    this: Object<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let context3d = this.as_context_3d().unwrap();
+    // FIXME - how do we handle trunacation?
+    let reference_value = args.get_u32(activation, 0)? as u8;
+    let read_mask = args.get_u32(activation, 1)? as u8;
+    let write_mask = args.get_u32(activation, 2)? as u8;
+    context3d.set_stencil_reference_value(reference_value, read_mask, write_mask);
+    Ok(Value::Undefined)
+}
+
+pub fn set_stencil_actions<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    this: Object<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let context3d = this.as_context_3d().unwrap();
+    let triangle_face = args.get_string(activation, 0)?;
+    let Some(triangle_face) = Context3DTriangleFace::from_wstr(&triangle_face) else {
+        return Err(format!("Unknown triangle face {:?}", triangle_face).into());
+    };
+
+    let compare_mode = args.get_string(activation, 1)?;
+    let Some(compare_mode) = Context3DCompareMode::from_wstr(&compare_mode) else {
+        return Err(format!("Unknown compare mode {:?}", compare_mode).into());
+    };
+
+    let both_pass = args.get_string(activation, 2)?;
+    let Some(both_pass) = Context3DStencilAction::from_wstr(&both_pass) else {
+        return Err(format!("Unknown stencil action {:?}", both_pass).into());
+    };
+
+    let depth_fail = args.get_string(activation, 3)?;
+    let Some(depth_fail) = Context3DStencilAction::from_wstr(&depth_fail) else {
+        return Err(format!("Unknown stencil action {:?}", depth_fail).into());
+    };
+
+    let depth_pass_stencil_fail = args.get_string(activation, 4)?;
+    let Some(depth_pass_stencil_fail) = Context3DStencilAction::from_wstr(&depth_pass_stencil_fail)
+    else {
+        return Err(format!("Unknown stencil action {:?}", depth_pass_stencil_fail).into());
+    };
+
+    context3d.set_stencil_actions(
+        triangle_face,
+        compare_mode,
+        both_pass,
+        depth_fail,
+        depth_pass_stencil_fail,
+    );
+
     Ok(Value::Undefined)
 }

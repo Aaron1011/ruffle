@@ -13,8 +13,8 @@ use gc_arena::lock::RefLock;
 use gc_arena::{Collect, Gc, GcCell, GcWeak, Mutation};
 use ruffle_render::backend::{
     BufferUsage, Context3D, Context3DBlendFactor, Context3DCommand, Context3DCompareMode,
-    Context3DTextureFormat, Context3DTriangleFace, Context3DVertexBufferFormat, ProgramType,
-    Texture,
+    Context3DStencilAction, Context3DTextureFormat, Context3DTriangleFace,
+    Context3DVertexBufferFormat, ProgramType, Texture,
 };
 use ruffle_render::commands::CommandHandler;
 use std::cell::{Cell, Ref, RefMut};
@@ -453,6 +453,40 @@ impl<'gc> Context3DObject<'gc> {
     pub(crate) fn set_scissor_rectangle(&self, rect: Option<Rectangle<Twips>>) {
         self.with_context_3d(|ctx| {
             ctx.process_command(Context3DCommand::SetScissorRectangle { rect })
+        });
+    }
+
+    pub(crate) fn set_stencil_reference_value(
+        &self,
+        reference_val: u8,
+        read_mask: u8,
+        write_mask: u8,
+    ) {
+        self.with_context_3d(|ctx| {
+            ctx.process_command(Context3DCommand::SetStencilReferenceValue {
+                reference_val,
+                read_mask,
+                write_mask,
+            });
+        });
+    }
+
+    pub(crate) fn set_stencil_actions(
+        &self,
+        triangle_face: Context3DTriangleFace,
+        compare_mode: Context3DCompareMode,
+        both_pass: Context3DStencilAction,
+        depth_fail: Context3DStencilAction,
+        depth_pass_stencil_fail: Context3DStencilAction,
+    ) {
+        self.with_context_3d(|ctx| {
+            ctx.process_command(Context3DCommand::SetStencilActions {
+                triangle_face,
+                compare_mode,
+                both_pass,
+                depth_fail,
+                depth_pass_stencil_fail,
+            });
         });
     }
 }

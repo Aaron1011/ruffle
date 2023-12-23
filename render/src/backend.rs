@@ -274,7 +274,7 @@ pub enum Context3DVertexBufferFormat {
     Bytes4,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Context3DTriangleFace {
     None,
     Back,
@@ -282,7 +282,59 @@ pub enum Context3DTriangleFace {
     FrontAndBack,
 }
 
-#[derive(Copy, Clone, Debug)]
+impl Context3DTriangleFace {
+    pub fn from_wstr(s: &WStr) -> Option<Self> {
+        if s == b"none" {
+            Some(Context3DTriangleFace::None)
+        } else if s == b"back" {
+            Some(Context3DTriangleFace::Back)
+        } else if s == b"front" {
+            Some(Context3DTriangleFace::Front)
+        } else if s == b"frontAndBack" {
+            Some(Context3DTriangleFace::FrontAndBack)
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Context3DStencilAction {
+    DECREMENT_SATURATE,
+    DECREMENT_WRAP,
+    INCREMENT_SATURATE,
+    INCREMENT_WRAP,
+    INVERT,
+    KEEP,
+    SET,
+    ZERO,
+}
+
+impl Context3DStencilAction {
+    pub fn from_wstr(s: &WStr) -> Option<Self> {
+        if s == b"decrementSaturate" {
+            Some(Context3DStencilAction::DECREMENT_SATURATE)
+        } else if s == b"decrementWrap" {
+            Some(Context3DStencilAction::DECREMENT_WRAP)
+        } else if s == b"incrementSaturate" {
+            Some(Context3DStencilAction::INCREMENT_SATURATE)
+        } else if s == b"incrementWrap" {
+            Some(Context3DStencilAction::INCREMENT_WRAP)
+        } else if s == b"invert" {
+            Some(Context3DStencilAction::INVERT)
+        } else if s == b"keep" {
+            Some(Context3DStencilAction::KEEP)
+        } else if s == b"set" {
+            Some(Context3DStencilAction::SET)
+        } else if s == b"zero" {
+            Some(Context3DStencilAction::ZERO)
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Context3DCompareMode {
     Never,
     Less,
@@ -470,6 +522,18 @@ pub enum Context3DCommand<'a> {
     },
     SetScissorRectangle {
         rect: Option<Rectangle<Twips>>,
+    },
+    SetStencilReferenceValue {
+        reference_val: u8,
+        read_mask: u8,
+        write_mask: u8,
+    },
+    SetStencilActions {
+        triangle_face: Context3DTriangleFace,
+        compare_mode: Context3DCompareMode,
+        both_pass: Context3DStencilAction,
+        depth_fail: Context3DStencilAction,
+        depth_pass_stencil_fail: Context3DStencilAction,
     },
 }
 

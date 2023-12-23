@@ -1,8 +1,8 @@
 use naga::valid::{Capabilities, ValidationFlags, Validator};
 use naga_agal::{Filter, SamplerConfig, Wrapping};
 use ruffle_render::backend::{
-    Context3DTextureFilter, Context3DTriangleFace, Context3DVertexBufferFormat, Context3DWrapMode,
-    Texture,
+    Context3DCompareMode, Context3DStencilAction, Context3DTextureFilter, Context3DTriangleFace,
+    Context3DVertexBufferFormat, Context3DWrapMode, Texture,
 };
 
 use wgpu::{
@@ -91,6 +91,15 @@ pub struct CurrentPipeline {
     // (which allows rendering with an 'ignoresampler' tex opcode,
     // and no calls to Context3D.setSamplerStateAt)
     sampler_configs: [SamplerConfig; 8],
+
+    stencil_triangle_face: Context3DTriangleFace,
+    stencil_read_mask: u8,
+    stencil_write_mask: u8,
+
+    stencil_action_both_pass: Context3DStencilAction,
+    stencil_action_depth_fail: Context3DStencilAction,
+    stencil_action_depth_pass_stencil_fail: Context3DStencilAction,
+    stencil_compare_mode: Context3DCompareMode,
 }
 
 #[derive(Clone)]
@@ -166,6 +175,14 @@ impl CurrentPipeline {
             target_format: TextureFormat::Rgba8Unorm,
 
             sampler_configs: [SamplerConfig::default(); 8],
+
+            stencil_compare_mode: Context3DCompareMode::Always,
+            stencil_triangle_face: Context3DTriangleFace::FrontAndBack,
+            stencil_read_mask: 255,
+            stencil_write_mask: 255,
+            stencil_action_both_pass: Context3DStencilAction::KEEP,
+            stencil_action_depth_fail: Context3DStencilAction::KEEP,
+            stencil_action_depth_pass_stencil_fail: Context3DStencilAction::KEEP,
         }
     }
     pub fn set_shaders(&mut self, shaders: Option<Rc<ShaderPairAgal>>) {
@@ -447,6 +464,41 @@ impl CurrentPipeline {
             Context3DTriangleFace::None => None,
         };
 
+        let convert_stencil_action = |action: Context3DStencilAction| match action {
+            Context3DStencilAction::KEEP => wgpu::StencilOperation::Keep,
+            Context3DStencilAction::ZERO => wgpu::StencilOperation::Zero,
+            Context3DStencilAction::SET => wgpu::StencilOperation::Replace,
+            Context3DStencilAction::INVERT => wgpu::StencilOperation::Invert,
+            Context3DStencilAction::INCREMENT_SATURATE => wgpu::StencilOperation::IncrementClamp,
+            Context3DStencilAction::DECREMENT_SATURATE => wgpu::StencilOperation::DecrementClamp,
+            Context3DStencilAction::INCREMENT_WRAP => wgpu::StencilOperation::IncrementWrap,
+            Context3DStencilAction::DECREMENT_WRAP => wgpu::StencilOperation::DecrementWrap,
+        };
+
+        let stencil_both_pass = convert_stencil_action(self.stencil_action_both_pass);
+        let stencil_depth_fail = convert_stencil_action(self.stencil_action_depth_fail);
+        let stencil_depth_pass_stencil_fail =
+            convert_stencil_action(self.stencil_action_depth_pass_stencil_fail);
+
+        let stencil_compare = match self.stencil_compare_mode {
+            Context3DCompareMode::Always => wgpu::CompareFunction::Always,
+            Context3DCompareMode::Equal => wgpu::CompareFunction::Equal,
+            Context3DCompareMode::Greater => wgpu::CompareFunction::Greater,
+            Context3DCompareMode::GreaterEqual => wgpu::CompareFunction::GreaterEqual,
+            Context3DCompareMode::Less => wgpu::CompareFunction::Less,
+            Context3DCompareMode::LessEqual => wgpu::CompareFunction::LessEqual,
+            Context3DCompareMode::Never => wgpu::CompareFunction::Never,
+            Context3DCompareMode::NotEqual => wgpu::CompareFunction::NotEqual,
+        };
+
+        // FIXME - these don't match up with what Stage3D wants
+        let active_stencil_state = StencilFaceState {
+            compare: stencil_compare,
+            fail_op: stencil_depth_fail,
+            depth_fail_op: stencil_depth_pass_stencil_fail,
+            pass_op: stencil_both_pass,
+        };
+
         let depth_stencil = if self.has_depth_texture {
             Some(DepthStencilState {
                 format: TextureFormat::Depth24PlusStencil8,
@@ -454,10 +506,24 @@ impl CurrentPipeline {
                 depth_compare: self.pass_compare_mode,
                 // FIXME - implement this
                 stencil: wgpu::StencilState {
-                    front: StencilFaceState::IGNORE,
-                    back: StencilFaceState::IGNORE,
-                    read_mask: !0,
-                    write_mask: !0,
+                    front: match self.stencil_triangle_face {
+                        Context3DTriangleFace::Back | Context3DTriangleFace::None => {
+                            StencilFaceState::IGNORE
+                        }
+                        Context3DTriangleFace::Front | Context3DTriangleFace::FrontAndBack => {
+                            active_stencil_state
+                        }
+                    },
+                    back: match self.stencil_triangle_face {
+                        Context3DTriangleFace::Front | Context3DTriangleFace::None => {
+                            StencilFaceState::IGNORE
+                        }
+                        Context3DTriangleFace::Back | Context3DTriangleFace::FrontAndBack => {
+                            active_stencil_state
+                        }
+                    },
+                    read_mask: self.stencil_read_mask.into(),
+                    write_mask: self.stencil_write_mask.into(),
                 },
                 bias: Default::default(),
             })
@@ -569,6 +635,37 @@ impl CurrentPipeline {
         };
         self.dirty.set(true);
         self.sampler_configs[sampler] = sampler_config;
+    }
+
+    pub(crate) fn update_stencil_masks(&mut self, read_mask: u8, write_mask: u8) {
+        if self.stencil_read_mask != read_mask || self.stencil_write_mask != write_mask {
+            self.dirty.set(true);
+            self.stencil_read_mask = read_mask;
+            self.stencil_write_mask = write_mask;
+        }
+    }
+
+    pub(crate) fn update_stencil_actions(
+        &mut self,
+        triangle_face: Context3DTriangleFace,
+        compare_mode: Context3DCompareMode,
+        both_pass: Context3DStencilAction,
+        depth_fail: Context3DStencilAction,
+        depth_pass_stencil_fail: Context3DStencilAction,
+    ) {
+        if self.stencil_triangle_face != triangle_face
+            || self.stencil_compare_mode != compare_mode
+            || self.stencil_action_both_pass != both_pass
+            || self.stencil_action_depth_fail != depth_fail
+            || self.stencil_action_depth_pass_stencil_fail != depth_pass_stencil_fail
+        {
+            self.dirty.set(true);
+            self.stencil_triangle_face = triangle_face;
+            self.stencil_compare_mode = compare_mode;
+            self.stencil_action_both_pass = both_pass;
+            self.stencil_action_depth_fail = depth_fail;
+            self.stencil_action_depth_pass_stencil_fail = depth_pass_stencil_fail;
+        }
     }
 }
 
