@@ -20,8 +20,8 @@ use super::{ClassObject, Object, ObjectPtr, ScriptObjectData, TObject};
 
 /// A class instance allocator that allocates Worker objects.
 pub fn worker_allocator<'gc>(
-    class: ClassObject<'gc>,
-    activation: &mut Activation<'_, 'gc>,
+    _class: ClassObject<'gc>,
+    _activation: &mut Activation<'_, 'gc>,
 ) -> Result<Object<'gc>, Error<'gc>> {
     unreachable!()
 }
@@ -119,7 +119,7 @@ impl<'gc> WorkerObject<'gc> {
             panic!("Worker already started!");
         }
 
-        let handle = std::thread::spawn(|| {
+        let handle = std::thread::spawn(move || {
             let player = PlayerBuilder::new().with_movie(movie).build();
             let mut player = player.lock().unwrap();
             // FIXME - sleep betweeen frames

@@ -143,7 +143,7 @@ pub use crate::avm2::object::vector_object::{vector_allocator, VectorObject, Vec
 pub use crate::avm2::object::vertex_buffer_3d_object::{
     VertexBuffer3DObject, VertexBuffer3DObjectWeak,
 };
-pub use crate::avm2::object::worker_object::{WorkerObject, WorkerObjectWeak};
+pub use crate::avm2::object::worker_object::{worker_allocator, WorkerObject, WorkerObjectWeak};
 pub use crate::avm2::object::xml_list_object::{
     xml_list_allocator, E4XOrXml, XmlListObject, XmlListObjectWeak,
 };
@@ -1576,6 +1576,7 @@ impl<'gc> WeakObject<'gc> {
             Self::SocketObject(o) => SocketObject(o.0.upgrade(mc)?).into(),
             Self::FontObject(o) => FontObject(o.0.upgrade(mc)?).into(),
             Self::LocalConnectionObject(o) => LocalConnectionObject(o.0.upgrade(mc)?).into(),
+            Self::WorkerObject(o) => WorkerObject(o.0.upgrade(mc)?).into(),
         })
     }
 }
