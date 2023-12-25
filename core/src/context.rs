@@ -3,6 +3,7 @@
 use crate::avm1::Avm1;
 use crate::avm1::SystemProperties;
 use crate::avm1::{Object as Avm1Object, Value as Avm1Value};
+use crate::avm2::object::WorkerObject;
 use crate::avm2::{Avm2, Object as Avm2Object, SoundChannelObject};
 use crate::backend::{
     audio::{AudioBackend, AudioManager, SoundHandle, SoundInstanceHandle},
@@ -238,6 +239,8 @@ pub struct UpdateContext<'a, 'gc> {
 
     /// Dynamic root for allowing handles to GC objects to exist outside of the GC.
     pub dynamic_root: gc_arena::DynamicRootSet<'gc>,
+
+    pub worker: Avm2Object<'gc>,
 }
 
 /// Convenience methods for controlling audio.
@@ -400,6 +403,7 @@ impl<'a, 'gc> UpdateContext<'a, 'gc> {
             net_connections: self.net_connections,
             local_connections: self.local_connections,
             dynamic_root: self.dynamic_root,
+            worker: self.worker
         }
     }
 

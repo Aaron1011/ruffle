@@ -65,6 +65,7 @@ mod textformat_object;
 mod texture_object;
 mod vector_object;
 mod vertex_buffer_3d_object;
+mod worker_object;
 mod xml_list_object;
 mod xml_object;
 
@@ -142,6 +143,7 @@ pub use crate::avm2::object::vector_object::{vector_allocator, VectorObject, Vec
 pub use crate::avm2::object::vertex_buffer_3d_object::{
     VertexBuffer3DObject, VertexBuffer3DObjectWeak,
 };
+pub use crate::avm2::object::worker_object::{WorkerObject, WorkerObjectWeak};
 pub use crate::avm2::object::xml_list_object::{
     xml_list_allocator, E4XOrXml, XmlListObject, XmlListObjectWeak,
 };
@@ -192,7 +194,8 @@ use crate::font::Font;
         ShaderDataObject(ShaderDataObject<'gc>),
         SocketObject(SocketObject<'gc>),
         FontObject(FontObject<'gc>),
-        LocalConnectionObject(LocalConnectionObject<'gc>)
+        LocalConnectionObject(LocalConnectionObject<'gc>),
+        WorkerObject(WorkerObject<'gc>)
     }
 )]
 pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy {
@@ -1265,6 +1268,10 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
         None
     }
 
+    fn as_worker_object(&self) -> Option<WorkerObject<'gc>> {
+        None
+    }
+
     /// Unwrap this object as a mutable list of event handlers.
     fn as_dispatch_mut(&self, _mc: &Mutation<'gc>) -> Option<RefMut<DispatchList<'gc>>> {
         None
@@ -1464,6 +1471,7 @@ impl<'gc> Object<'gc> {
             Self::SocketObject(o) => WeakObject::SocketObject(SocketObjectWeak(Gc::downgrade(o.0))),
             Self::FontObject(o) => WeakObject::FontObject(FontObjectWeak(GcCell::downgrade(o.0))),
             Self::LocalConnectionObject(o) => WeakObject::LocalConnectionObject(LocalConnectionObjectWeak(GcCell::downgrade(o.0))),
+            Self::WorkerObject(o) => WeakObject::WorkerObject(WorkerObjectWeak(GcCell::downgrade(o.0)))
         }
     }
 }
@@ -1524,6 +1532,7 @@ pub enum WeakObject<'gc> {
     SocketObject(SocketObjectWeak<'gc>),
     FontObject(FontObjectWeak<'gc>),
     LocalConnectionObject(LocalConnectionObjectWeak<'gc>),
+    WorkerObject(WorkerObjectWeak<'gc>),
 }
 
 impl<'gc> WeakObject<'gc> {

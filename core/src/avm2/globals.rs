@@ -171,6 +171,7 @@ pub struct SystemClasses<'gc> {
     pub textline: ClassObject<'gc>,
     pub sampledataevent: ClassObject<'gc>,
     pub avm1movie: ClassObject<'gc>,
+    pub worker: ClassObject<'gc>,
 }
 
 impl<'gc> SystemClasses<'gc> {
@@ -300,6 +301,7 @@ impl<'gc> SystemClasses<'gc> {
             textline: object,
             sampledataevent: object,
             avm1movie: object,
+            worker: object,
         }
     }
 }

@@ -7,9 +7,10 @@ use crate::avm1::VariableDumper;
 use crate::avm1::{Activation, ActivationIdentifier};
 use crate::avm1::{ScriptObject, TObject, Value};
 use crate::avm2::api_version::ApiVersion;
+use crate::avm2::object::WorkerObject;
 use crate::avm2::{
     object::LoaderInfoObject, object::TObject as _, Activation as Avm2Activation, Avm2, CallStack,
-    Object as Avm2Object,
+    Object as Avm2Object, ScriptObject as Avm2ScriptObject,
 };
 use crate::backend::ui::FontDefinition;
 use crate::backend::{
@@ -178,6 +179,8 @@ struct GcRootData<'gc> {
 
     /// Dynamic root for allowing handles to GC objects to exist outside of the GC.
     dynamic_root: DynamicRootSet<'gc>,
+
+    worker: Avm2Object<'gc>,
 }
 
 impl<'gc> GcRootData<'gc> {
@@ -207,6 +210,7 @@ impl<'gc> GcRootData<'gc> {
         &mut NetConnections<'gc>,
         &mut LocalConnections<'gc>,
         DynamicRootSet<'gc>,
+        Avm2Object<'gc>,
     ) {
         (
             self.stage,
@@ -229,6 +233,7 @@ impl<'gc> GcRootData<'gc> {
             &mut self.net_connections,
             &mut self.local_connections,
             self.dynamic_root,
+            self.worker,
         )
     }
 }
@@ -1917,6 +1922,7 @@ impl Player {
                 net_connections,
                 local_connections,
                 dynamic_root,
+                worker,
             ) = root_data.update_context_params();
 
             let mut update_context = UpdateContext {
@@ -1971,6 +1977,7 @@ impl Player {
                 net_connections,
                 local_connections,
                 dynamic_root,
+                worker,
             };
 
             let prev_frame_rate = *update_context.frame_rate;
@@ -2487,6 +2494,7 @@ impl PlayerBuilder {
                     net_connections: NetConnections::default(),
                     local_connections: LocalConnections::empty(),
                     dynamic_root,
+                    worker: Avm2ScriptObject::custom_object(gc_context, None, None),
                 },
             ),
         }

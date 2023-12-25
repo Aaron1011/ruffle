@@ -5,7 +5,10 @@ package flash.system {
         }
 
         public static function get isSupported():Boolean {
-            return false;
+            return true;
         }
+
+        public static native function get current():Worker;
+        public static native function get isPrimordial():Boolean
     }
 }
