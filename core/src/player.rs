@@ -181,6 +181,7 @@ struct GcRootData<'gc> {
     dynamic_root: DynamicRootSet<'gc>,
 
     worker: Avm2Object<'gc>,
+    worker_domain: Avm2Object<'gc>,
 }
 
 impl<'gc> GcRootData<'gc> {
@@ -211,6 +212,7 @@ impl<'gc> GcRootData<'gc> {
         &mut LocalConnections<'gc>,
         DynamicRootSet<'gc>,
         Avm2Object<'gc>,
+        Avm2Object<'gc>,
     ) {
         (
             self.stage,
@@ -234,6 +236,7 @@ impl<'gc> GcRootData<'gc> {
             &mut self.local_connections,
             self.dynamic_root,
             self.worker,
+            self.worker_domain,
         )
     }
 }
@@ -1923,6 +1926,7 @@ impl Player {
                 local_connections,
                 dynamic_root,
                 worker,
+                worker_domain,
             ) = root_data.update_context_params();
 
             let mut update_context = UpdateContext {
@@ -1978,6 +1982,7 @@ impl Player {
                 local_connections,
                 dynamic_root,
                 worker,
+                worker_domain,
             };
 
             let prev_frame_rate = *update_context.frame_rate;
@@ -2495,6 +2500,7 @@ impl PlayerBuilder {
                     local_connections: LocalConnections::empty(),
                     dynamic_root,
                     worker: Avm2ScriptObject::custom_object(gc_context, None, None),
+                    worker_domain: Avm2ScriptObject::custom_object(gc_context, None, None),
                 },
             ),
         }

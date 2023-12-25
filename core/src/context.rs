@@ -241,6 +241,8 @@ pub struct UpdateContext<'a, 'gc> {
     pub dynamic_root: gc_arena::DynamicRootSet<'gc>,
 
     pub worker: Avm2Object<'gc>,
+
+    pub worker_domain: Avm2Object<'gc>,
 }
 
 /// Convenience methods for controlling audio.
@@ -403,7 +405,8 @@ impl<'a, 'gc> UpdateContext<'a, 'gc> {
             net_connections: self.net_connections,
             local_connections: self.local_connections,
             dynamic_root: self.dynamic_root,
-            worker: self.worker
+            worker: self.worker,
+            worker_domain: self.worker_domain,
         }
     }
 

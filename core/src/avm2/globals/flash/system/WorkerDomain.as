@@ -8,6 +8,8 @@ package flash.system {
             throw new ArgumentError("Error #2012: WorkerDomain$ class cannot be instantiated.", 2012)
         }
 
+        public static native function get current():WorkerDomain;
+
         public native function createWorker(swf:ByteArray, giveAppPrivileges:Boolean = false):Worker
     }
 }
