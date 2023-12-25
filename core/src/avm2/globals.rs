@@ -813,7 +813,7 @@ fn load_playerglobal<'gc>(
             ("flash.utils", "ByteArray", bytearray),
             ("flash.system", "ApplicationDomain", application_domain),
             ("flash.system", "Worker", worker),
-            ("flash.systen", "WorkerDomain", workerdomain),
+            ("flash.system", "WorkerDomain", workerdomain),
             ("flash.text", "Font", font),
             ("flash.text", "StaticText", statictext),
             ("flash.text", "TextFormat", textformat),
