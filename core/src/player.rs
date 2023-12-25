@@ -2628,7 +2628,6 @@ impl PlayerBuilder {
         player_lock.mutate_with_update_context(|context| {
             Avm2::load_player_globals(context).expect("Unable to load AVM2 globals");
             *context.worker = WorkerObject::new_primordial(context).into();
-            //*context.worker_domain = context.avm2.classes().workerdomain.native_constructor()
             let stage = context.stage;
             stage.set_align(context, self.align);
             stage.set_forced_align(context, self.forced_align);
@@ -2636,6 +2635,20 @@ impl PlayerBuilder {
             stage.set_forced_scale_mode(context, self.forced_scale_mode);
             stage.post_instantiation(context, None, Instantiator::Movie, false);
             stage.build_matrices(context);
+
+            let mut activation = Avm2Activation::from_nothing(context.reborrow());
+            let worker_domain = Avm2ScriptObject::custom_object(
+                activation.context.gc_context,
+                Some(activation.avm2().classes().workerdomain),
+                None,
+            );
+            activation
+                .avm2()
+                .classes()
+                .workerdomain
+                .call_native_init(worker_domain.into(), &[], &mut activation)
+                .unwrap();
+            *activation.context.worker_domain = worker_domain;
         });
         player_lock.gc_arena.borrow().mutate(|context, root| {
             let call_stack = root.data.read().avm2.call_stack();
