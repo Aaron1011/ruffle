@@ -1,7 +1,10 @@
 use std::{
     cell::{Ref, RefMut},
     fmt,
-    sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
     thread::JoinHandle,
 };
 
@@ -9,7 +12,8 @@ use gc_arena::{Collect, GcCell, GcWeakCell, Mutation};
 
 use crate::{
     avm2::{Activation, Error, Value},
-    Player,
+    tag_utils::SwfMovie,
+    Player, PlayerBuilder,
 };
 
 use super::{ClassObject, Object, ObjectPtr, ScriptObjectData, TObject};
@@ -43,7 +47,7 @@ impl fmt::Debug for WorkerObject<'_> {
 pub enum WorkerKind {
     Primordial,
     NonPrimordial {
-        player: Arc<Mutex<Player>>,
+        movie: SwfMovie,
         running: Arc<AtomicBool>,
         join_handle: Option<JoinHandle<()>>,
     },
@@ -70,7 +74,7 @@ impl<'gc> WorkerObject<'gc> {
 
     pub fn new_non_primordial(
         &self,
-        other_player: Arc<Mutex<Player>>,
+        movie: SwfMovie,
         activation: &mut Activation<'_, 'gc>,
     ) -> Self {
         let class = activation.avm2().classes().worker;
@@ -83,7 +87,7 @@ impl<'gc> WorkerObject<'gc> {
             WorkerObjectData {
                 base,
                 kind: WorkerKind::NonPrimordial {
-                    player: other_player,
+                    movie,
                     running: running.clone(),
                     join_handle: None,
                 },
@@ -99,23 +103,25 @@ impl<'gc> WorkerObject<'gc> {
     }
 
     pub fn start(&self, activation: &mut Activation<'_, 'gc>) {
-        let write = self.0.write(activation.context.gc_context);
+        let mut write = self.0.write(activation.context.gc_context);
         let WorkerKind::NonPrimordial {
-            player,
             running,
             ref mut join_handle,
+            movie,
         } = &mut write.kind
         else {
             panic!("Can't start primordial worker!")
         };
+        // FIXME - use Arc
+        let movie = movie.clone();
         let running = running.clone();
-        let player = player.clone();
         if join_handle.is_some() {
             panic!("Worker already started!");
         }
 
         let handle = std::thread::spawn(|| {
-            let player = player.lock().unwrap();
+            let player = PlayerBuilder::new().with_movie(movie).build();
+            let mut player = player.lock().unwrap();
             // FIXME - sleep betweeen frames
             while running.load(Ordering::Relaxed) {
                 player.tick(100.0);

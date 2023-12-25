@@ -17,15 +17,13 @@ pub fn create_worker<'gc>(
     let bytes = swf.read_at(swf.len(), 0).unwrap();
     let give_app_privileges = args.get_bool(1);
 
-    let new_player = PlayerBuilder::new()
-        .with_movie(SwfMovie::from_data(bytes, String::new(), None).unwrap())
-        .build();
+    let movie = SwfMovie::from_data(bytes, String::new(), None).unwrap();
 
     let worker = activation
         .context
         .worker
         .as_worker_object()
         .unwrap()
-        .new_non_primordial(new_player, activation);
+        .new_non_primordial(movie, activation);
     Ok(worker.into())
 }
