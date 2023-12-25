@@ -1,6 +1,7 @@
 package flash.system {
     import flash.utils.ByteArray;
     
+    [Ruffle(NativeInstanceInit)]
     public final class WorkerDomain {
         public static const isSupported: Boolean = false;
 

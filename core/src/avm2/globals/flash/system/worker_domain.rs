@@ -1,8 +1,17 @@
 use crate::{
     avm2::{parameters::ParametersExt, Activation, Error, Object, TObject, Value},
     tag_utils::SwfMovie,
-    PlayerBuilder,
 };
+
+pub fn native_instance_init<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    this: Object<'gc>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    activation.super_init(this, &[])?;
+
+    Ok(Value::Undefined)
+}
 
 pub fn get_current<'gc>(
     activation: &mut Activation<'_, 'gc>,
