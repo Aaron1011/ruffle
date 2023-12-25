@@ -13,7 +13,7 @@ use gc_arena::{Collect, GcCell, GcWeakCell, Mutation};
 use crate::{
     avm2::{Activation, Error, Value},
     tag_utils::SwfMovie,
-    Player, PlayerBuilder,
+    Player, PlayerBuilder, context::UpdateContext,
 };
 
 use super::{ClassObject, Object, ObjectPtr, ScriptObjectData, TObject};
@@ -58,12 +58,12 @@ pub struct WorkerHandle {
 }
 
 impl<'gc> WorkerObject<'gc> {
-    pub fn new_primordial(activation: &mut Activation<'_, 'gc>) -> Self {
-        let class = activation.avm2().classes().worker;
+    pub fn new_primordial(context: &mut UpdateContext<'_, 'gc>) -> Self {
+        let class = context.avm2.classes().worker;
         let base = ScriptObjectData::new(class);
 
         WorkerObject(GcCell::new(
-            activation.context.gc_context,
+            context.gc_context,
             WorkerObjectData {
                 base,
                 kind: WorkerKind::Primordial,

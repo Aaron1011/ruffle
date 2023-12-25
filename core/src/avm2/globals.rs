@@ -172,6 +172,7 @@ pub struct SystemClasses<'gc> {
     pub sampledataevent: ClassObject<'gc>,
     pub avm1movie: ClassObject<'gc>,
     pub worker: ClassObject<'gc>,
+    pub workerdomain: ClassObject<'gc>,
 }
 
 impl<'gc> SystemClasses<'gc> {
@@ -302,6 +303,7 @@ impl<'gc> SystemClasses<'gc> {
             sampledataevent: object,
             avm1movie: object,
             worker: object,
+            workerdomain: object,
         }
     }
 }
@@ -810,6 +812,8 @@ fn load_playerglobal<'gc>(
             ("flash.net", "URLVariables", urlvariables),
             ("flash.utils", "ByteArray", bytearray),
             ("flash.system", "ApplicationDomain", application_domain),
+            ("flash.system", "Worker", worker),
+            ("flash.systen", "WorkerDomain", workerdomain),
             ("flash.text", "Font", font),
             ("flash.text", "StaticText", statictext),
             ("flash.text", "TextFormat", textformat),

@@ -211,8 +211,8 @@ impl<'gc> GcRootData<'gc> {
         &mut NetConnections<'gc>,
         &mut LocalConnections<'gc>,
         DynamicRootSet<'gc>,
-        Avm2Object<'gc>,
-        Avm2Object<'gc>,
+        &mut Avm2Object<'gc>,
+        &mut Avm2Object<'gc>,
     ) {
         (
             self.stage,
@@ -235,8 +235,8 @@ impl<'gc> GcRootData<'gc> {
             &mut self.net_connections,
             &mut self.local_connections,
             self.dynamic_root,
-            self.worker,
-            self.worker_domain,
+            &mut self.worker,
+            &mut self.worker_domain,
         )
     }
 }
@@ -2627,6 +2627,8 @@ impl PlayerBuilder {
 
         player_lock.mutate_with_update_context(|context| {
             Avm2::load_player_globals(context).expect("Unable to load AVM2 globals");
+            *context.worker = WorkerObject::new_primordial(context).into();
+            //*context.worker_domain = context.avm2.classes().workerdomain.native_constructor()
             let stage = context.stage;
             stage.set_align(context, self.align);
             stage.set_forced_align(context, self.forced_align);

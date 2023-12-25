@@ -240,9 +240,9 @@ pub struct UpdateContext<'a, 'gc> {
     /// Dynamic root for allowing handles to GC objects to exist outside of the GC.
     pub dynamic_root: gc_arena::DynamicRootSet<'gc>,
 
-    pub worker: Avm2Object<'gc>,
+    pub worker: &'a mut Avm2Object<'gc>,
 
-    pub worker_domain: Avm2Object<'gc>,
+    pub worker_domain: &'a mut Avm2Object<'gc>,
 }
 
 /// Convenience methods for controlling audio.

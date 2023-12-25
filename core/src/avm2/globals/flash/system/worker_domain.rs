@@ -4,13 +4,12 @@ use crate::{
     PlayerBuilder,
 };
 
-
 pub fn get_current<'gc>(
     activation: &mut Activation<'_, 'gc>,
     _this: Object<'gc>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
-    Ok(activation.context.worker_domain.into())
+    Ok((*activation.context.worker_domain).into())
 }
 
 pub fn create_worker<'gc>(

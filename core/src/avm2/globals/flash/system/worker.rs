@@ -1,12 +1,12 @@
-use crate::avm2::{Activation, Error, Object, Value, TObject};
 pub use crate::avm2::object::worker_allocator;
+use crate::avm2::{Activation, Error, Object, TObject, Value};
 
 pub fn get_current<'gc>(
     activation: &mut Activation<'_, 'gc>,
     _this: Object<'gc>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
-    Ok(activation.context.worker.into())
+    Ok((*activation.context.worker).into())
 }
 
 pub fn get_is_primordial<'gc>(
