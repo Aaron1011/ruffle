@@ -62,6 +62,7 @@ mod soundchannel_object;
 mod stage3d_object;
 mod stage_object;
 mod textformat_object;
+mod messagechannel_object;;
 mod texture_object;
 mod vector_object;
 mod vertex_buffer_3d_object;
@@ -150,6 +151,8 @@ pub use crate::avm2::object::xml_list_object::{
 pub use crate::avm2::object::xml_object::{xml_allocator, XmlObject, XmlObjectWeak};
 use crate::font::Font;
 
+pub use crate::avm2::object::messagechannel_object::{messagechannel_allocator, MessageChannelObject, MessageChannelObjectWeak};
+
 /// Represents an object that can be directly interacted with by the AVM2
 /// runtime.
 #[enum_trait_object(
@@ -195,7 +198,8 @@ use crate::font::Font;
         SocketObject(SocketObject<'gc>),
         FontObject(FontObject<'gc>),
         LocalConnectionObject(LocalConnectionObject<'gc>),
-        WorkerObject(WorkerObject<'gc>)
+        WorkerObject(WorkerObject<'gc>),
+        MessageChannelObject(MessageChannelObject<'gc>)
     }
 )]
 pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy {
@@ -1269,6 +1273,10 @@ pub trait TObject<'gc>: 'gc + Collect + Debug + Into<Object<'gc>> + Clone + Copy
     }
 
     fn as_worker_object(&self) -> Option<WorkerObject<'gc>> {
+        None
+    }
+
+    fn as_message_channel_object(&self) -> Option<MessageChannelObject<'gc>> {
         None
     }
 

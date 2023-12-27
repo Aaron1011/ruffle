@@ -7,6 +7,7 @@ pub mod security;
 pub mod system;
 pub mod worker;
 pub mod worker_domain;
+pub mod message_channel;
 
 use crate::avm2::activation::Activation;
 use crate::avm2::object::Object;

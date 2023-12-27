@@ -173,6 +173,9 @@ pub struct SystemClasses<'gc> {
     pub avm1movie: ClassObject<'gc>,
     pub worker: ClassObject<'gc>,
     pub workerdomain: ClassObject<'gc>,
+    pub messagechannel: ClassObject<'gc>,
+    pub mutex: ClassObject<'gc>,
+    pub condition: ClassObject<'gc>,
 }
 
 impl<'gc> SystemClasses<'gc> {
@@ -735,6 +738,8 @@ fn load_playerglobal<'gc>(
             ("", "VerifyError", verifyerror),
             ("", "XML", xml),
             ("", "XMLList", xml_list),
+            ("flash.concurrent", "Mutex", mutex),
+            ("flash.concurrent", "Condition", condition),
             ("flash.display", "AVM1Movie", avm1movie),
             ("flash.display", "Bitmap", bitmap),
             ("flash.display", "BitmapData", bitmapdata),
@@ -812,6 +817,7 @@ fn load_playerglobal<'gc>(
             ("flash.net", "URLVariables", urlvariables),
             ("flash.utils", "ByteArray", bytearray),
             ("flash.system", "ApplicationDomain", application_domain),
+            ("flash.system", "MessageChannel", messagechannel),
             ("flash.system", "Worker", worker),
             ("flash.system", "WorkerDomain", workerdomain),
             ("flash.text", "Font", font),
