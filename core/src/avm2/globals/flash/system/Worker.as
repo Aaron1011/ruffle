@@ -10,6 +10,8 @@ package flash.system {
         }
 
         public static native function get current():Worker;
-        public static native function get isPrimordial():Boolean
+        public static native function get isPrimordial():Boolean;
+
+        public native function createMessageChannel(receiver:Worker):MessageChannel;
     }
 }
