@@ -62,7 +62,7 @@ mod soundchannel_object;
 mod stage3d_object;
 mod stage_object;
 mod textformat_object;
-mod messagechannel_object;;
+mod messagechannel_object;
 mod texture_object;
 mod vector_object;
 mod vertex_buffer_3d_object;
@@ -151,7 +151,7 @@ pub use crate::avm2::object::xml_list_object::{
 pub use crate::avm2::object::xml_object::{xml_allocator, XmlObject, XmlObjectWeak};
 use crate::font::Font;
 
-pub use crate::avm2::object::messagechannel_object::{messagechannel_allocator, MessageChannelObject, MessageChannelObjectWeak};
+pub use crate::avm2::object::messagechannel_object::{messagechannel_allocator, MessageChannelObject, MessageChannelObjectWeak, MessageChannelMessage};
 
 /// Represents an object that can be directly interacted with by the AVM2
 /// runtime.
@@ -1479,7 +1479,8 @@ impl<'gc> Object<'gc> {
             Self::SocketObject(o) => WeakObject::SocketObject(SocketObjectWeak(Gc::downgrade(o.0))),
             Self::FontObject(o) => WeakObject::FontObject(FontObjectWeak(GcCell::downgrade(o.0))),
             Self::LocalConnectionObject(o) => WeakObject::LocalConnectionObject(LocalConnectionObjectWeak(GcCell::downgrade(o.0))),
-            Self::WorkerObject(o) => WeakObject::WorkerObject(WorkerObjectWeak(GcCell::downgrade(o.0)))
+            Self::WorkerObject(o) => WeakObject::WorkerObject(WorkerObjectWeak(GcCell::downgrade(o.0))),
+            Self::MessageChannelObject(o) => WeakObject::MessageChannelObject(MessageChannelObjectWeak(GcCell::downgrade(o.0)))
         }
     }
 }
@@ -1541,6 +1542,7 @@ pub enum WeakObject<'gc> {
     FontObject(FontObjectWeak<'gc>),
     LocalConnectionObject(LocalConnectionObjectWeak<'gc>),
     WorkerObject(WorkerObjectWeak<'gc>),
+    MessageChannelObject(MessageChannelObjectWeak<'gc>),
 }
 
 impl<'gc> WeakObject<'gc> {
@@ -1585,6 +1587,7 @@ impl<'gc> WeakObject<'gc> {
             Self::FontObject(o) => FontObject(o.0.upgrade(mc)?).into(),
             Self::LocalConnectionObject(o) => LocalConnectionObject(o.0.upgrade(mc)?).into(),
             Self::WorkerObject(o) => WorkerObject(o.0.upgrade(mc)?).into(),
+            Self::MessageChannelObject(o) => MessageChannelObject(o.0.upgrade(mc)?).into(),
         })
     }
 }

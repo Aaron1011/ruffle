@@ -307,6 +307,9 @@ impl<'gc> SystemClasses<'gc> {
             avm1movie: object,
             worker: object,
             workerdomain: object,
+            messagechannel: object,
+            mutex: object,
+            condition: object,
         }
     }
 }

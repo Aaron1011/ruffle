@@ -49,6 +49,7 @@ pub enum WorkerKind {
     NonPrimordial {
         movie: SwfMovie,
         running: Arc<AtomicBool>,
+        // FIXME - actually join on this on primordial worker shutdown
         join_handle: Option<JoinHandle<()>>,
     },
 }
