@@ -90,6 +90,11 @@ pub enum ObjectEncoding {
     Amf3 = 3,
 }
 
+pub enum BackendKind {
+    Local(Vec<u8>),
+    Shared(Arc<RwLock<Vec<u8>>>),
+}
+
 #[derive(Clone, Collect, Debug)]
 #[collect(no_drop)]
 pub struct ByteArrayStorage {
